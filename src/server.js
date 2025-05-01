@@ -71,9 +71,9 @@ const express = require('express');
      const initializeUsers = async () => {
        const users = [
          { username: 'wilson', password: 'wilson123' },
-         { username: 'coworker1', password: 'coworker1pass' },
-         { username: 'coworker2', password: 'coworker2pass' },
-         { username: 'coworker3', password: 'coworker3pass' }
+         { username: 'carter', password: 'carter123' },
+         { username: 'william', password: 'william123' },
+         { username: 'julia', password: 'julia123' }
        ];
        for (const user of users) {
          const hashedPassword = await bcrypt.hash(user.password, 10);
