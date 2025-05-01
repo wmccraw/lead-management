@@ -1,0 +1,17 @@
+{
+  "name": "lead-management",
+  "version": "1.0.0",
+  "scripts": {
+    "start": "node src/server.js"
+  },
+  "dependencies": {
+    "express": "^4.17.1",
+    "sqlite3": "^5.0.2",
+    "cors": "^2.8.5",
+    "jsonwebtoken": "^8.5.1",
+    "bcryptjs": "^2.4.3"
+  },
+  "engines": {
+    "node": "14.x"
+  }
+}
