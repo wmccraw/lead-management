@@ -11,6 +11,8 @@
            .time-green { background-color: #d4edda; }
            .time-yellow { background-color: #fff3cd; }
            .time-red { background-color: #f8d7da; }
+           table { table-layout: fixed; }
+           th, td { word-wrap: break-word; overflow: hidden; text-overflow: ellipsis; }
          </style>
        </head>
        <body class="bg-gray-100">
@@ -32,32 +34,46 @@
              <button onclick="logout()" class="bg-red-500 text-white px-4 py-2 rounded hover:bg-red-600">Logout</button>
            </div>
            <input id="search-bar" type="text" placeholder="Search leads..." class="w-full p-2 mb-4 border rounded" oninput="filterLeads()">
-           <button onclick="openCreateLeadModal()" class="bg-blue-500 text-white px-4 py-2 mb-4 rounded hover:bg-blue-600">Create Lead</button>
-           <table class="w-full bg-white shadow-md rounded">
-             <thead>
-               <tr class="bg-gray-200">
-                 <th class="p-2 text-left">ID</th>
-                 <th class="p-2 text-left">Customer Name</th>
-                 <th class="p-2 text-left">Categories</th>
-                 <th class="p-2 text-left">Make</th>
-                 <th class="p-2 text-left">Model</th>
-                 <th class="p-2 text-left">Status</th>
-                 <th class="p-2 text-left">Time in System</th>
-                 <th class="p-2 text-left">Actions</th>
-               </tr>
-             </thead>
-             <tbody id="leads-table"></tbody>
-           </table>
+           <button onclick="openLeadModal('create')" class="bg-blue-500 text-white px-4 py-2 mb-4 rounded hover:bg-blue-600">Create Lead</button>
+           <div class="overflow-x-auto">
+             <table class="w-full bg-white shadow-md rounded">
+               <thead>
+                 <tr class="bg-gray-200">
+                   <th class="p-2 text-left">ID</th>
+                   <th class="p-2 text-left">Customer Name</th>
+                   <th class="p-2 text-left">Company</th>
+                   <th class="p-2 text-left">Email</th>
+                   <th class="p-2 text-left">Phone</th>
+                   <th class="p-2 text-left">Street</th>
+                   <th class="p-2 text-left">City</th>
+                   <th class="p-2 text-left">State</th>
+                   <th class="p-2 text-left">ZIP</th>
+                   <th class="p-2 text-left">Categories</th>
+                   <th class="p-2 text-left">Make</th>
+                   <th class="p-2 text-left">Model</th>
+                   <th class="p-2 text-left">Notes</th>
+                   <th class="p-2 text-left">Status</th>
+                   <th class="p-2 text-left">Time in System</th>
+                   <th class="p-2 text-left">Actions</th>
+                 </tr>
+               </thead>
+               <tbody id="leads-table"></tbody>
+             </table>
+           </div>
          </div>
 
-         <!-- Create Lead Modal -->
-         <div id="create-lead-modal" class="modal">
+         <!-- Lead Modal (Create/Edit) -->
+         <div id="lead-modal" class="modal">
            <div class="modal-content">
-             <h2 class="text-xl font-bold mb-4">Create Lead</h2>
-             <form id="create-lead-form">
+             <h2 id="modal-title" class="text-xl font-bold mb-4">Create Lead</h2>
+             <form id="lead-form">
                <div class="mb-4">
                  <label class="block text-sm font-medium mb-1">Customer Name *</label>
                  <input id="customerName" type="text" class="w-full p-2 border rounded" required>
+               </div>
+               <div class="mb-4">
+                 <label class="block text-sm font-medium mb-1">Company</label>
+                 <input id="company" type="text" class="w-full p-2 border rounded">
                </div>
                <div class="mb-4">
                  <label class="block text-sm font-medium mb-1">Customer Email</label>
@@ -85,27 +101,15 @@
                </div>
                <div class="mb-4">
                  <label class="block text-sm font-medium mb-1">Categories</label>
-                 <select id="categories" multiple class="w-full p-2 border rounded">
-                   <!-- Populated dynamically -->
-                 </select>
+                 <input id="categories" type="text" class="w-full p-2 border rounded" placeholder="e.g., Excavator,Crusher">
                </div>
                <div class="mb-4">
                  <label class="block text-sm font-medium mb-1">Make</label>
-                 <select id="make" class="w-full p-2 border rounded">
-                   <option value="">Select Make</option>
-                   <!-- Populated dynamically -->
-                 </select>
+                 <input id="make" type="text" class="w-full p-2 border rounded">
                </div>
                <div class="mb-4">
                  <label class="block text-sm font-medium mb-1">Model</label>
-                 <select id="model" class="w-full p-2 border rounded">
-                   <option value="">Select Model</option>
-                   <!-- Populated dynamically -->
-                 </select>
-               </div>
-               <div class="mb-4">
-                 <label class="block text-sm font-medium mb-1">Company</label>
-                 <input id="company" type="text" class="w-full p-2 border rounded">
+                 <input id="model" type="text" class="w-full p-2 border rounded">
                </div>
                <div class="mb-4">
                  <label class="block text-sm font-medium mb-1">Machines Notes</label>
@@ -117,11 +121,12 @@
                    <option value="Quoted">Quoted</option>
                    <option value="Closed">Closed</option>
                    <option value="Pending">Pending</option>
+                   <option value="Lost">Lost</option>
                  </select>
                </div>
                <div class="flex justify-end">
-                 <button type="button" onclick="closeCreateLeadModal()" class="bg-gray-500 text-white px-4 py-2 rounded mr-2 hover:bg-gray-600">Cancel</button>
-                 <button type="submit" class="bg-blue-500 text-white px-4 py-2 rounded hover:bg-blue-600">Save Lead</button>
+                 <button type="button" onclick="closeLeadModal()" class="bg-gray-500 text-white px-4 py-2 rounded mr-2 hover:bg-gray-600">Cancel</button>
+                 <button type="submit" id="save-lead-btn" class="bg-blue-500 text-white px-4 py-2 rounded hover:bg-blue-600">Save Lead</button>
                </div>
              </form>
            </div>
@@ -129,6 +134,7 @@
 
          <script>
            let token = null;
+           let currentLeadId = null;
 
            // Login
            async function login() {
@@ -146,9 +152,6 @@
                  document.getElementById('login-form').classList.add('hidden');
                  document.getElementById('dashboard').classList.remove('hidden');
                  loadLeads();
-                 loadCategories();
-                 loadMakes();
-                 loadModels();
                } else {
                  document.getElementById('login-error').classList.remove('hidden');
                }
@@ -182,9 +185,17 @@
                  row.innerHTML = `
                    <td class="p-2">${lead.id}</td>
                    <td class="p-2">${lead.customer_name}</td>
+                   <td class="p-2">${lead.company || ''}</td>
+                   <td class="p-2">${lead.customer_email || ''}</td>
+                   <td class="p-2">${lead.customer_phone || ''}</td>
+                   <td class="p-2">${lead.customer_street || ''}</td>
+                   <td class="p-2">${lead.customer_city || ''}</td>
+                   <td class="p-2">${lead.customer_state || ''}</td>
+                   <td class="p-2">${lead.customer_zip || ''}</td>
                    <td class="p-2">${lead.categories || ''}</td>
                    <td class="p-2">${lead.make || ''}</td>
                    <td class="p-2">${lead.model || ''}</td>
+                   <td class="p-2">${lead.machines_notes || ''}</td>
                    <td class="p-2">${lead.status || ''}</td>
                    <td class="p-2 ${timeInSystem.class}">${timeInSystem.text}</td>
                    <td class="p-2">
@@ -228,98 +239,81 @@
              }
            }
 
-           // Load Categories
-           async function loadCategories() {
-             try {
-               const response = await fetch('/api/categories', {
-                 headers: { 'Authorization': `Bearer ${token}` }
-               });
-               const categories = await response.json();
-               const select = document.getElementById('categories');
-               select.innerHTML = '';
-               categories.forEach(category => {
-                 const option = document.createElement('option');
-                 option.value = category;
-                 option.textContent = category;
-                 select.appendChild(option);
-               });
-             } catch (err) {
-               console.error('Error loading categories:', err);
+           // Open Lead Modal (Create or Edit)
+           async function openLeadModal(mode, leadId = null) {
+             const modal = document.getElementById('lead-modal');
+             const form = document.getElementById('lead-form');
+             const title = document.getElementById('modal-title');
+             const saveBtn = document.getElementById('save-lead-btn');
+             currentLeadId = leadId;
+
+             form.reset();
+             modal.style.display = 'flex';
+             if (mode === 'create') {
+               title.textContent = 'Create Lead';
+               saveBtn.textContent = 'Save Lead';
+             } else {
+               title.textContent = 'Edit Lead';
+               saveBtn.textContent = 'Update Lead';
+               try {
+                 const response = await fetch(`/api/leads`, {
+                   headers: { 'Authorization': `Bearer ${token}` }
+                 });
+                 const leads = await response.json();
+                 const lead = leads.find(l => l.id === leadId);
+                 if (lead) {
+                   document.getElementById('customerName').value = lead.customer_name || '';
+                   document.getElementById('company').value = lead.company || '';
+                   document.getElementById('customerEmail').value = lead.customer_email || '';
+                   document.getElementById('customerPhone').value = lead.customer_phone || '';
+                   document.getElementById('customerStreet').value = lead.customer_street || '';
+                   document.getElementById('customerCity').value = lead.customer_city || '';
+                   document.getElementById('customerState').value = lead.customer_state || '';
+                   document.getElementById('customerZip').value = lead.customer_zip || '';
+                   document.getElementById('categories').value = lead.categories || '';
+                   document.getElementById('make').value = lead.make || '';
+                   document.getElementById('model').value = lead.model || '';
+                   document.getElementById('machinesNotes').value = lead.machines_notes || '';
+                   document.getElementById('status').value = lead.status || 'Quoted';
+                 }
+               } catch (err) {
+                 console.error('Error loading lead:', err);
+                 alert('Error loading lead');
+                 closeLeadModal();
+               }
              }
            }
 
-           // Load Makes
-           async function loadMakes() {
-             try {
-               const response = await fetch('/api/makes', {
-                 headers: { 'Authorization': `Bearer ${token}` }
-               });
-               const makes = await response.json();
-               const select = document.getElementById('make');
-               select.innerHTML = '<option value="">Select Make</option>';
-               makes.forEach(make => {
-                 const option = document.createElement('option');
-                 option.value = make;
-                 option.textContent = make;
-                 select.appendChild(option);
-               });
-             } catch (err) {
-               console.error('Error loading makes:', err);
-             }
+           // Close Lead Modal
+           function closeLeadModal() {
+             document.getElementById('lead-modal').style.display = 'none';
+             currentLeadId = null;
            }
 
-           // Load Models
-           async function loadModels() {
-             try {
-               const response = await fetch('/api/models', {
-                 headers: { 'Authorization': `Bearer ${token}` }
-               });
-               const models = await response.json();
-               const select = document.getElementById('model');
-               select.innerHTML = '<option value="">Select Model</option>';
-               models.forEach(model => {
-                 const option = document.createElement('option');
-                 option.value = model;
-                 option.textContent = model;
-                 select.appendChild(option);
-               });
-             } catch (err) {
-               console.error('Error loading models:', err);
-             }
-           }
-
-           // Open Create Lead Modal
-           function openCreateLeadModal() {
-             document.getElementById('create-lead-modal').style.display = 'flex';
-             document.getElementById('create-lead-form').reset();
-           }
-
-           // Close Create Lead Modal
-           function closeCreateLeadModal() {
-             document.getElementById('create-lead-modal').style.display = 'none';
-           }
-
-           // Save Lead
-           document.getElementById('create-lead-form').addEventListener('submit', async (e) => {
+           // Save or Update Lead
+           document.getElementById('lead-form').addEventListener('submit', async (e) => {
              e.preventDefault();
              const lead = {
                customerName: document.getElementById('customerName').value,
+               company: document.getElementById('company').value,
                customerEmail: document.getElementById('customerEmail').value,
                customerPhone: document.getElementById('customerPhone').value,
                customerStreet: document.getElementById('customerStreet').value,
                customerCity: document.getElementById('customerCity').value,
                customerState: document.getElementById('customerState').value,
                customerZip: document.getElementById('customerZip').value,
-               categories: Array.from(document.getElementById('categories').selectedOptions).map(opt => opt.value),
+               categories: document.getElementById('categories').value,
                make: document.getElementById('make').value,
                model: document.getElementById('model').value,
-               company: document.getElementById('company').value,
                machinesNotes: document.getElementById('machinesNotes').value,
                status: document.getElementById('status').value
              };
+
              try {
-               const response = await fetch('/api/leads', {
-                 method: 'POST',
+               const url = currentLeadId ? `/api/leads/${currentLeadId}` : '/api/leads';
+               const method = currentLeadId ? 'PUT' : 'POST';
+               const response = await fetch(url, {
+                 method,
                  headers: {
                    'Content-Type': 'application/json',
                    'Authorization': `Bearer ${token}`
@@ -327,19 +321,19 @@
                  body: JSON.stringify(lead)
                });
                if (response.ok) {
-                 closeCreateLeadModal();
+                 closeLeadModal();
                  loadLeads();
                } else {
-                 alert('Error saving lead');
+                 alert(currentLeadId ? 'Error updating lead' : 'Error saving lead');
                }
              } catch (err) {
-               alert('Error saving lead');
+               alert(currentLeadId ? 'Error updating lead' : 'Error saving lead');
              }
            });
 
-           // Edit Lead (Placeholder)
+           // Edit Lead
            function editLead(id) {
-             alert(`Edit lead ID ${id} - Feature to be implemented`);
+             openLeadModal('edit', id);
            }
 
            // Delete Lead
