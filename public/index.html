@@ -1,827 +1,365 @@
 <!DOCTYPE html>
-     <html lang="en">
-     <head>
-       <meta charset="UTF-8">
-       <meta name="viewport" content="width=device-width, initial-scale=1.0">
-       <title>Lead Management System</title>
-       <link rel="icon" href="/favicon.ico">
-       <script src="https://cdn.jsdelivr.net/npm/react@18.2.0/umd/react.development.js"></script>
-       <script src="https://cdn.jsdelivr.net/npm/react-dom@18.2.0/umd/react-dom.development.js"></script>
-       <script src="/babel.min.js"></script>
-       <script src="https://cdn.tailwindcss.com"></script>
-       <script src="https://cdn.jsdelivr.net/npm/axios@1.4.0/dist/axios.min.js"></script>
-     </head>
-     <body>
-       <div id="root"></div>
-       <script type="text/babel">
-         function LoginForm({ onLogin }) {
-           const [username, setUsername] = React.useState('');
-           const [password, setPassword] = React.useState('');
-           const [error, setError] = React.useState('');
+       <html lang="en">
+       <head>
+         <meta charset="UTF-8">
+         <meta name="viewport" content="width=device-width, initial-scale=1.0">
+         <title>Lead Management System</title>
+         <script src="https://cdn.tailwindcss.com"></script>
+         <style>
+           .modal { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.5); z-index: 50; }
+           .modal-content { background: white; margin: 5% auto; padding: 20px; width: 90%; max-width: 600px; border-radius: 8px; max-height: 80vh; overflow-y: auto; }
+           .time-green { background-color: #d4edda; }
+           .time-yellow { background-color: #fff3cd; }
+           .time-red { background-color: #f8d7da; }
+         </style>
+       </head>
+       <body class="bg-gray-100">
+         <!-- Login Form -->
+         <div id="login-form" class="flex items-center justify-center min-h-screen">
+           <div class="bg-white p-6 rounded shadow-md w-full max-w-md">
+             <h2 class="text-2xl font-bold mb-4 text-center">Login</h2>
+             <input id="username" type="text" placeholder="Username" class="w-full p-2 mb-4 border rounded">
+             <input id="password" type="password" placeholder="Password" class="w-full p-2 mb-4 border rounded">
+             <button onclick="login()" class="w-full bg-blue-500 text-white p-2 rounded hover:bg-blue-600">Login</button>
+             <p id="login-error" class="text-red-500 mt-2 hidden">Invalid credentials</p>
+           </div>
+         </div>
 
-           const handleSubmit = async (e) => {
-             e.preventDefault();
-             try {
-               const response = await axios.post('/api/login', { username, password });
-               onLogin(response.data.token);
-             } catch (err) {
-               setError('Invalid username or password');
-             }
-           };
+         <!-- Dashboard -->
+         <div id="dashboard" class="hidden p-4">
+           <div class="flex justify-between items-center mb-4">
+             <h2 class="text-2xl font-bold">Leads Dashboard</h2>
+             <button onclick="logout()" class="bg-red-500 text-white px-4 py-2 rounded hover:bg-red-600">Logout</button>
+           </div>
+           <input id="search-bar" type="text" placeholder="Search leads..." class="w-full p-2 mb-4 border rounded" oninput="filterLeads()">
+           <button onclick="openCreateLeadModal()" class="bg-blue-500 text-white px-4 py-2 mb-4 rounded hover:bg-blue-600">Create Lead</button>
+           <table class="w-full bg-white shadow-md rounded">
+             <thead>
+               <tr class="bg-gray-200">
+                 <th class="p-2 text-left">ID</th>
+                 <th class="p-2 text-left">Customer Name</th>
+                 <th class="p-2 text-left">Categories</th>
+                 <th class="p-2 text-left">Make</th>
+                 <th class="p-2 text-left">Model</th>
+                 <th class="p-2 text-left">Status</th>
+                 <th class="p-2 text-left">Time in System</th>
+                 <th class="p-2 text-left">Actions</th>
+               </tr>
+             </thead>
+             <tbody id="leads-table"></tbody>
+           </table>
+         </div>
 
-           return (
-             <div className="max-w-md mx-auto p-4">
-               <h1 className="text-2xl font-bold mb-4">Login</h1>
-               <form onSubmit={handleSubmit} className="space-y-4">
-                 <div>
-                   <label className="block text-sm font-medium">Username</label>
-                   <input
-                     type="text"
-                     value={username}
-                     onChange={(e) => setUsername(e.target.value)}
-                     className="mt-1 block w-full border rounded-md p-2"
-                     required
-                   />
-                 </div>
-                 <div>
-                   <label className="block text-sm font-medium">Password</label>
-                   <input
-                     type="password"
-                     value={password}
-                     onChange={(e) => setPassword(e.target.value)}
-                     className="mt-1 block w-full border rounded-md p-2"
-                     required
-                   />
-                 </div>
-                 {error && <p className="text-red-500">{error}</p>}
-                 <button
-                   type="submit"
-                   className="w-full bg-blue-600 text-white p-2 rounded-md hover:bg-blue-700"
-                 >
-                   Login
-                 </button>
-               </form>
-             </div>
-           );
-         }
-
-         function AddLeadForm({ onLeadAdded, onLeadUpdated, leadToEdit, onCancelEdit }) {
-           const statuses = ['Quoted', 'Lost', 'Closed', 'Pending'];
-
-           const isEditing = !!leadToEdit;
-           const initialFormData = isEditing
-             ? {
-                 categories: leadToEdit.categories ? leadToEdit.categories.split(',') : [],
-                 make: leadToEdit.make || '',
-                 model: leadToEdit.model || '',
-                 company: leadToEdit.company || '',
-                 customerName: leadToEdit.customer_name || '',
-                 customerEmail: leadToEdit.customer_email || '',
-                 customerPhone: leadToEdit.customer_phone || '',
-                 customerStreet: leadToEdit.customer_street || '',
-                 customerCity: leadToEdit.customer_city || '',
-                 customerState: leadToEdit.customer_state || '',
-                 customerZip: leadToEdit.customer_zip || '',
-                 machinesNotes: leadToEdit.machines_notes || '',
-                 status: leadToEdit.status || 'Quoted'
-               }
-             : {
-                 categories: [],
-                 make: '',
-                 model: '',
-                 company: '',
-                 customerName: '',
-                 customerEmail: '',
-                 customerPhone: '',
-                 customerStreet: '',
-                 customerCity: '',
-                 customerState: '',
-                 customerZip: '',
-                 machinesNotes: '',
-                 status: 'Quoted'
-               };
-
-           const [formData, setFormData] = React.useState(initialFormData);
-           const [categories, setCategories] = React.useState([]);
-           const [makes, setMakes] = React.useState([]);
-           const [models, setModels] = React.useState([]);
-           const [categoryInput, setCategoryInput] = React.useState('');
-           const [makeInput, setMakeInput] = React.useState('');
-           const [modelInput, setModelInput] = React.useState('');
-
-           React.useEffect(() => {
-             setFormData(initialFormData);
-             if (isEditing) {
-               setCategoryInput('');
-               setMakeInput(formData.make);
-               setModelInput(formData.model);
-             } else {
-               setCategoryInput('');
-               setMakeInput('');
-               setModelInput('');
-             }
-           }, [leadToEdit]);
-
-           React.useEffect(() => {
-             axios.get('/api/categories')
-               .then(response => setCategories(response.data))
-               .catch(error => console.error('Error fetching categories:', error));
-             axios.get('/api/makes')
-               .then(response => setMakes(response.data))
-               .catch(error => console.error('Error fetching makes:', error));
-             axios.get('/api/models')
-               .then(response => setModels(response.data))
-               .catch(error => console.error('Error fetching models:', error));
-           }, []);
-
-           const handleChange = (e) => {
-             setFormData({ ...formData, [e.target.name]: e.target.value });
-           };
-
-           const capitalizeWords = (str) => {
-             return str
-               .toLowerCase()
-               .split(' ')
-               .map(word => word.charAt(0).toUpperCase() + word.slice(1))
-               .join(' ');
-           };
-
-           const handleCategoryInputChange = (e) => {
-             setCategoryInput(e.target.value);
-           };
-
-           const handleMakeInputChange = (e) => {
-             setMakeInput(e.target.value);
-           };
-
-           const handleModelInputChange = (e) => {
-             setModelInput(e.target.value);
-           };
-
-           const handleAddCategory = () => {
-             if (!categoryInput.trim()) return;
-             const newCategories = categoryInput.split(',').map(cat => capitalizeWords(cat.trim())).filter(cat => cat);
-             if (newCategories.length === 0) return;
-
-             const uniqueNewCategories = newCategories.filter(cat => !categories.map(c => c.toLowerCase()).includes(cat.toLowerCase()));
-             const existingCategories = newCategories.filter(cat => categories.map(c => c.toLowerCase()).includes(cat.toLowerCase()));
-
-             if (existingCategories.length > 0) {
-               setFormData(prev => ({
-                 ...prev,
-                 categories: [...prev.categories, ...existingCategories.filter(cat => !prev.categories.includes(cat))]
-               }));
-             }
-
-             if (uniqueNewCategories.length > 0) {
-               uniqueNewCategories.forEach(cat => {
-                 axios.post('/api/categories', { name: cat })
-                   .then(() => {
-                     setCategories(prev => [...prev, cat]);
-                     setFormData(prev => ({
-                       ...prev,
-                       categories: [...prev.categories, cat]
-                     }));
-                   })
-                   .catch(error => alert('Error saving category: ' + (error.response?.data?.error || 'Unknown error')));
-               });
-             } else if (existingCategories.length === 0) {
-               alert('All entered categories already exist or are invalid.');
-             }
-
-             setCategoryInput('');
-           };
-
-           const handleAddMake = () => {
-             if (!makeInput.trim()) return;
-             const newMake = capitalizeWords(makeInput.trim());
-             if (makes.map(m => m.toLowerCase()).includes(newMake.toLowerCase())) {
-               setFormData(prev => ({ ...prev, make: newMake }));
-               setMakeInput('');
-               return;
-             }
-             axios.post('/api/makes', { name: newMake })
-               .then(() => {
-                 setMakes(prev => [...prev, newMake]);
-                 setFormData(prev => ({ ...prev, make: newMake }));
-                 setMakeInput('');
-               })
-               .catch(error => alert('Error saving make: ' + (error.response?.data?.error || 'Unknown error')));
-           };
-
-           const handleAddModel = () => {
-             if (!modelInput.trim()) return;
-             const newModel = capitalizeWords(modelInput.trim());
-             if (models.map(m => m.toLowerCase()).includes(newModel.toLowerCase())) {
-               setFormData(prev => ({ ...prev, model: newModel }));
-               setModelInput('');
-               return;
-             }
-             axios.post('/api/models', { name: newModel })
-               .then(() => {
-                 setModels(prev => [...prev, newModel]);
-                 setFormData(prev => ({ ...prev, model: newModel }));
-                 setModelInput('');
-               })
-               .catch(error => alert('Error saving model: ' + (error.response?.data?.error || 'Unknown error')));
-           };
-
-           const handleDeleteCategorySelection = (cat) => {
-             setFormData(prev => ({
-               ...prev,
-               categories: prev.categories.filter(c => c !== cat)
-             }));
-           };
-
-           const handleDeleteMakeSelection = () => {
-             setFormData(prev => ({ ...prev, make: '' }));
-           };
-
-           const handleDeleteModelSelection = () => {
-             setFormData(prev => ({ ...prev, model: '' }));
-           };
-
-           const handleDeleteCategoryFromList = (cat) => {
-             if (window.confirm(`Are you sure you want to delete category "${cat}" from the database?`)) {
-               axios.delete(`/api/categories/${encodeURIComponent(cat)}`)
-                 .then(() => {
-                   setCategories(prev => prev.filter(c => c !== cat));
-                   setFormData(prev => ({
-                     ...prev,
-                     categories: prev.categories.filter(c => c !== cat)
-                   }));
-                 })
-                 .catch(error => alert('Error deleting category: ' + (error.response?.data?.error || 'Unknown error')));
-             }
-           };
-
-           const handleDeleteMakeFromList = (make) => {
-             if (window.confirm(`Are you sure you want to delete make "${make}" from the database?`)) {
-               axios.delete(`/api/makes/${encodeURIComponent(make)}`)
-                 .then(() => {
-                   setMakes(prev => prev.filter(m => m !== make));
-                   setFormData(prev => ({ ...prev, make: prev.make === make ? '' : prev.make }));
-                 })
-                 .catch(error => alert('Error deleting make: ' + (error.response?.data?.error || 'Unknown error')));
-             }
-           };
-
-           const handleDeleteModelFromList = (model) => {
-             if (window.confirm(`Are you sure you want to delete model "${model}" from the database?`)) {
-               axios.delete(`/api/models/${encodeURIComponent(model)}`)
-                 .then(() => {
-                   setModels(prev => prev.filter(m => m !== model));
-                   setFormData(prev => ({ ...prev, model: prev.model === model ? '' : prev.model }));
-                 })
-                 .catch(error => alert('Error deleting model: ' + (error.response?.data?.error || 'Unknown error')));
-             }
-           };
-
-           const handleKeyPress = (e, handler) => {
-             if (e.key === 'Enter') {
-               e.preventDefault();
-               handler();
-             }
-           };
-
-           const handleSubmit = async (e) => {
-             e.preventDefault();
-             if (!formData.customerName) {
-               alert('Please fill in Customer Name (required).');
-               return;
-             }
-
-             try {
-               const dataToSend = { ...formData, categories: formData.categories };
-               if (isEditing) {
-                 const response = await axios.put(`/api/leads/${leadToEdit.id}`, dataToSend);
-                 alert(response.data.message);
-                 onLeadUpdated();
-               } else {
-                 const response = await axios.post('/api/leads', dataToSend);
-                 alert(response.data.message);
-                 onLeadAdded();
-               }
-               setFormData({
-                 categories: [],
-                 make: '',
-                 model: '',
-                 company: '',
-                 customerName: '',
-                 customerEmail: '',
-                 customerPhone: '',
-                 customerStreet: '',
-                 customerCity: '',
-                 customerState: '',
-                 customerZip: '',
-                 machinesNotes: '',
-                 status: 'Quoted'
-               });
-               setCategoryInput('');
-               setMakeInput('');
-               setModelInput('');
-             } catch (error) {
-               alert('Error saving lead: ' + (error.response?.data?.error || 'Unknown error'));
-             }
-           };
-
-           return (
-             <div className="max-w-4xl mx-auto p-4">
-               <h1 className="text-2xl font-bold mb-4">{isEditing ? 'Edit Lead' : 'Add New Lead'}</h1>
-               <form onSubmit={handleSubmit} className="space-y-4">
-                 <div className="grid grid-cols-3 gap-4">
-                   <div>
-                     <label className="block text-sm font-medium">Product Categories</label>
-                     <div className="flex space-x-2">
-                       <input
-                         type="text"
-                         value={categoryInput}
-                         onChange={handleCategoryInputChange}
-                         onKeyPress={(e) => handleKeyPress(e, handleAddCategory)}
-                         list="categories"
-                         className="mt-1 flex-1 border rounded-md p-2"
-                         placeholder="e.g., Excavator,Crusher"
-                       />
-                       <button
-                         type="button"
-                         onClick={handleAddCategory}
-                         className="mt-1 bg-green-500 text-white px-4 py-2 rounded-md hover:bg-green-600"
-                       >
-                         Add
-                       </button>
-                     </div>
-                     <datalist id="categories">
-                       {categories.map((cat) => (
-                         <option key={cat} value={cat} />
-                       ))}
-                     </datalist>
-                     <p className="text-sm text-gray-500">Enter categories separated by commas, then press Enter or click Add</p>
-                     {formData.categories.length > 0 && (
-                       <div className="mt-2 bg-gray-100 p-2 rounded-md">
-                         <p className="text-sm font-medium">Selected Categories:</p>
-                         <div className="flex flex-wrap gap-2">
-                           {formData.categories.map((cat) => (
-                             <div key={cat} className="flex items-center bg-gray-200 px-2 py-1 rounded-md">
-                               <span className="text-sm">{cat}</span>
-                               <button
-                                 type="button"
-                                 onClick={() => handleDeleteCategorySelection(cat)}
-                                 className="ml-2 text-red-500 hover:text-red-700"
-                               >
-                                 X
-                               </button>
-                               <button
-                                 type="button"
-                                 onClick={() => handleDeleteCategoryFromList(cat)}
-                                 className="ml-2 text-red-500 hover:text-red-700 text-xs"
-                               >
-                                 Delete from List
-                               </button>
-                             </div>
-                           ))}
-                         </div>
-                       </div>
-                     )}
-                   </div>
-                   <div>
-                     <label className="block text-sm font-medium">Make</label>
-                     <div className="flex space-x-2">
-                       <input
-                         type="text"
-                         value={makeInput}
-                         onChange={handleMakeInputChange}
-                         onKeyPress={(e) => handleKeyPress(e, handleAddMake)}
-                         list="makes"
-                         className="mt-1 flex-1 border rounded-md p-2"
-                         placeholder="e.g., Sennebogen"
-                       />
-                       <button
-                         type="button"
-                         onClick={handleAddMake}
-                         className="mt-1 bg-green-500 text-white px-4 py-2 rounded-md hover:bg-green-600"
-                       >
-                         Add
-                       </button>
-                     </div>
-                     <datalist id="makes">
-                       {makes.map((make) => (
-                         <option key={make} value={make} />
-                       ))}
-                     </datalist>
-                     {formData.make && (
-                       <div className="mt-2 bg-gray-100 p-2 rounded-md">
-                         <p className="text-sm font-medium">Selected Make:</p>
-                         <div className="flex items-center bg-gray-200 px-2 py-1 rounded-md">
-                           <span className="text-sm">{formData.make}</span>
-                           <button
-                             type="button"
-                             onClick={handleDeleteMakeSelection}
-                             className="ml-2 text-red-500 hover:text-red-700"
-                           >
-                             X
-                           </button>
-                           <button
-                             type="button"
-                             onClick={() => handleDeleteMakeFromList(formData.make)}
-                             className="ml-2 text-red-500 hover:text-red-700 text-xs"
-                           >
-                             Delete from List
-                           </button>
-                         </div>
-                       </div>
-                     )}
-                   </div>
-                   <div>
-                     <label className="block text-sm font-medium">Model</label>
-                     <div className="flex space-x-2">
-                       <input
-                         type="text"
-                         value={modelInput}
-                         onChange={handleModelInputChange}
-                         onKeyPress={(e) => handleKeyPress(e, handleAddModel)}
-                         list="models"
-                         className="mt-1 flex-1 border rounded-md p-2"
-                         placeholder="e.g., 825"
-                       />
-                       <button
-                         type="button"
-                         onClick={handleAddModel}
-                         className="mt-1 bg-green-500 text-white px-4 py-2 rounded-md hover:bg-green-600"
-                       >
-                         Add
-                       </button>
-                     </div>
-                     <datalist id="models">
-                       {models.map((model) => (
-                         <option key={model} value={model} />
-                       ))}
-                     </datalist>
-                     {formData.model && (
-                       <div className="mt-2 bg-gray-100 p-2 rounded-md">
-                         <p className="text-sm font-medium">Selected Model:</p>
-                         <div className="flex items-center bg-gray-200 px-2 py-1 rounded-md">
-                           <span className="text-sm">{formData.model}</span>
-                           <button
-                             type="button"
-                             onClick={handleDeleteModelSelection}
-                             className="ml-2 text-red-500 hover:text-red-700"
-                           >
-                             X
-                           </button>
-                           <button
-                             type="button"
-                             onClick={() => handleDeleteModelFromList(formData.model)}
-                             className="ml-2 text-red-500 hover:text-red-700 text-xs"
-                           >
-                             Delete from List
-                           </button>
-                         </div>
-                       </div>
-                     )}
-                   </div>
-                 </div>
-                 <div className="grid grid-cols-4 gap-4">
-                   <div>
-                     <label className="block text-sm font-medium">Customer Name</label>
-                     <input
-                       type="text"
-                       name="customerName"
-                       value={formData.customerName}
-                       onChange={handleChange}
-                       className="mt-1 block w-full border rounded-md p-2"
-                       required
-                     />
-                   </div>
-                   <div>
-                     <label className="block text-sm font-medium">Company</label>
-                     <input
-                       type="text"
-                       name="company"
-                       value={formData.company}
-                       onChange={handleChange}
-                       className="mt-1 block w-full border rounded-md p-2"
-                     />
-                   </div>
-                   <div>
-                     <label className="block text-sm font-medium">Customer Email</label>
-                     <input
-                       type="email"
-                       name="customerEmail"
-                       value={formData.customerEmail}
-                       onChange={handleChange}
-                       className="mt-1 block w-full border rounded-md p-2"
-                     />
-                   </div>
-                   <div>
-                     <label className="block text-sm font-medium">Customer Phone</label>
-                     <input
-                       type="tel"
-                       name="customerPhone"
-                       value={formData.customerPhone}
-                       onChange={handleChange}
-                       className="mt-1 block w-full border rounded-md p-2"
-                     />
-                   </div>
-                 </div>
-                 <div className="grid grid-cols-4 gap-4">
-                   <div>
-                     <label className="block text-sm font-medium">Customer Street</label>
-                     <input
-                       type="text"
-                       name="customerStreet"
-                       value={formData.customerStreet}
-                       onChange={handleChange}
-                       className="mt-1 block w-full border rounded-md p-2"
-                     />
-                   </div>
-                   <div>
-                     <label className="block text-sm font-medium">Customer City</label>
-                     <input
-                       type="text"
-                       name="customerCity"
-                       value={formData.customerCity}
-                       onChange={handleChange}
-                       className="mt-1 block w-full border rounded-md p-2"
-                     />
-                   </div>
-                   <div>
-                     <label className="block text-sm font-medium">Customer State</label>
-                     <input
-                       type="text"
-                       name="customerState"
-                       value={formData.customerState}
-                       onChange={handleChange}
-                       className="mt-1 block w-full border rounded-md p-2"
-                     />
-                   </div>
-                   <div>
-                     <label className="block text-sm font-medium">Customer ZIP</label>
-                     <input
-                       type="text"
-                       name="customerZip"
-                       value={formData.customerZip}
-                       onChange={handleChange}
-                       className="mt-1 block w-full border rounded-md p-2"
-                     />
-                   </div>
-                 </div>
-                 <div className="grid grid-cols-2 gap-4">
-                   <div>
-                     <label className="block text-sm font-medium">Machines/Attachments Notes</label>
-                     <textarea
-                       name="machinesNotes"
-                       value={formData.machinesNotes}
-                       onChange={handleChange}
-                       className="mt-1 block w-full border rounded-md p-2"
-                       rows="4"
-                       placeholder="List machines and attachments the customer has"
-                     ></textarea>
-                   </div>
-                   <div>
-                     <label className="block text-sm font-medium">Status</label>
-                     <select
-                       name="status"
-                       value={formData.status}
-                       onChange={handleChange}
-                       className="mt-1 block w-full border rounded-md p-2"
-                     >
-                       {statuses.map((status) => (
-                         <option key={status} value={status}>{status}</option>
-                       ))}
-                     </select>
-                   </div>
-                 </div>
-                 <div className="grid grid-cols-1 gap-4">
-                   <div className="flex space-x-2">
-                     <button
-                       type="submit"
-                       className="flex-1 bg-blue-600 text-white p-2 rounded-md hover:bg-blue-700"
-                     >
-                       {isEditing ? 'Update Lead' : 'Save Lead'}
-                     </button>
-                     {isEditing && (
-                       <button
-                         type="button"
-                         onClick={onCancelEdit}
-                         className="flex-1 bg-gray-600 text-white p-2 rounded-md hover:bg-gray-700"
-                       >
-                         Cancel
-                       </button>
-                     )}
-                   </div>
-                 </div>
-               </form>
-             </div>
-           );
-         }
-
-         function Dashboard({ token }) {
-           const [leads, setLeads] = React.useState([]);
-           const [search, setSearch] = React.useState('');
-           const [editingLead, setEditingLead] = React.useState(null);
-
-           React.useEffect(() => {
-             axios.defaults.headers.common['Authorization'] = `Bearer ${token}`;
-             fetchLeads();
-           }, [token]);
-
-           const fetchLeads = async () => {
-             try {
-               const response = await axios.get('/api/leads');
-               setLeads(response.data);
-             } catch (error) {
-               console.error('Error fetching leads:', error);
-             }
-           };
-
-           const handleEdit = (lead) => {
-             setEditingLead(lead);
-           };
-
-           const handleDelete = async (id) => {
-             if (window.confirm('Are you sure you want to delete this lead?')) {
-               try {
-                 const response = await axios.delete(`/api/leads/${id}`);
-                 alert(response.data.message);
-                 fetchLeads();
-               } catch (error) {
-                 alert('Error deleting lead: ' + (error.response?.data?.error || 'Unknown error'));
-               }
-             }
-           };
-
-           const handleLeadUpdated = () => {
-             setEditingLead(null);
-             fetchLeads();
-           };
-
-           const handleCancelEdit = () => {
-             setEditingLead(null);
-           };
-
-           const filteredLeads = leads.filter(
-             (lead) =>
-               lead.customer_name.toLowerCase().includes(search.toLowerCase()) ||
-               (lead.company && lead.company.toLowerCase().includes(search.toLowerCase()))
-           );
-
-           const calculateTimeInSystem = (createdAt) => {
-             const created = new Date(createdAt + 'Z');
-             const now = new Date();
-             const nowUTC = new Date(
-               Date.UTC(
-                 now.getUTCFullYear(),
-                 now.getUTCMonth(),
-                 now.getUTCDate(),
-                 now.getUTCHours(),
-                 now.getUTCMinutes(),
-                 now.getUTCSeconds()
-               )
-             );
-             const diffMs = Math.abs(nowUTC - created);
-             const hours = Math.floor(diffMs / (1000 * 60 * 60));
-             const days = Math.floor(hours / 24);
-             const remainingHours = hours % 24;
-
-             let displayText;
-             if (hours <= 24) {
-               displayText = `${hours} hour${hours !== 1 ? 's' : ''}`;
-             } else {
-               displayText = `${days} day${days !== 1 ? 's' : ''}`;
-               if (remainingHours > 0) {
-                 displayText += `, ${remainingHours} hour${remainingHours !== 1 ? 's' : ''}`;
-               }
-             }
-
-             let bgColor;
-             if (hours <= 24) {
-               bgColor = 'bg-green-200';
-             } else if (hours <= 72) {
-               bgColor = 'bg-yellow-200';
-             } else if (hours <= 120) {
-               bgColor = 'bg-orange-200';
-             } else {
-               bgColor = 'bg-red-200';
-             }
-
-             return { displayText, bgColor };
-           };
-
-           return (
-             <div className="max-w-6xl mx-auto p-4">
-               <h1 className="text-2xl font-bold mb-4">Leads Dashboard</h1>
-               <div className="mb-4">
-                 <input
-                   type="text"
-                   placeholder="Search by customer name or company"
-                   value={search}
-                   onChange={(e) => setSearch(e.target.value)}
-                   className="w-full border rounded-md p-2"
-                 />
+         <!-- Create Lead Modal -->
+         <div id="create-lead-modal" class="modal">
+           <div class="modal-content">
+             <h2 class="text-xl font-bold mb-4">Create Lead</h2>
+             <form id="create-lead-form">
+               <div class="mb-4">
+                 <label class="block text-sm font-medium mb-1">Customer Name *</label>
+                 <input id="customerName" type="text" class="w-full p-2 border rounded" required>
                </div>
-               {editingLead ? (
-                 <AddLeadForm
-                   onLeadAdded={fetchLeads}
-                   onLeadUpdated={handleLeadUpdated}
-                   leadToEdit={editingLead}
-                   onCancelEdit={handleCancelEdit}
-                 />
-               ) : (
-                 <AddLeadForm onLeadAdded={fetchLeads} />
-               )}
-               <table className="w-full border-collapse mt-4">
-                 <thead>
-                   <tr className="bg-gray-200">
-                     <th className="border p-2">Categories</th>
-                     <th className="border p-2">Make</th>
-                     <th className="border p-2">Model</th>
-                     <th className="border p-2">Company</th>
-                     <th className="border p-2">Customer Name</th>
-                     <th className="border p-2">Email</th>
-                     <th className="border p-2">Phone</th>
-                     <th className="border p-2">Street</th>
-                     <th className="border p-2">City</th>
-                     <th className="border p-2">State</th>
-                     <th className="border p-2">ZIP</th>
-                     <th className="border p-2">Machines Notes</th>
-                     <th className="border p-2">Status</th>
-                     <th className="border p-2">Time in System</th>
-                     <th className="border p-2">Actions</th>
-                   </tr>
-                 </thead>
-                 <tbody>
-                   {filteredLeads.map((lead) => {
-                     const { displayText, bgColor } = calculateTimeInSystem(lead.created_at);
-                     return (
-                       <tr key={lead.id}>
-                         <td className="border p-2">{lead.categories}</td>
-                         <td className="border p-2">{lead.make}</td>
-                         <td className="border p-2">{lead.model}</td>
-                         <td className="border p-2">{lead.company}</td>
-                         <td className="border p-2">{lead.customer_name}</td>
-                         <td className="border p-2">{lead.customer_email}</td>
-                         <td className="border p-2">{lead.customer_phone}</td>
-                         <td className="border p-2">{lead.customer_street}</td>
-                         <td className="border p-2">{lead.customer_city}</td>
-                         <td className="border p-2">{lead.customer_state}</td>
-                         <td className="border p-2">{lead.customer_zip}</td>
-                         <td className="border p-2">{lead.machines_notes}</td>
-                         <td className="border p-2">{lead.status}</td>
-                         <td className={`border p-2 ${bgColor}`}>{displayText}</td>
-                         <td className="border p-2">
-                           <button
-                             onClick={() => handleEdit(lead)}
-                             className="bg-yellow-500 text-white px-2 py-1 rounded mr-2 hover:bg-yellow-600"
-                           >
-                             Edit
-                           </button>
-                           <button
-                             onClick={() => handleDelete(lead.id)}
-                             className="bg-red-500 text-white px-2 py-1 rounded hover:bg-red-600"
-                           >
-                             Delete
-                           </button>
-                         </td>
-                       </tr>
-                     );
-                   })}
-                 </tbody>
-               </table>
-             </div>
-           );
-         }
+               <div class="mb-4">
+                 <label class="block text-sm font-medium mb-1">Customer Email</label>
+                 <input id="customerEmail" type="email" class="w-full p-2 border rounded">
+               </div>
+               <div class="mb-4">
+                 <label class="block text-sm font-medium mb-1">Customer Phone</label>
+                 <input id="customerPhone" type="tel" class="w-full p-2 border rounded">
+               </div>
+               <div class="mb-4">
+                 <label class="block text-sm font-medium mb-1">Street Address</label>
+                 <input id="customerStreet" type="text" class="w-full p-2 border rounded">
+               </div>
+               <div class="mb-4">
+                 <label class="block text-sm font-medium mb-1">City</label>
+                 <input id="customerCity" type="text" class="w-full p-2 border rounded">
+               </div>
+               <div class="mb-4">
+                 <label class="block text-sm font-medium mb-1">State</label>
+                 <input id="customerState" type="text" class="w-full p-2 border rounded">
+               </div>
+               <div class="mb-4">
+                 <label class="block text-sm font-medium mb-1">ZIP Code</label>
+                 <input id="customerZip" type="text" class="w-full p-2 border rounded">
+               </div>
+               <div class="mb-4">
+                 <label class="block text-sm font-medium mb-1">Categories</label>
+                 <select id="categories" multiple class="w-full p-2 border rounded">
+                   <!-- Populated dynamically -->
+                 </select>
+               </div>
+               <div class="mb-4">
+                 <label class="block text-sm font-medium mb-1">Make</label>
+                 <select id="make" class="w-full p-2 border rounded">
+                   <option value="">Select Make</option>
+                   <!-- Populated dynamically -->
+                 </select>
+               </div>
+               <div class="mb-4">
+                 <label class="block text-sm font-medium mb-1">Model</label>
+                 <select id="model" class="w-full p-2 border rounded">
+                   <option value="">Select Model</option>
+                   <!-- Populated dynamically -->
+                 </select>
+               </div>
+               <div class="mb-4">
+                 <label class="block text-sm font-medium mb-1">Company</label>
+                 <input id="company" type="text" class="w-full p-2 border rounded">
+               </div>
+               <div class="mb-4">
+                 <label class="block text-sm font-medium mb-1">Machines Notes</label>
+                 <textarea id="machinesNotes" class="w-full p-2 border rounded"></textarea>
+               </div>
+               <div class="mb-4">
+                 <label class="block text-sm font-medium mb-1">Status</label>
+                 <select id="status" class="w-full p-2 border rounded">
+                   <option value="Quoted">Quoted</option>
+                   <option value="Closed">Closed</option>
+                   <option value="Pending">Pending</option>
+                 </select>
+               </div>
+               <div class="flex justify-end">
+                 <button type="button" onclick="closeCreateLeadModal()" class="bg-gray-500 text-white px-4 py-2 rounded mr-2 hover:bg-gray-600">Cancel</button>
+                 <button type="submit" class="bg-blue-500 text-white px-4 py-2 rounded hover:bg-blue-600">Save Lead</button>
+               </div>
+             </form>
+           </div>
+         </div>
 
-         function App() {
-           const [token, setToken] = React.useState(localStorage.getItem('token'));
+         <script>
+           let token = null;
 
-           const handleLogin = (newToken) => {
-             localStorage.setItem('token', newToken);
-             setToken(newToken);
-           };
-
-           const handleLogout = () => {
-             localStorage.removeItem('token');
-             setToken(null);
-           };
-
-           if (!token) {
-             return <LoginForm onLogin={handleLogin} />;
+           // Login
+           async function login() {
+             const username = document.getElementById('username').value;
+             const password = document.getElementById('password').value;
+             try {
+               const response = await fetch('/api/login', {
+                 method: 'POST',
+                 headers: { 'Content-Type': 'application/json' },
+                 body: JSON.stringify({ username, password })
+               });
+               const data = await response.json();
+               if (data.token) {
+                 token = data.token;
+                 document.getElementById('login-form').classList.add('hidden');
+                 document.getElementById('dashboard').classList.remove('hidden');
+                 loadLeads();
+                 loadCategories();
+                 loadMakes();
+                 loadModels();
+               } else {
+                 document.getElementById('login-error').classList.remove('hidden');
+               }
+             } catch (err) {
+               document.getElementById('login-error').classList.remove('hidden');
+             }
            }
 
-           return (
-             <div>
-               <button
-                 onClick={handleLogout}
-                 className="fixed top-4 right-4 bg-red-600 text-white p-2 rounded-md hover:bg-red-700"
-               >
-                 Logout
-               </button>
-               <Dashboard token={token} />
-             </div>
-           );
-         }
+           // Logout
+           function logout() {
+             token = null;
+             document.getElementById('dashboard').classList.add('hidden');
+             document.getElementById('login-form').classList.remove('hidden');
+             document.getElementById('username').value = '';
+             document.getElementById('password').value = '';
+             document.getElementById('login-error').classList.add('hidden');
+           }
 
-         ReactDOM.render(<App />, document.getElementById('root'));
-       </script>
-     </body>
-     </html>
+           // Load Leads
+           async function loadLeads() {
+             try {
+               const response = await fetch('/api/leads', {
+                 headers: { 'Authorization': `Bearer ${token}` }
+               });
+               const leads = await response.json();
+               const tableBody = document.getElementById('leads-table');
+               tableBody.innerHTML = '';
+               leads.forEach(lead => {
+                 const timeInSystem = calculateTimeInSystem(lead.created_at);
+                 const row = document.createElement('tr');
+                 row.innerHTML = `
+                   <td class="p-2">${lead.id}</td>
+                   <td class="p-2">${lead.customer_name}</td>
+                   <td class="p-2">${lead.categories || ''}</td>
+                   <td class="p-2">${lead.make || ''}</td>
+                   <td class="p-2">${lead.model || ''}</td>
+                   <td class="p-2">${lead.status || ''}</td>
+                   <td class="p-2 ${timeInSystem.class}">${timeInSystem.text}</td>
+                   <td class="p-2">
+                     <button onclick="editLead(${lead.id})" class="bg-yellow-500 text-white px-2 py-1 rounded hover:bg-yellow-600">Edit</button>
+                     <button onclick="deleteLead(${lead.id})" class="bg-red-500 text-white px-2 py-1 rounded hover:bg-red-600">Delete</button>
+                   </td>
+                 `;
+                 tableBody.appendChild(row);
+               });
+             } catch (err) {
+               console.error('Error loading leads:', err);
+             }
+           }
+
+           // Calculate Time in System
+           function calculateTimeInSystem(createdAt) {
+             const now = new Date();
+             const created = new Date(createdAt);
+             const diffMs = now - created;
+             const hours = Math.floor(diffMs / (1000 * 60 * 60));
+             const days = Math.floor(hours / 24);
+             let text = hours < 24 ? `${hours} hours` : `${days} days`;
+             let className = hours < 24 ? 'time-green' : hours < 72 ? 'time-yellow' : 'time-red';
+             return { text, class: className };
+           }
+
+           // Filter Leads
+           function filterLeads() {
+             const search = document.getElementById('search-bar').value.toLowerCase();
+             const rows = document.getElementById('leads-table').getElementsByTagName('tr');
+             for (let row of rows) {
+               const cells = row.getElementsByTagName('td');
+               let match = false;
+               for (let cell of cells) {
+                 if (cell.textContent.toLowerCase().includes(search)) {
+                   match = true;
+                   break;
+                 }
+               }
+               row.style.display = match ? '' : 'none';
+             }
+           }
+
+           // Load Categories
+           async function loadCategories() {
+             try {
+               const response = await fetch('/api/categories', {
+                 headers: { 'Authorization': `Bearer ${token}` }
+               });
+               const categories = await response.json();
+               const select = document.getElementById('categories');
+               select.innerHTML = '';
+               categories.forEach(category => {
+                 const option = document.createElement('option');
+                 option.value = category;
+                 option.textContent = category;
+                 select.appendChild(option);
+               });
+             } catch (err) {
+               console.error('Error loading categories:', err);
+             }
+           }
+
+           // Load Makes
+           async function loadMakes() {
+             try {
+               const response = await fetch('/api/makes', {
+                 headers: { 'Authorization': `Bearer ${token}` }
+               });
+               const makes = await response.json();
+               const select = document.getElementById('make');
+               select.innerHTML = '<option value="">Select Make</option>';
+               makes.forEach(make => {
+                 const option = document.createElement('option');
+                 option.value = make;
+                 option.textContent = make;
+                 select.appendChild(option);
+               });
+             } catch (err) {
+               console.error('Error loading makes:', err);
+             }
+           }
+
+           // Load Models
+           async function loadModels() {
+             try {
+               const response = await fetch('/api/models', {
+                 headers: { 'Authorization': `Bearer ${token}` }
+               });
+               const models = await response.json();
+               const select = document.getElementById('model');
+               select.innerHTML = '<option value="">Select Model</option>';
+               models.forEach(model => {
+                 const option = document.createElement('option');
+                 option.value = model;
+                 option.textContent = model;
+                 select.appendChild(option);
+               });
+             } catch (err) {
+               console.error('Error loading models:', err);
+             }
+           }
+
+           // Open Create Lead Modal
+           function openCreateLeadModal() {
+             document.getElementById('create-lead-modal').style.display = 'flex';
+             document.getElementById('create-lead-form').reset();
+           }
+
+           // Close Create Lead Modal
+           function closeCreateLeadModal() {
+             document.getElementById('create-lead-modal').style.display = 'none';
+           }
+
+           // Save Lead
+           document.getElementById('create-lead-form').addEventListener('submit', async (e) => {
+             e.preventDefault();
+             const lead = {
+               customerName: document.getElementById('customerName').value,
+               customerEmail: document.getElementById('customerEmail').value,
+               customerPhone: document.getElementById('customerPhone').value,
+               customerStreet: document.getElementById('customerStreet').value,
+               customerCity: document.getElementById('customerCity').value,
+               customerState: document.getElementById('customerState').value,
+               customerZip: document.getElementById('customerZip').value,
+               categories: Array.from(document.getElementById('categories').selectedOptions).map(opt => opt.value),
+               make: document.getElementById('make').value,
+               model: document.getElementById('model').value,
+               company: document.getElementById('company').value,
+               machinesNotes: document.getElementById('machinesNotes').value,
+               status: document.getElementById('status').value
+             };
+             try {
+               const response = await fetch('/api/leads', {
+                 method: 'POST',
+                 headers: {
+                   'Content-Type': 'application/json',
+                   'Authorization': `Bearer ${token}`
+                 },
+                 body: JSON.stringify(lead)
+               });
+               if (response.ok) {
+                 closeCreateLeadModal();
+                 loadLeads();
+               } else {
+                 alert('Error saving lead');
+               }
+             } catch (err) {
+               alert('Error saving lead');
+             }
+           });
+
+           // Edit Lead (Placeholder)
+           function editLead(id) {
+             alert(`Edit lead ID ${id} - Feature to be implemented`);
+           }
+
+           // Delete Lead
+           async function deleteLead(id) {
+             if (confirm('Are you sure you want to delete this lead?')) {
+               try {
+                 const response = await fetch(`/api/leads/${id}`, {
+                   method: 'DELETE',
+                   headers: { 'Authorization': `Bearer ${token}` }
+                 });
+                 if (response.ok) {
+                   loadLeads();
+                 } else {
+                   alert('Error deleting lead');
+                 }
+               } catch (err) {
+                 alert('Error deleting lead');
+               }
+             }
+           }
+         </script>
+       </body>
+       </html>
