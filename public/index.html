@@ -11,8 +11,18 @@
            .time-green { background-color: #d4edda; }
            .time-yellow { background-color: #fff3cd; }
            .time-red { background-color: #f8d7da; }
-           table { table-layout: fixed; }
-           th, td { word-wrap: break-word; overflow: hidden; text-overflow: ellipsis; }
+           .lead-details { display: none; }
+           .lead-details.show { display: block; }
+           @media (max-width: 639px) {
+             .lead-card { border: 1px solid #e5e7eb; border-radius: 8px; margin-bottom: 1rem; }
+             .lead-card-header { padding: 1rem; }
+             .lead-card-details { padding: 1rem; border-top: 1px solid #e5e7eb; }
+             .action-btn { min-width: 48px; min-height: 48px; }
+           }
+           @media (min-width: 640px) {
+             table { table-layout: fixed; }
+             th, td { word-wrap: break-word; overflow: hidden; text-overflow: ellipsis; }
+           }
          </style>
        </head>
        <body class="bg-gray-100">
@@ -20,22 +30,25 @@
          <div id="login-form" class="flex items-center justify-center min-h-screen">
            <div class="bg-white p-6 rounded shadow-md w-full max-w-md">
              <h2 class="text-2xl font-bold mb-4 text-center">Login</h2>
-             <input id="username" type="text" placeholder="Username" class="w-full p-2 mb-4 border rounded">
-             <input id="password" type="password" placeholder="Password" class="w-full p-2 mb-4 border rounded">
-             <button onclick="login()" class="w-full bg-blue-500 text-white p-2 rounded hover:bg-blue-600">Login</button>
-             <p id="login-error" class="text-red-500 mt-2 hidden">Invalid credentials</p>
+             <input id="username" type="text" placeholder="Username" class="w-full p-3 text-base border rounded mb-4">
+             <input id="password" type="password" placeholder="Password" class="w-full p-3 text-base border rounded mb-4">
+             <button onclick="login()" class="w-full bg-blue-500 text-white p-3 rounded text-base hover:bg-blue-600">Login</button>
+             <p id="login-error" class="text-red-500 mt-2 text-base hidden">Invalid credentials</p>
            </div>
          </div>
 
          <!-- Dashboard -->
-         <div id="dashboard" class="hidden p-4">
-           <div class="flex justify-between items-center mb-4">
-             <h2 class="text-2xl font-bold">Leads Dashboard</h2>
-             <button onclick="logout()" class="bg-red-500 text-white px-4 py-2 rounded hover:bg-red-600">Logout</button>
+         <div id="dashboard" class="hidden p-4 sm:p-6">
+           <div class="flex flex-col sm:flex-row sm:justify-between sm:items-center mb-4">
+             <h2 class="text-2xl font-bold mb-4 sm:mb-0">Leads Dashboard</h2>
+             <button onclick="logout()" class="bg-red-500 text-white px-4 py-2 rounded text-base hover:bg-red-600">Logout</button>
            </div>
-           <input id="search-bar" type="text" placeholder="Search leads..." class="w-full p-2 mb-4 border rounded" oninput="filterLeads()">
-           <button onclick="openLeadModal('create')" class="bg-blue-500 text-white px-4 py-2 mb-4 rounded hover:bg-blue-600">Create Lead</button>
-           <div class="overflow-x-auto">
+           <input id="search-bar" type="text" placeholder="Search leads..." class="w-full p-3 text-base border rounded mb-4" oninput="filterLeads()">
+           <button onclick="openLeadModal('create')" class="w-full sm:w-auto bg-blue-500 text-white px-4 py-2 mb-4 rounded text-base hover:bg-blue-600">Create Lead</button>
+           <!-- Mobile Card Layout -->
+           <div id="leads-cards" class="block sm:hidden"></div>
+           <!-- Desktop Table Layout -->
+           <div class="hidden sm:block overflow-x-auto">
              <table class="w-full bg-white shadow-md rounded">
                <thead>
                  <tr class="bg-gray-200">
@@ -64,69 +77,69 @@
 
          <!-- Lead Modal (Create/Edit) -->
          <div id="lead-modal" class="modal">
-           <div class="modal-content">
+           <div class="modal-content p-4 sm:p-6">
              <h2 id="modal-title" class="text-xl font-bold mb-4">Create Lead</h2>
              <form id="lead-form">
                <div class="mb-4">
-                 <label class="block text-sm font-medium mb-1">Customer Name *</label>
-                 <input id="customerName" type="text" class="w-full p-2 border rounded" required>
+                 <label class="block text-base font-medium mb-1">Customer Name *</label>
+                 <input id="customerName" type="text" class="w-full p-3 text-base border rounded" required>
                </div>
                <div class="mb-4">
-                 <label class="block text-sm font-medium mb-1">Company</label>
-                 <input id="company" type="text" class="w-full p-2 border rounded">
+                 <label class="block text-base font-medium mb-1">Company</label>
+                 <input id="company" type="text" class="w-full p-3 text-base border rounded">
                </div>
                <div class="mb-4">
-                 <label class="block text-sm font-medium mb-1">Customer Email</label>
-                 <input id="customerEmail" type="email" class="w-full p-2 border rounded">
+                 <label class="block text-base font-medium mb-1">Customer Email</label>
+                 <input id="customerEmail" type="email" class="w-full p-3 text-base border rounded">
                </div>
                <div class="mb-4">
-                 <label class="block text-sm font-medium mb-1">Customer Phone</label>
-                 <input id="customerPhone" type="tel" class="w-full p-2 border rounded">
+                 <label class="block text-base font-medium mb-1">Customer Phone</label>
+                 <input id="customerPhone" type="tel" class="w-full p-3 text-base border rounded">
                </div>
                <div class="mb-4">
-                 <label class="block text-sm font-medium mb-1">Street Address</label>
-                 <input id="customerStreet" type="text" class="w-full p-2 border rounded">
+                 <label class="block text-base font-medium mb-1">Street Address</label>
+                 <input id="customerStreet" type="text" class="w-full p-3 text-base border rounded">
                </div>
                <div class="mb-4">
-                 <label class="block text-sm font-medium mb-1">City</label>
-                 <input id="customerCity" type="text" class="w-full p-2 border rounded">
+                 <label class="block text-base font-medium mb-1">City</label>
+                 <input id="customerCity" type="text" class="w-full p-3 text-base border rounded">
                </div>
                <div class="mb-4">
-                 <label class="block text-sm font-medium mb-1">State</label>
-                 <input id="customerState" type="text" class="w-full p-2 border rounded">
+                 <label class="block text-base font-medium mb-1">State</label>
+                 <input id="customerState" type="text" class="w-full p-3 text-base border rounded">
                </div>
                <div class="mb-4">
-                 <label class="block text-sm font-medium mb-1">ZIP Code</label>
-                 <input id="customerZip" type="text" class="w-full p-2 border rounded">
+                 <label class="block text-base font-medium mb-1">ZIP Code</label>
+                 <input id="customerZip" type="text" class="w-full p-3 text-base border rounded">
                </div>
                <div class="mb-4">
-                 <label class="block text-sm font-medium mb-1">Categories</label>
-                 <input id="categories" type="text" class="w-full p-2 border rounded" placeholder="e.g., Excavator,Crusher">
+                 <label class="block text-base font-medium mb-1">Categories</label>
+                 <input id="categories" type="text" class="w-full p-3 text-base border rounded" placeholder="e.g., Excavator,Crusher">
                </div>
                <div class="mb-4">
-                 <label class="block text-sm font-medium mb-1">Make</label>
-                 <input id="make" type="text" class="w-full p-2 border rounded">
+                 <label class="block text-base font-medium mb-1">Make</label>
+                 <input id="make" type="text" class="w-full p-3 text-base border rounded">
                </div>
                <div class="mb-4">
-                 <label class="block text-sm font-medium mb-1">Model</label>
-                 <input id="model" type="text" class="w-full p-2 border rounded">
+                 <label class="block text-base font-medium mb-1">Model</label>
+                 <input id="model" type="text" class="w-full p-3 text-base border rounded">
                </div>
                <div class="mb-4">
-                 <label class="block text-sm font-medium mb-1">Machines Notes</label>
-                 <textarea id="machinesNotes" class="w-full p-2 border rounded"></textarea>
+                 <label class="block text-base font-medium mb-1">Machines Notes</label>
+                 <textarea id="machinesNotes" class="w-full p-3 text-base border rounded"></textarea>
                </div>
                <div class="mb-4">
-                 <label class="block text-sm font-medium mb-1">Status</label>
-                 <select id="status" class="w-full p-2 border rounded">
+                 <label class="block text-base font-medium mb-1">Status</label>
+                 <select id="status" class="w-full p-3 text-base border rounded">
                    <option value="Quoted">Quoted</option>
                    <option value="Closed">Closed</option>
                    <option value="Pending">Pending</option>
                    <option value="Lost">Lost</option>
                  </select>
                </div>
-               <div class="flex justify-end">
-                 <button type="button" onclick="closeLeadModal()" class="bg-gray-500 text-white px-4 py-2 rounded mr-2 hover:bg-gray-600">Cancel</button>
-                 <button type="submit" id="save-lead-btn" class="bg-blue-500 text-white px-4 py-2 rounded hover:bg-blue-600">Save Lead</button>
+               <div class="flex justify-end space-x-4">
+                 <button type="button" onclick="closeLeadModal()" class="bg-gray-500 text-white px-4 py-2 rounded text-base hover:bg-gray-600">Cancel</button>
+                 <button type="submit" id="save-lead-btn" class="bg-blue-500 text-white px-4 py-2 rounded text-base hover:bg-blue-600">Save Lead</button>
                </div>
              </form>
            </div>
@@ -177,37 +190,83 @@
                  headers: { 'Authorization': `Bearer ${token}` }
                });
                const leads = await response.json();
-               const tableBody = document.getElementById('leads-table');
-               tableBody.innerHTML = '';
-               leads.forEach(lead => {
-                 const timeInSystem = calculateTimeInSystem(lead.created_at);
-                 const row = document.createElement('tr');
-                 row.innerHTML = `
-                   <td class="p-2">${lead.id}</td>
-                   <td class="p-2">${lead.customer_name}</td>
-                   <td class="p-2">${lead.company || ''}</td>
-                   <td class="p-2">${lead.customer_email || ''}</td>
-                   <td class="p-2">${lead.customer_phone || ''}</td>
-                   <td class="p-2">${lead.customer_street || ''}</td>
-                   <td class="p-2">${lead.customer_city || ''}</td>
-                   <td class="p-2">${lead.customer_state || ''}</td>
-                   <td class="p-2">${lead.customer_zip || ''}</td>
-                   <td class="p-2">${lead.categories || ''}</td>
-                   <td class="p-2">${lead.make || ''}</td>
-                   <td class="p-2">${lead.model || ''}</td>
-                   <td class="p-2">${lead.machines_notes || ''}</td>
-                   <td class="p-2">${lead.status || ''}</td>
-                   <td class="p-2 ${timeInSystem.class}">${timeInSystem.text}</td>
-                   <td class="p-2">
-                     <button onclick="editLead(${lead.id})" class="bg-yellow-500 text-white px-2 py-1 rounded hover:bg-yellow-600">Edit</button>
-                     <button onclick="deleteLead(${lead.id})" class="bg-red-500 text-white px-2 py-1 rounded hover:bg-red-600">Delete</button>
-                   </td>
-                 `;
-                 tableBody.appendChild(row);
-               });
+               renderLeads(leads);
              } catch (err) {
                console.error('Error loading leads:', err);
              }
+           }
+
+           // Render Leads (Cards for Mobile, Table for Desktop)
+           function renderLeads(leads) {
+             const tableBody = document.getElementById('leads-table');
+             const cardsContainer = document.getElementById('leads-cards');
+             tableBody.innerHTML = '';
+             cardsContainer.innerHTML = '';
+
+             leads.forEach(lead => {
+               const timeInSystem = calculateTimeInSystem(lead.created_at);
+
+               // Desktop Table Row
+               const row = document.createElement('tr');
+               row.innerHTML = `
+                 <td class="p-2">${lead.id}</td>
+                 <td class="p-2">${lead.customer_name}</td>
+                 <td class="p-2">${lead.company || ''}</td>
+                 <td class="p-2">${lead.customer_email || ''}</td>
+                 <td class="p-2">${lead.customer_phone || ''}</td>
+                 <td class="p-2">${lead.customer_street || ''}</td>
+                 <td class="p-2">${lead.customer_city || ''}</td>
+                 <td class="p-2">${lead.customer_state || ''}</td>
+                 <td class="p-2">${lead.customer_zip || ''}</td>
+                 <td class="p-2">${lead.categories || ''}</td>
+                 <td class="p-2">${lead.make || ''}</td>
+                 <td class="p-2">${lead.model || ''}</td>
+                 <td class="p-2">${lead.machines_notes || ''}</td>
+                 <td class="p-2">${lead.status || ''}</td>
+                 <td class="p-2 ${timeInSystem.class}">${timeInSystem.text}</td>
+                 <td class="p-2">
+                   <button onclick="editLead(${lead.id})" class="bg-yellow-500 text-white px-2 py-1 rounded hover:bg-yellow-600">Edit</button>
+                   <button onclick="deleteLead(${lead.id})" class="bg-red-500 text-white px-2 py-1 rounded hover:bg-red-600">Delete</button>
+                 </td>
+               `;
+               tableBody.appendChild(row);
+
+               // Mobile Card
+               const card = document.createElement('div');
+               card.className = 'lead-card bg-white';
+               card.innerHTML = `
+                 <div class="lead-card-header">
+                   <h3 class="text-lg font-semibold">${lead.customer_name}</h3>
+                   <p class="text-base">${lead.company || 'No Company'}</p>
+                   <p class="text-base">Status: ${lead.status || 'N/A'}</p>
+                   <p class="text-base ${timeInSystem.class} p-1 rounded">Time: ${timeInSystem.text}</p>
+                   <button onclick="toggleDetails(${lead.id})" class="text-blue-500 text-base mt-2">Show Details</button>
+                 </div>
+                 <div id="details-${lead.id}" class="lead-details lead-card-details">
+                   <p><strong>Email:</strong> ${lead.customer_email || 'N/A'}</p>
+                   <p><strong>Phone:</strong> ${lead.customer_phone || 'N/A'}</p>
+                   <p><strong>Street:</strong> ${lead.customer_street || 'N/A'}</p>
+                   <p><strong>City:</strong> ${lead.customer_city || 'N/A'}</p>
+                   <p><strong>State:</strong> ${lead.customer_state || 'N/A'}</p>
+                   <p><strong>ZIP:</strong> ${lead.customer_zip || 'N/A'}</p>
+                   <p><strong>Categories:</strong> ${lead.categories || 'N/A'}</p>
+                   <p><strong>Make:</strong> ${lead.make || 'N/A'}</p>
+                   <p><strong>Model:</strong> ${lead.model || 'N/A'}</p>
+                   <p><strong>Notes:</strong> ${lead.machines_notes || 'N/A'}</p>
+                   <div class="flex space-x-4 mt-4">
+                     <button onclick="editLead(${lead.id})" class="action-btn bg-yellow-500 text-white px-4 py-2 rounded text-base hover:bg-yellow-600">Edit</button>
+                     <button onclick="deleteLead(${lead.id})" class="action-btn bg-red-500 text-white px-4 py-2 rounded text-base hover:bg-red-600">Delete</button>
+                   </div>
+                 </div>
+               `;
+               cardsContainer.appendChild(card);
+             });
+           }
+
+           // Toggle Card Details
+           function toggleDetails(leadId) {
+             const details = document.getElementById(`details-${leadId}`);
+             details.classList.toggle('show');
            }
 
            // Calculate Time in System
@@ -225,7 +284,14 @@
            // Filter Leads
            function filterLeads() {
              const search = document.getElementById('search-bar').value.toLowerCase();
+             const cards = document.getElementById('leads-cards').getElementsByClassName('lead-card');
              const rows = document.getElementById('leads-table').getElementsByTagName('tr');
+             // Filter Cards
+             for (let card of cards) {
+               const text = card.textContent.toLowerCase();
+               card.style.display = text.includes(search) ? '' : 'none';
+             }
+             // Filter Table Rows
              for (let row of rows) {
                const cells = row.getElementsByTagName('td');
                let match = false;
