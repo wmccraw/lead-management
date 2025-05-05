@@ -1,8 +1,6 @@
 const express = require('express');
        const { Pool } = require('pg');
        const cors = require('cors');
-       const jwt = require('jsonwebtoken');
-       const bcrypt = require('bcryptjs');
        const path = require('path');
 
        const app = express();
@@ -56,13 +54,6 @@ const express = require('express');
                name TEXT UNIQUE
              )
            `);
-           await pool.query(`
-             CREATE TABLE IF NOT EXISTS users (
-               id SERIAL PRIMARY KEY,
-               username TEXT UNIQUE,
-               password TEXT
-             )
-           `);
            console.log('Connected to PostgreSQL database.');
          } catch (err) {
            console.error('Database connection error:', err);
@@ -70,68 +61,8 @@ const express = require('express');
          }
        };
 
-       // Initialize users
-       const initializeUsers = async () => {
-         const users = [
-           { username: 'wilson', password: 'wilson123' },
-           { username: 'coworker1', password: 'coworker1pass' },
-           { username: 'coworker2', password: 'coworker2pass' },
-           { username: 'coworker3', password: 'coworker3pass' }
-         ];
-         for (const user of users) {
-           const hashedPassword = await bcrypt.hash(user.password, 10);
-           try {
-             await pool.query(
-               `INSERT INTO users (username, password) VALUES ($1, $2) ON CONFLICT DO NOTHING`,
-               [user.username, hashedPassword]
-             );
-           } catch (err) {
-             console.error('Error inserting user:', err);
-           }
-         }
-       };
-
-       // Initialize database and users sequentially
-       const initialize = async () => {
-         await initializeDatabase();
-         await initializeUsers();
-       };
-       initialize().catch(err => console.error('Initialization error:', err));
-
-       // JWT authentication middleware
-       const authenticate = (req, res, next) => {
-         const token = req.headers.authorization?.split(' ')[1];
-         if (!token) return res.status(401).json({ error: 'No token provided' });
-         try {
-           const decoded = jwt.verify(token, 'your-secure-jwt-secret-key-12345');
-           req.user = decoded;
-           next();
-         } catch (err) {
-           res.status(401).json({ error: 'Invalid token' });
-         }
-       };
-
-       // Login endpoint
-       app.post('/api/login', async (req, res) => {
-         const { username, password } = req.body;
-         try {
-           const { rows } = await pool.query(`SELECT * FROM users WHERE username = $1`, [username]);
-           const user = rows[0];
-           if (!user || !(await bcrypt.compare(password, user.password))) {
-             return res.status(401).json({ error: 'Invalid credentials' });
-           }
-           const token = jwt.sign({ userId: user.id }, 'your-secure-jwt-secret-key-12345', { expiresIn: '1h' });
-           res.json({ token });
-         } catch (err) {
-           res.status(500).json({ error: 'Database error' });
-         }
-       });
-
-       // Apply authentication to API routes
-       app.use('/api/leads', authenticate);
-       app.use('/api/categories', authenticate);
-       app.use('/api/makes', authenticate);
-       app.use('/api/models', authenticate);
+       // Initialize database
+       initializeDatabase().catch(err => console.error('Initialization error:', err));
 
        // Lead routes
        app.get('/api/leads', async (req, res) => {
