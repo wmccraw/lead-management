@@ -148,7 +148,23 @@ const express = require('express');
          }
 
          try {
-           await pool.query(
+           const updateQuery = status === 'Quoted' ? 
+             `UPDATE leads SET
+               categories = $1,
+               make = $2,
+               model = $3,
+               company = $4,
+               customer_name = $5,
+               customer_email = $6,
+               customer_phone = $7,
+               customer_street = $8,
+               customer_city = $9,
+               customer_state = $10,
+               customer_zip = $11,
+               machines_notes = $12,
+               status = $13,
+               created_at = CURRENT_TIMESTAMP
+             WHERE id = $14` :
              `UPDATE leads SET
                categories = $1,
                make = $2,
@@ -163,8 +179,9 @@ const express = require('express');
                customer_zip = $11,
                machines_notes = $12,
                status = $13
-             WHERE id = $14`,
-             [
+             WHERE id = $14`;
+
+           await pool.query(updateQuery, [
                Array.isArray(categories) ? categories.join(',') : categories,
                make,
                model,
@@ -179,8 +196,7 @@ const express = require('express');
                machinesNotes,
                status,
                id
-             ]
-           );
+             ]);
            res.json({ message: 'Lead updated successfully' });
          } catch (err) {
            res.status(500).json({ error: err.message });

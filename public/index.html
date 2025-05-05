@@ -53,6 +53,7 @@
                    <th class="p-2 text-left">Notes</th>
                    <th class="p-2 text-left">Status</th>
                    <th class="p-2 text-left">Time in System</th>
+                   <th class="p-2 text-left">Date Added</th>
                    <th class="p-2 text-left">Actions</th>
                  </tr>
                </thead>
@@ -148,6 +149,12 @@
              }
            }
 
+           // Format Date
+           function formatDate(dateStr) {
+             const date = new Date(dateStr);
+             return date.toISOString().split('T')[0]; // YYYY-MM-DD
+           }
+
            // Render Leads (Cards for Mobile, Table for Desktop)
            function renderLeads(leads) {
              const tableBody = document.getElementById('leads-table');
@@ -157,6 +164,7 @@
 
              leads.forEach(lead => {
                const timeInSystem = calculateTimeInSystem(lead.created_at);
+               const dateAdded = formatDate(lead.created_at);
 
                // Desktop Table Row
                const row = document.createElement('tr');
@@ -176,6 +184,7 @@
                  <td class="p-2">${lead.machines_notes || ''}</td>
                  <td class="p-2">${lead.status || ''}</td>
                  <td class="p-2 ${timeInSystem.class}">${timeInSystem.text}</td>
+                 <td class="p-2">${dateAdded}</td>
                  <td class="p-2">
                    <button onclick="editLead(${lead.id})" class="bg-yellow-500 text-white px-2 py-1 rounded hover:bg-yellow-600">Edit</button>
                    <button onclick="deleteLead(${lead.id})" class="bg-red-500 text-white px-2 py-1 rounded hover:bg-red-600">Delete</button>
@@ -192,6 +201,7 @@
                    <p class="text-base">${lead.company || 'No Company'}</p>
                    <p class="text-base">Status: ${lead.status || 'N/A'}</p>
                    <p class="text-base ${timeInSystem.class} p-1 rounded">Time: ${timeInSystem.text}</p>
+                   <p class="text-base">Date Added: ${dateAdded}</p>
                    <button onclick="toggleDetails(${lead.id})" class="text-blue-500 text-base mt-2">Show Details</button>
                  </div>
                  <div id="details-${lead.id}" class="lead-details lead-card-details">
