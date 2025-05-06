@@ -37,6 +37,19 @@ const express = require('express');
              )
            `);
            await pool.query(`
+             CREATE TABLE IF NOT EXISTS customers (
+               id SERIAL PRIMARY KEY,
+               customer_name TEXT NOT NULL,
+               company TEXT,
+               customer_email TEXT,
+               customer_phone TEXT,
+               customer_street TEXT,
+               customer_city TEXT,
+               customer_state TEXT,
+               customer_zip TEXT
+             )
+           `);
+           await pool.query(`
              CREATE TABLE IF NOT EXISTS categories (
                id SERIAL PRIMARY KEY,
                name TEXT UNIQUE
@@ -213,6 +226,113 @@ const express = require('express');
          }
        });
 
+       // Customer routes
+       app.get('/api/customers', async (req, res) => {
+         try {
+           const { rows } = await pool.query('SELECT * FROM customers');
+           res.json(rows);
+         } catch (err) {
+           res.status(500).json({ error: err.message });
+         }
+       });
+
+       app.post('/api/customers', async (req, res) => {
+         const {
+           customerName,
+           company,
+           customerEmail,
+           customerPhone,
+           customerStreet,
+           customerCity,
+           customerState,
+           customerZip
+         } = req.body;
+
+         if (!customerName) {
+           return res.status(400).json({ error: 'Customer Name is required' });
+         }
+
+         try {
+           const { rows } = await pool.query(
+             `INSERT INTO customers (
+               customer_name, company, customer_email, customer_phone,
+               customer_street, customer_city, customer_state, customer_zip
+             ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8)
+             RETURNING id`,
+             [
+               customerName,
+               company,
+               customerEmail,
+               customerPhone,
+               customerStreet,
+               customerCity,
+               customerState,
+               customerZip
+             ]
+           );
+           res.json({ message: 'Customer added successfully', id: rows[0].id });
+         } catch (err) {
+           res.status(500).json({ error: err.message });
+         }
+       });
+
+       app.put('/api/customers/:id', async (req, res) => {
+         const { id } = req.params;
+         const {
+           customerName,
+           company,
+           customerEmail,
+           customerPhone,
+           customerStreet,
+           customerCity,
+           customerState,
+           customerZip
+         } = req.body;
+
+         if (!customerName) {
+           return res.status(400).json({ error: 'Customer Name is required' });
+         }
+
+         try {
+           await pool.query(
+             `UPDATE customers SET
+               customer_name = $1,
+               company = $2,
+               customer_email = $3,
+               customer_phone = $4,
+               customer_street = $5,
+               customer_city = $6,
+               customer_state = $7,
+               customer_zip = $8
+             WHERE id = $9`,
+             [
+               customerName,
+               company,
+               customerEmail,
+               customerPhone,
+               customerStreet,
+               customerCity,
+               customerState,
+               customerZip,
+               id
+             ]
+           );
+           res.json({ message: 'Customer updated successfully' });
+         } catch (err) {
+           res.status(500).json({ error: err.message });
+         }
+       });
+
+       app.delete('/api/customers/:id', async (req, res) => {
+         const { id } = req.params;
+         try {
+           await pool.query('DELETE FROM customers WHERE id = $1', [id]);
+           res.json({ message: 'Customer deleted successfully' });
+         } catch (err) {
+           res.status(500).json({ error: err.message });
+         }
+       });
+
        // Category routes
        app.get('/api/categories', async (req, res) => {
          try {
@@ -241,7 +361,7 @@ const express = require('express');
            if (rows.length > 0) {
              return res.status(400).json({ error: 'Cannot delete category used in leads' });
            }
-           await pool.query('DELETE FROM categories WHERE name = $1', [name]);
+           await pool.query('DELETE FROM customers WHERE name = $1', [name]);
            res.json({ message: 'Category deleted successfully' });
          } catch (err) {
            res.status(500).json({ error: err.message });

@@ -11,65 +11,110 @@
            .time-green { background-color: #d4edda; }
            .time-yellow { background-color: #fff3cd; }
            .time-red { background-color: #f8d7da; }
-           .lead-details { display: none; }
-           .lead-details.show { display: block; }
+           .lead-details, .customer-details { display: none; }
+           .lead-details.show, .customer-details.show { display: block; }
+           .tab-active { background-color: #3b82f6; color: white; }
+           .tab-inactive { background-color: #e5e7eb; color: black; }
            @media (max-width: 639px) {
-             .lead-card { border: 1px solid #e5e7eb; border-radius: 8px; margin-bottom: 1rem; }
-             .lead-card-header { padding: 1rem; }
-             .lead-card-details { padding: 1rem; border-top: 1px solid #e5e7eb; }
+             .lead-card, .customer-card { border: 1px solid #e5e7eb; border-radius: 8px; margin-bottom: 1rem; }
+             .lead-card-header, .customer-card-header { padding: 1rem; }
+             .lead-card-details, .customer-card-details { padding: 1rem; border-top: 1px solid #e5e7eb; }
              .action-btn { min-width: 48px; min-height: 48px; }
            }
            @media (min-width: 640px) {
              table { table-layout: fixed; }
              th, td { word-wrap: break-word; overflow: hidden; text-overflow: ellipsis; }
            }
+           .dropdown { position: relative; }
+           .dropdown-menu { display: none; position: absolute; background: white; border: 1px solid #e5e7eb; width: 100%; max-height: 200px; overflow-y: auto; z-index: 100; }
+           .dropdown-menu.show { display: block; }
+           .dropdown-item { padding: 8px; cursor: pointer; }
+           .dropdown-item:hover { background: #f3f4f6; }
          </style>
        </head>
        <body class="bg-gray-100">
-         <!-- Dashboard -->
-         <div id="dashboard" class="p-4 sm:p-6">
-           <h2 class="text-2xl font-bold mb-4">Leads Dashboard</h2>
-           <input id="search-bar" type="text" placeholder="Search leads..." class="w-full p-3 text-base border rounded mb-4" oninput="filterLeads()">
-           <button onclick="openLeadModal('create')" class="w-full sm:w-auto bg-blue-500 text-white px-4 py-2 mb-4 rounded text-base hover:bg-blue-600">Create Lead</button>
-           <!-- Mobile Card Layout -->
-           <div id="leads-cards" class="block sm:hidden"></div>
-           <!-- Desktop Table Layout -->
-           <div class="hidden sm:block overflow-x-auto">
-             <table class="w-full bg-white shadow-md rounded">
-               <thead>
-                 <tr class="bg-gray-200">
-                   <th class="p-2 text-left">ID</th>
-                   <th class="p-2 text-left">Customer Name</th>
-                   <th class="p-2 text-left">Company</th>
-                   <th class="p-2 text-left">Email</th>
-                   <th class="p-2 text-left">Phone</th>
-                   <th class="p-2 text-left">Street</th>
-                   <th class="p-2 text-left">City</th>
-                   <th class="p-2 text-left">State</th>
-                   <th class="p-2 text-left">ZIP</th>
-                   <th class="p-2 text-left">Product Category</th>
-                   <th class="p-2 text-left">Make</th>
-                   <th class="p-2 text-left">Model</th>
-                   <th class="p-2 text-left">Notes</th>
-                   <th class="p-2 text-left">Status</th>
-                   <th class="p-2 text-left">Time in System</th>
-                   <th class="p-2 text-left">Date Added</th>
-                   <th class="p-2 text-left">Actions</th>
-                 </tr>
-               </thead>
-               <tbody id="leads-table"></tbody>
-             </table>
+         <!-- Tabs -->
+         <div class="p-4 sm:p-6">
+           <div class="flex space-x-2 mb-4">
+             <button id="leads-tab" class="px-4 py-2 rounded tab-active" onclick="showTab('leads')">Leads</button>
+             <button id="customers-tab" class="px-4 py-2 rounded tab-inactive" onclick="showTab('customers')">Customers</button>
+           </div>
+
+           <!-- Leads Section -->
+           <div id="leads-section" class="tab-content">
+             <h2 class="text-2xl font-bold mb-4">Leads Dashboard</h2>
+             <input id="leads-search-bar" type="text" placeholder="Search leads..." class="w-full p-3 text-base border rounded mb-4" oninput="filterLeads()">
+             <button onclick="openLeadModal('create')" class="w-full sm:w-auto bg-blue-500 text-white px-4 py-2 mb-4 rounded text-base hover:bg-blue-600">Create Lead</button>
+             <!-- Mobile Card Layout -->
+             <div id="leads-cards" class="block sm:hidden"></div>
+             <!-- Desktop Table Layout -->
+             <div class="hidden sm:block overflow-x-auto">
+               <table class="w-full bg-white shadow-md rounded">
+                 <thead>
+                   <tr class="bg-gray-200">
+                     <th class="p-2 text-left">ID</th>
+                     <th class="p-2 text-left">Customer Name</th>
+                     <th class="p-2 text-left">Company</th>
+                     <th class="p-2 text-left">Email</th>
+                     <th class="p-2 text-left">Phone</th>
+                     <th class="p-2 text-left">Street</th>
+                     <th class="p-2 text-left">City</th>
+                     <th class="p-2 text-left">State</th>
+                     <th class="p-2 text-left">ZIP</th>
+                     <th class="p-2 text-left">Product Category</th>
+                     <th class="p-2 text-left">Make</th>
+                     <th class="p-2 text-left">Model</th>
+                     <th class="p-2 text-left">Notes</th>
+                     <th class="p-2 text-left">Status</th>
+                     <th class="p-2 text-left">Time in System</th>
+                     <th class="p-2 text-left">Date Added</th>
+                     <th class="p-2 text-left">Actions</th>
+                   </tr>
+                 </thead>
+                 <tbody id="leads-table"></tbody>
+               </table>
+             </div>
+           </div>
+
+           <!-- Customers Section -->
+           <div id="customers-section" class="tab-content hidden">
+             <h2 class="text-2xl font-bold mb-4">Customers Dashboard</h2>
+             <input id="customers-search-bar" type="text" placeholder="Search customers..." class="w-full p-3 text-base border rounded mb-4" oninput="filterCustomers()">
+             <button onclick="openCustomerModal('create')" class="w-full sm:w-auto bg-blue-500 text-white px-4 py-2 mb-4 rounded text-base hover:bg-blue-600">Create Customer</button>
+             <!-- Mobile Card Layout -->
+             <div id="customers-cards" class="block sm:hidden"></div>
+             <!-- Desktop Table Layout -->
+             <div class="hidden sm:block overflow-x-auto">
+               <table class="w-full bg-white shadow-md rounded">
+                 <thead>
+                   <tr class="bg-gray-200">
+                     <th class="p-2 text-left">ID</th>
+                     <th class="p-2 text-left">Customer Name</th>
+                     <th class="p-2 text-left">Company</th>
+                     <th class="p-2 text-left">Email</th>
+                     <th class="p-2 text-left">Phone</th>
+                     <th class="p-2 text-left">Street</th>
+                     <th class="p-2 text-left">City</th>
+                     <th class="p-2 text-left">State</th>
+                     <th class="p-2 text-left">ZIP</th>
+                     <th class="p-2 text-left">Actions</th>
+                   </tr>
+                 </thead>
+                 <tbody id="customers-table"></tbody>
+               </table>
+             </div>
            </div>
          </div>
 
          <!-- Lead Modal (Create/Edit) -->
          <div id="lead-modal" class="modal">
            <div class="modal-content p-4 sm:p-6">
-             <h2 id="modal-title" class="text-xl font-bold mb-4">Create Lead</h2>
+             <h2 id="lead-modal-title" class="text-xl font-bold mb-4">Create Lead</h2>
              <form id="lead-form">
-               <div class="mb-4">
+               <div class="mb-4 dropdown">
                  <label class="block text-base font-medium mb-1">Customer Name *</label>
-                 <input id="customerName" type="text" class="w-full p-3 text-base border rounded" required>
+                 <input id="customerName" type="text" class="w-full p-3 text-base border rounded" required oninput="filterCustomerDropdown()">
+                 <div id="customer-dropdown" class="dropdown-menu"></div>
                </div>
                <div class="mb-4">
                  <label class="block text-base font-medium mb-1">Company</label>
@@ -132,11 +177,72 @@
            </div>
          </div>
 
+         <!-- Customer Modal (Create/Edit) -->
+         <div id="customer-modal" class="modal">
+           <div class="modal-content p-4 sm:p-6">
+             <h2 id="customer-modal-title" class="text-xl font-bold mb-4">Create Customer</h2>
+             <form id="customer-form">
+               <div class="mb-4">
+                 <label class="block text-base font-medium mb-1">Customer Name *</label>
+                 <input id="customerNameCustomer" type="text" class="w-full p-3 text-base border rounded" required>
+               </div>
+               <div class="mb-4">
+                 <label class="block text-base font-medium mb-1">Company</label>
+                 <input id="companyCustomer" type="text" class="w-full p-3 text-base border rounded">
+               </div>
+               <div class="mb-4">
+                 <label class="block text-base font-medium mb-1">Customer Email</label>
+                 <input id="customerEmailCustomer" type="email" class="w-full p-3 text-base border rounded">
+               </div>
+               <div class="mb-4">
+                 <label class="block text-base font-medium mb-1">Customer Phone</label>
+                 <input id="customerPhoneCustomer" type="tel" class="w-full p-3 text-base border rounded">
+               </div>
+               <div class="mb-4">
+                 <label class="block text-base font-medium mb-1">Street Address</label>
+                 <input id="customerStreetCustomer" type="text" class="w-full p-3 text-base border rounded">
+               </div>
+               <div class="mb-4">
+                 <label class="block text-base font-medium mb-1">City</label>
+                 <input id="customerCityCustomer" type="text" class="w-full p-3 text-base border rounded">
+               </div>
+               <div class="mb-4">
+                 <label class="block text-base font-medium mb-1">State</label>
+                 <input id="customerStateCustomer" type="text" class="w-full p-3 text-base border rounded">
+               </div>
+               <div class="mb-4">
+                 <label class="block text-base font-medium mb-1">ZIP Code</label>
+                 <input id="customerZipCustomer" type="text" class="w-full p-3 text-base border rounded">
+               </div>
+               <div class="flex justify-end space-x-4">
+                 <button type="button" onclick="closeCustomerModal()" class="bg-gray-500 text-white px-4 py-2 rounded text-base hover:bg-gray-600">Cancel</button>
+                 <button type="submit" id="save-customer-btn" class="bg-blue-500 text-white px-4 py-2 rounded text-base hover:bg-blue-600">Save Customer</button>
+               </div>
+             </form>
+           </div>
+         </div>
+
          <script>
            let currentLeadId = null;
+           let currentCustomerId = null;
+           let customers = [];
 
-           // Load Leads on Page Load
-           window.onload = loadLeads;
+           // Load Data on Page Load
+           window.onload = () => {
+             loadLeads();
+             loadCustomers();
+             showTab('leads');
+           };
+
+           // Show Tab
+           function showTab(tab) {
+             document.getElementById('leads-section').classList.toggle('hidden', tab !== 'leads');
+             document.getElementById('customers-section').classList.toggle('hidden', tab !== 'customers');
+             document.getElementById('leads-tab').classList.toggle('tab-active', tab === 'leads');
+             document.getElementById('leads-tab').classList.toggle('tab-inactive', tab !== 'leads');
+             document.getElementById('customers-tab').classList.toggle('tab-active', tab === 'customers');
+             document.getElementById('customers-tab').classList.toggle('tab-inactive', tab !== 'customers');
+           }
 
            // Load Leads
            async function loadLeads() {
@@ -149,13 +255,24 @@
              }
            }
 
+           // Load Customers
+           async function loadCustomers() {
+             try {
+               const response = await fetch('/api/customers');
+               customers = await response.json();
+               renderCustomers(customers);
+             } catch (err) {
+               console.error('Error loading customers:', err);
+             }
+           }
+
            // Format Date
            function formatDate(dateStr) {
              const date = new Date(dateStr);
              return date.toISOString().split('T')[0]; // YYYY-MM-DD
            }
 
-           // Render Leads (Cards for Mobile, Table for Desktop)
+           // Render Leads
            function renderLeads(leads) {
              const tableBody = document.getElementById('leads-table');
              const cardsContainer = document.getElementById('leads-cards');
@@ -202,9 +319,9 @@
                    <p class="text-base">Status: ${lead.status || 'N/A'}</p>
                    <p class="text-base ${timeInSystem.class} p-1 rounded">Time: ${timeInSystem.text}</p>
                    <p class="text-base">Date Added: ${dateAdded}</p>
-                   <button onclick="toggleDetails(${lead.id})" class="text-blue-500 text-base mt-2">Show Details</button>
+                   <button onclick="toggleLeadDetails(${lead.id})" class="text-blue-500 text-base mt-2">Show Details</button>
                  </div>
-                 <div id="details-${lead.id}" class="lead-details lead-card-details">
+                 <div id="lead-details-${lead.id}" class="lead-details lead-card-details">
                    <p><strong>Email:</strong> ${lead.customer_email || 'N/A'}</p>
                    <p><strong>Phone:</strong> ${lead.customer_phone || 'N/A'}</p>
                    <p><strong>Street:</strong> ${lead.customer_street || 'N/A'}</p>
@@ -225,9 +342,68 @@
              });
            }
 
-           // Toggle Card Details
-           function toggleDetails(leadId) {
-             const details = document.getElementById(`details-${leadId}`);
+           // Render Customers
+           function renderCustomers(customers) {
+             const tableBody = document.getElementById('customers-table');
+             const cardsContainer = document.getElementById('customers-cards');
+             tableBody.innerHTML = '';
+             cardsContainer.innerHTML = '';
+
+             customers.forEach(customer => {
+               // Desktop Table Row
+               const row = document.createElement('tr');
+               row.innerHTML = `
+                 <td class="p-2">${customer.id}</td>
+                 <td class="p-2">${customer.customer_name}</td>
+                 <td class="p-2">${customer.company || ''}</td>
+                 <td class="p-2">${customer.customer_email || ''}</td>
+                 <td class="p-2">${customer.customer_phone || ''}</td>
+                 <td class="p-2">${customer.customer_street || ''}</td>
+                 <td class="p-2">${customer.customer_city || ''}</td>
+                 <td class="p-2">${customer.customer_state || ''}</td>
+                 <td class="p-2">${customer.customer_zip || ''}</td>
+                 <td class="p-2">
+                   <button onclick="editCustomer(${customer.id})" class="bg-yellow-500 text-white px-2 py-1 rounded hover:bg-yellow-600">Edit</button>
+                   <button onclick="deleteCustomer(${customer.id})" class="bg-red-500 text-white px-2 py-1 rounded hover:bg-red-600">Delete</button>
+                 </td>
+               `;
+               tableBody.appendChild(row);
+
+               // Mobile Card
+               const card = document.createElement('div');
+               card.className = 'customer-card bg-white';
+               card.innerHTML = `
+                 <div class="customer-card-header">
+                   <h3 class="text-lg font-semibold">${customer.customer_name}</h3>
+                   <p class="text-base">${customer.company || 'No Company'}</p>
+                   <button onclick="toggleCustomerDetails(${customer.id})" class="text-blue-500 text-base mt-2">Show Details</button>
+                 </div>
+                 <div id="customer-details-${customer.id}" class="customer-details customer-card-details">
+                   <p><strong>Email:</strong> ${customer.customer_email || 'N/A'}</p>
+                   <p><strong>Phone:</strong> ${customer.customer_phone || 'N/A'}</p>
+                   <p><strong>Street:</strong> ${customer.customer_street || 'N/A'}</p>
+                   <p><strong>City:</strong> ${customer.customer_city || 'N/A'}</p>
+                   <p><strong>State:</strong> ${customer.customer_state || 'N/A'}</p>
+                   <p><strong>ZIP:</strong> ${customer.customer_zip || 'N/A'}</p>
+                   <div class="flex space-x-4 mt-4">
+                     <button onclick="editCustomer(${customer.id})" class="action-btn bg-yellow-500 text-white px-4 py-2 rounded text-base hover:bg-yellow-600">Edit</button>
+                     <button onclick="deleteCustomer(${customer.id})" class="action-btn bg-red-500 text-white px-4 py-2 rounded text-base hover:bg-red-600">Delete</button>
+                   </div>
+                 </div>
+               `;
+               cardsContainer.appendChild(card);
+             });
+           }
+
+           // Toggle Lead Details
+           function toggleLeadDetails(leadId) {
+             const details = document.getElementById(`lead-details-${leadId}`);
+             details.classList.toggle('show');
+           }
+
+           // Toggle Customer Details
+           function toggleCustomerDetails(customerId) {
+             const details = document.getElementById(`customer-details-${customerId}`);
              details.classList.toggle('show');
            }
 
@@ -245,15 +421,13 @@
 
            // Filter Leads
            function filterLeads() {
-             const search = document.getElementById('search-bar').value.toLowerCase();
+             const search = document.getElementById('leads-search-bar').value.toLowerCase();
              const cards = document.getElementById('leads-cards').getElementsByClassName('lead-card');
              const rows = document.getElementById('leads-table').getElementsByTagName('tr');
-             // Filter Cards
              for (let card of cards) {
                const text = card.textContent.toLowerCase();
                card.style.display = text.includes(search) ? '' : 'none';
              }
-             // Filter Table Rows
              for (let row of rows) {
                const cells = row.getElementsByTagName('td');
                let match = false;
@@ -267,16 +441,83 @@
              }
            }
 
-           // Open Lead Modal (Create or Edit)
+           // Filter Customers
+           function filterCustomers() {
+             const search = document.getElementById('customers-search-bar').value.toLowerCase();
+             const cards = document.getElementById('customers-cards').getElementsByClassName('customer-card');
+             const rows = document.getElementById('customers-table').getElementsByTagName('tr');
+             for (let card of cards) {
+               const text = card.textContent.toLowerCase();
+               card.style.display = text.includes(search) ? '' : 'none';
+             }
+             for (let row of rows) {
+               const cells = row.getElementsByTagName('td');
+               let match = false;
+               for (let cell of cells) {
+                 if (cell.textContent.toLowerCase().includes(search)) {
+                   match = true;
+                   break;
+                 }
+               }
+               row.style.display = match ? '' : 'none';
+             }
+           }
+
+           // Filter Customer Dropdown
+           function filterCustomerDropdown() {
+             const input = document.getElementById('customerName').value.toLowerCase();
+             const dropdown = document.getElementById('customer-dropdown');
+             dropdown.innerHTML = '';
+             if (!input) {
+               dropdown.classList.remove('show');
+               return;
+             }
+
+             const matches = customers.filter(customer => 
+               customer.customer_name.toLowerCase().includes(input)
+             );
+
+             if (matches.length === 0) {
+               dropdown.classList.remove('show');
+               return;
+             }
+
+             matches.forEach(customer => {
+               const item = document.createElement('div');
+               item.className = 'dropdown-item';
+               item.textContent = customer.customer_name;
+               item.onclick = () => selectCustomer(customer);
+               dropdown.appendChild(item);
+             });
+
+             dropdown.classList.add('show');
+           }
+
+           // Select Customer from Dropdown
+           function selectCustomer(customer) {
+             document.getElementById('customerName').value = customer.customer_name || '';
+             document.getElementById('company').value = customer.company || '';
+             document.getElementById('customerEmail').value = customer.customer_email || '';
+             document.getElementById('customerPhone').value = customer.customer_phone || '';
+             document.getElementById('customerStreet').value = customer.customer_street || '';
+             document.getElementById('customerCity').value = customer.customer_city || '';
+             document.getElementById('customerState').value = customer.customer_state || '';
+             document.getElementById('customerZip').value = customer.customer_zip || '';
+             document.getElementById('customer-dropdown').classList.remove('show');
+           }
+
+           // Open Lead Modal
            async function openLeadModal(mode, leadId = null) {
              const modal = document.getElementById('lead-modal');
              const form = document.getElementById('lead-form');
-             const title = document.getElementById('modal-title');
+             const title = document.getElementById('lead-modal-title');
              const saveBtn = document.getElementById('save-lead-btn');
              currentLeadId = leadId;
 
              form.reset();
              modal.style.display = 'flex';
+             document.getElementById('customer-dropdown').classList.remove('show');
+
              if (mode === 'create') {
                title.textContent = 'Create Lead';
                saveBtn.textContent = 'Save Lead';
@@ -313,7 +554,53 @@
            // Close Lead Modal
            function closeLeadModal() {
              document.getElementById('lead-modal').style.display = 'none';
+             document.getElementById('customer-dropdown').classList.remove('show');
              currentLeadId = null;
+           }
+
+           // Open Customer Modal
+           async function openCustomerModal(mode, customerId = null) {
+             const modal = document.getElementById('customer-modal');
+             const form = document.getElementById('customer-form');
+             const title = document.getElementById('customer-modal-title');
+             const saveBtn = document.getElementById('save-customer-btn');
+             currentCustomerId = customerId;
+
+             form.reset();
+             modal.style.display = 'flex';
+
+             if (mode === 'create') {
+               title.textContent = 'Create Customer';
+               saveBtn.textContent = 'Save Customer';
+             } else {
+               title.textContent = 'Edit Customer';
+               saveBtn.textContent = 'Update Customer';
+               try {
+                 const response = await fetch(`/api/customers`);
+                 const customers = await response.json();
+                 const customer = customers.find(c => c.id === customerId);
+                 if (customer) {
+                   document.getElementById('customerNameCustomer').value = customer.customer_name || '';
+                   document.getElementById('companyCustomer').value = customer.company || '';
+                   document.getElementById('customerEmailCustomer').value = customer.customer_email || '';
+                   document.getElementById('customerPhoneCustomer').value = customer.customer_phone || '';
+                   document.getElementById('customerStreetCustomer').value = customer.customer_street || '';
+                   document.getElementById('customerCityCustomer').value = customer.customer_city || '';
+                   document.getElementById('customerStateCustomer').value = customer.customer_state || '';
+                   document.getElementById('customerZipCustomer').value = customer.customer_zip || '';
+                 }
+               } catch (err) {
+                 console.error('Error loading customer:', err);
+                 alert('Error loading customer');
+                 closeCustomerModal();
+               }
+             }
+           }
+
+           // Close Customer Modal
+           function closeCustomerModal() {
+             document.getElementById('customer-modal').style.display = 'none';
+             currentCustomerId = null;
            }
 
            // Save or Update Lead
@@ -354,6 +641,39 @@
              }
            });
 
+           // Save or Update Customer
+           document.getElementById('customer-form').addEventListener('submit', async (e) => {
+             e.preventDefault();
+             const customer = {
+               customerName: document.getElementById('customerNameCustomer').value,
+               company: document.getElementById('companyCustomer').value,
+               customerEmail: document.getElementById('customerEmailCustomer').value,
+               customerPhone: document.getElementById('customerPhoneCustomer').value,
+               customerStreet: document.getElementById('customerStreetCustomer').value,
+               customerCity: document.getElementById('customerCityCustomer').value,
+               customerState: document.getElementById('customerStateCustomer').value,
+               customerZip: document.getElementById('customerZipCustomer').value
+             };
+
+             try {
+               const url = currentCustomerId ? `/api/customers/${currentCustomerId}` : '/api/customers';
+               const method = currentCustomerId ? 'PUT' : 'POST';
+               const response = await fetch(url, {
+                 method,
+                 headers: { 'Content-Type': 'application/json' },
+                 body: JSON.stringify(customer)
+               });
+               if (response.ok) {
+                 closeCustomerModal();
+                 loadCustomers();
+               } else {
+                 alert(currentCustomerId ? 'Error updating customer' : 'Error saving customer');
+               }
+             } catch (err) {
+               alert(currentCustomerId ? 'Error updating customer' : 'Error saving customer');
+             }
+           });
+
            // Edit Lead
            function editLead(id) {
              openLeadModal('edit', id);
@@ -373,6 +693,29 @@
                  }
                } catch (err) {
                  alert('Error deleting lead');
+               }
+             }
+           }
+
+           // Edit Customer
+           function editCustomer(id) {
+             openCustomerModal('edit', id);
+           }
+
+           // Delete Customer
+           async function deleteCustomer(id) {
+             if (confirm('Are you sure you want to delete this customer?')) {
+               try {
+                 const response = await fetch(`/api/customers/${id}`, {
+                   method: 'DELETE'
+                 });
+                 if (response.ok) {
+                   loadCustomers();
+                 } else {
+                   alert('Error deleting customer');
+                 }
+               } catch (err) {
+                 alert('Error deleting customer');
                }
              }
            }
