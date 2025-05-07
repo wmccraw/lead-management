@@ -11,21 +11,15 @@
            padding: 0;
            background-color: #f4f4f4;
          }
-         .logo {
-           display: block;
-           margin: 10px auto;
-           max-width: 200px;
-           height: auto;
-         }
          .tab-container {
            display: flex;
            justify-content: center;
-           background-color: #2E8B57;
+           background-color: #007BFF;
            padding: 10px 0;
            margin-bottom: 20px;
          }
          .tab-button {
-           background-color: #2E8B57;
+           background-color: #007BFF;
            color: white;
            border: none;
            padding: 10px 20px;
@@ -35,10 +29,10 @@
            transition: background-color 0.3s;
          }
          .tab-button:hover {
-           background-color: #4A4A4A;
+           background-color: #0056b3;
          }
          .tab-button.active {
-           background-color: #4A4A4A;
+           background-color: #0056b3;
          }
          .table-container, .card-container {
            padding: 20px;
@@ -54,10 +48,10 @@
          th, td {
            padding: 12px;
            text-align: left;
-           border-bottom: 1px solid #4A4A4A;
+           border-bottom: 1px solid #ddd;
          }
          th {
-           background-color: #2E8B57;
+           background-color: #007BFF;
            color: white;
          }
          td {
@@ -79,7 +73,7 @@
            width: 18%;
          }
          button {
-           background-color: #2E8B57;
+           background-color: #007BFF;
            color: white;
            border: none;
            padding: 8px 16px;
@@ -87,7 +81,7 @@
            transition: background-color 0.3s;
          }
          button:hover {
-           background-color: #4A4A4A;
+           background-color: #0056b3;
          }
          .modal {
            display: none;
@@ -123,7 +117,7 @@
          }
          .card {
            background-color: white;
-           border: 1px solid #4A4A4A;
+           border: 1px solid #ddd;
            box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
            padding: 15px;
            width: calc(33.33% - 1rem);
@@ -140,7 +134,7 @@
          }
          .card h3 {
            margin: 0 0 10px;
-           color: #2E8B57;
+           color: #007BFF;
          }
          .card p {
            margin: 5px 0;
@@ -172,7 +166,6 @@
        </style>
      </head>
      <body>
-       <img src="images/palometa_logo.png" alt="Palometa Logo" class="logo">
        <div class="tab-container">
          <button class="tab-button active" onclick="openTab('leads')">Leads</button>
          <button class="tab-button" onclick="openTab('customers')">Customers</button>
@@ -230,7 +223,7 @@
 
        <div id="overlay" class="overlay" onclick="closeModal()"></div>
        <div id="add-lead-modal" class="modal">
-         <span class="close" onclick="closeModal()">&times;</span>
+         <span class="close" onclick="closeModal()">×</span>
          <div class="modal-content">
            <h2>Add Lead</h2>
            <label>Customer Name:</label><input type="text" id="add-customer-name">
@@ -257,7 +250,7 @@
        </div>
 
        <div id="edit-lead-modal" class="modal">
-         <span class="close" onclick="closeModal()">&times;</span>
+         <span class="close" onclick="closeModal()">×</span>
          <div class="modal-content">
            <h2>Edit Lead</h2>
            <input type="hidden" id="edit-id">
@@ -285,7 +278,7 @@
        </div>
 
        <div id="add-customer-modal" class="modal">
-         <span class="close" onclick="closeModal()">&times;</span>
+         <span class="close" onclick="closeModal()">×</span>
          <div class="modal-content">
            <h2>Add Customer</h2>
            <label>Customer Name:</label><input type="text" id="add-customer-name-c">
@@ -301,7 +294,7 @@
        </div>
 
        <div id="edit-customer-modal" class="modal">
-         <span class="close" onclick="closeModal()">&times;</span>
+         <span class="close" onclick="closeModal()">×</span>
          <div class="modal-content">
            <h2>Edit Customer</h2>
            <input type="hidden" id="edit-id-c">
