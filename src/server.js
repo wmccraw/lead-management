@@ -22,42 +22,80 @@ const express = require('express');
        .then(() => console.log('Connected to PostgreSQL database.'))
        .catch(err => console.error('Database connection error:', err));
 
-     // Create Leads Table
-     pool.query(`
-       CREATE TABLE IF NOT EXISTS leads (
-         id SERIAL PRIMARY KEY,
-         customer_name VARCHAR(255) NOT NULL,
-         company VARCHAR(255),
-         customer_email VARCHAR(255),
-         customer_phone VARCHAR(50),
-         customer_street VARCHAR(255),
-         customer_city VARCHAR(100),
-         customer_state VARCHAR(100),
-         customer_zip VARCHAR(20),
-         categories VARCHAR(255),
-         make VARCHAR(255),
-         model VARCHAR(255),
-         machines_notes TEXT,
-         status VARCHAR(50),
-         created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
-       );
-     `).catch(err => console.error('Error creating leads table:', err));
+     // Initialize Database Schema
+     async function initializeDatabase() {
+       try {
+         // Create Leads Table
+         await pool.query(`
+           CREATE TABLE IF NOT EXISTS leads (
+             id SERIAL PRIMARY KEY,
+             customer_name VARCHAR(255) NOT NULL,
+             company VARCHAR(255),
+             customer_email VARCHAR(255),
+             customer_phone VARCHAR(50),
+             customer_street VARCHAR(255),
+             customer_city VARCHAR(100),
+             customer_state VARCHAR(100),
+             customer_zip VARCHAR(20),
+             categories VARCHAR(255),
+             make VARCHAR(255),
+             model VARCHAR(255),
+             machines_notes TEXT,
+             status VARCHAR(50),
+             created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+           );
+         `);
 
-     // Create Customers Table
-     pool.query(`
-       CREATE TABLE IF NOT EXISTS customers (
-         id SERIAL PRIMARY KEY,
-         customer_name VARCHAR(255) NOT NULL,
-         company VARCHAR(255),
-         customer_email VARCHAR(255),
-         customer_phone VARCHAR(50),
-         customer_street VARCHAR(255),
-         customer_city VARCHAR(100),
-         customer_state VARCHAR(100),
-         customer_zip VARCHAR(20),
-         created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
-       );
-     `).catch(err => console.error('Error creating customers table:', err));
+         // Create Customers Table
+         await pool.query(`
+           CREATE TABLE IF NOT EXISTS customers (
+             id SERIAL PRIMARY KEY,
+             customer_name VARCHAR(255) NOT NULL,
+             company VARCHAR(255),
+             customer_email VARCHAR(255),
+             customer_phone VARCHAR(50),
+             customer_street VARCHAR(255),
+             customer_city VARCHAR(100),
+             customer_state VARCHAR(100),
+             customer_zip VARCHAR(20),
+             created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+           );
+         `);
+
+         // Remove duplicate customer_name entries (keep latest by id)
+         await pool.query(`
+           DELETE FROM customers 
+           WHERE id NOT IN (
+             SELECT MAX(id) 
+             FROM customers 
+             GROUP BY customer_name
+           );
+         `);
+
+         // Add unique constraint to customer_name
+         await pool.query(`
+           DO $$
+           BEGIN
+             IF NOT EXISTS (
+               SELECT 1 
+               FROM pg_constraint 
+               WHERE conname = 'customers_customer_name_key'
+             ) THEN
+               ALTER TABLE customers 
+               ADD CONSTRAINT customers_customer_name_key UNIQUE (customer_name);
+             END IF;
+           END
+           $$;
+         `);
+
+         console.log('Database schema initialized successfully.');
+       } catch (err) {
+         console.error('Error initializing database:', err.message, err.stack);
+       }
+     }
+
+     // Run initialization
+     initializeDatabase();
 
      // Get all leads
      app.get('/api/leads', async (req, res) => {
