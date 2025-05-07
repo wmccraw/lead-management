@@ -15,13 +15,16 @@
            .lead-details.show, .customer-details.show { display: block; }
            .tab-active { background-color: #3b82f6; color: white; }
            .tab-inactive { background-color: #e5e7eb; color: black; }
-           .notes-cell { max-height: 100px; overflow-y: auto; white-space: pre-wrap; cursor: pointer; }
-           .notes-cell:hover { background-color: #f3f4f6; }
+           .expandable-cell { max-height: 100px; overflow-y: auto; cursor: pointer; }
+           .expandable-cell:hover { background-color: #f3f4f6; }
+           .notes-cell { white-space: pre-wrap; }
            @media (max-width: 639px) {
              .lead-card, .customer-card { border: 1px solid #d1d5db; border-radius: 8px; margin-bottom: 1.5rem; box-shadow: 0 2px 4px rgba(0,0,0,0.1); }
              .lead-card-header, .customer-card-header { padding: 1rem; }
              .lead-card-details, .customer-card-details { padding: 1rem; border-top: 1px solid #e5e7eb; }
              .action-btn { min-width: 48px; min-height: 48px; }
+             .expandable-mobile { cursor: pointer; }
+             .expandable-mobile:hover { background-color: #f3f4f6; }
              .notes-mobile { max-height: 100px; overflow-y: auto; white-space: pre-wrap; }
            }
            @media (min-width: 640px) {
@@ -202,7 +205,7 @@
                </div>
                <div class="mb-4">
                  <label class="block text-base font-medium mb-1">Company</label>
-                 <input id="companyCustomer" type="text" class="w-full p-3 text-base border rounded">
+                 <input id="customerCompany" type="text" class="w-full p-3 text-base border rounded">
                </div>
                <div class="mb-4">
                  <label class="block text-base font-medium mb-1">Customer Email</label>
@@ -236,13 +239,13 @@
            </div>
          </div>
 
-         <!-- Notes Modal -->
-         <div id="notes-modal" class="modal">
+         <!-- Content Modal (for all expandable columns) -->
+         <div id="content-modal" class="modal">
            <div class="modal-content p-4 sm:p-6">
-             <h2 class="text-xl font-bold mb-4">Machines Notes</h2>
-             <pre id="notes-content" class="text-base mb-4 whitespace-pre-wrap"></pre>
+             <h2 id="content-modal-title" class="text-xl font-bold mb-4"></h2>
+             <pre id="content-modal-body" class="text-base mb-4"></pre>
              <div class="flex justify-end">
-               <button onclick="closeNotesModal()" class="bg-gray-500 text-white px-4 py-2 rounded text-base hover:bg-gray-600">Close</button>
+               <button onclick="closeContentModal()" class="bg-gray-500 text-white px-4 py-2 rounded text-base hover:bg-gray-600">Close</button>
              </div>
            </div>
          </div>
@@ -299,12 +302,7 @@
 
            // Format Address
            function formatAddress(street, city, state, zip) {
-             const parts = [
-               street,
-               city,
-               state,
-               zip
-             ].filter(part => part); // Remove empty parts
+             const parts = [street, city, state, zip].filter(part => part);
              return parts.length ? parts.join(', ') : 'N/A';
            }
 
@@ -329,18 +327,18 @@
                const row = document.createElement('tr');
                row.innerHTML = `
                  <td class="p-2 col-id">${lead.id}</td>
-                 <td class="p-2 col-customer-name">${lead.customer_name}</td>
-                 <td class="p-2 col-company">${lead.company || ''}</td>
-                 <td class="p-2 col-email">${lead.customer_email || ''}</td>
-                 <td class="p-2 col-phone">${lead.customer_phone || ''}</td>
-                 <td class="p-2 col-address">${address}</td>
-                 <td class="p-2 col-category">${lead.categories || ''}</td>
-                 <td class="p-2 col-make">${lead.make || ''}</td>
-                 <td class="p-2 col-model">${lead.model || ''}</td>
-                 <td class="p-2 col-notes notes-cell" onclick="openNotesModal(\`${lead.machines_notes || ''}\`)">${lead.machines_notes || ''}</td>
-                 <td class="p-2 col-status">${lead.status || ''}</td>
-                 <td class="p-2 col-time ${timeInSystem.class}">${timeInSystem.text}</td>
-                 <td class="p-2 col-date">${dateAdded}</td>
+                 <td class="p-2 col-customer-name expandable-cell" onclick="openContentModal('Customer Name', \`${lead.customer_name || ''}\`)">${lead.customer_name}</td>
+                 <td class="p-2 col-company expandable-cell" onclick="openContentModal('Company', \`${lead.company || ''}\`)">${lead.company || ''}</td>
+                 <td class="p-2 col-email expandable-cell" onclick="openContentModal('Email', \`${lead.customer_email || ''}\`)">${lead.customer_email || ''}</td>
+                 <td class="p-2 col-phone expandable-cell" onclick="openContentModal('Phone', \`${lead.customer_phone || ''}\`)">${lead.customer_phone || ''}</td>
+                 <td class="p-2 col-address expandable-cell" onclick="openContentModal('Address', \`${address}\`)">${address}</td>
+                 <td class="p-2 col-category expandable-cell" onclick="openContentModal('Product Category', \`${lead.categories || ''}\`)">${lead.categories || ''}</td>
+                 <td class="p-2 col-make expandable-cell" onclick="openContentModal('Make', \`${lead.make || ''}\`)">${lead.make || ''}</td>
+                 <td class="p-2 col-model expandable-cell" onclick="openContentModal('Model', \`${lead.model || ''}\`)">${lead.model || ''}</td>
+                 <td class="p-2 col-notes expandable-cell notes-cell" onclick="openContentModal('Machines Notes', \`${lead.machines_notes || ''}\`)">${lead.machines_notes || ''}</td>
+                 <td class="p-2 col-status expandable-cell" onclick="openContentModal('Status', \`${lead.status || ''}\`)">${lead.status || ''}</td>
+                 <td class="p-2 col-time expandable-cell ${timeInSystem.class}" onclick="openContentModal('Time in System', \`${timeInSystem.text}\`)">${timeInSystem.text}</td>
+                 <td class="p-2 col-date expandable-cell" onclick="openContentModal('Date Added', \`${dateAdded}\`)">${dateAdded}</td>
                  <td class="p-2 col-actions">
                    <button onclick="editLead(${lead.id})" class="bg-yellow-500 text-white px-2 py-1 rounded hover:bg-yellow-600">Edit</button>
                    <button onclick="deleteLead(${lead.id})" class="bg-red-500 text-white px-2 py-1 rounded hover:bg-red-600">Delete</button>
@@ -353,21 +351,21 @@
                card.className = 'lead-card bg-white';
                card.innerHTML = `
                  <div class="lead-card-header">
-                   <h3 class="text-lg font-semibold">${lead.customer_name}</h3>
-                   <p class="text-base">${lead.company || 'No Company'}</p>
-                   <p class="text-base">Status: ${lead.status || 'N/A'}</p>
-                   <p class="text-base ${timeInSystem.class} p-1 rounded">Time: ${timeInSystem.text}</p>
-                   <p class="text-base">Date Added: ${dateAdded}</p>
+                   <h3 class="text-lg font-semibold expandable-mobile" onclick="openContentModal('Customer Name', \`${lead.customer_name}\`)">${lead.customer_name}</h3>
+                   <p class="text-base expandable-mobile" onclick="openContentModal('Company', \`${lead.company || 'No Company'}\`)">${lead.company || 'No Company'}</p>
+                   <p class="text-base expandable-mobile" onclick="openContentModal('Status', \`${lead.status || 'N/A'}\`)">Status: ${lead.status || 'N/A'}</p>
+                   <p class="text-base ${timeInSystem.class} p-1 rounded expandable-mobile" onclick="openContentModal('Time in System', \`${timeInSystem.text}\`)">Time: ${timeInSystem.text}</p>
+                   <p class="text-base expandable-mobile" onclick="openContentModal('Date Added', \`${dateAdded}\`)">Date Added: ${dateAdded}</p>
                    <button onclick="toggleLeadDetails(${lead.id})" class="text-blue-500 text-base mt-2">Show Details</button>
                  </div>
                  <div id="lead-details-${lead.id}" class="lead-details lead-card-details">
-                   <p><strong>Email:</strong> ${lead.customer_email || 'N/A'}</p>
-                   <p><strong>Phone:</strong> ${lead.customer_phone || 'N/A'}</p>
-                   <p><strong>Address:</strong> ${address}</p>
-                   <p><strong>Product Category:</strong> ${lead.categories || 'N/A'}</p>
-                   <p><strong>Make:</strong> ${lead.make || 'N/A'}</p>
-                   <p><strong>Model:</strong> ${lead.model || 'N/A'}</p>
-                   <p><strong>Notes:</strong> <div class="notes-mobile" onclick="openNotesModal(\`${lead.machines_notes || ''}\`)">${lead.machines_notes || 'N/A'}</div></p>
+                   <p><strong>Email:</strong> <span class="expandable-mobile" onclick="openContentModal('Email', \`${lead.customer_email || 'N/A'}\`)">${lead.customer_email || 'N/A'}</span></p>
+                   <p><strong>Phone:</strong> <span class="expandable-mobile" onclick="openContentModal('Phone', \`${lead.customer_phone || 'N/A'}\`)">${lead.customer_phone || 'N/A'}</span></p>
+                   <p><strong>Address:</strong> <span class="expandable-mobile" onclick="openContentModal('Address', \`${address}\`)">${address}</span></p>
+                   <p><strong>Product Category:</strong> <span class="expandable-mobile" onclick="openContentModal('Product Category', \`${lead.categories || 'N/A'}\`)">${lead.categories || 'N/A'}</span></p>
+                   <p><strong>Make:</strong> <span class="expandable-mobile" onclick="openContentModal('Make', \`${lead.make || 'N/A'}\`)">${lead.make || 'N/A'}</span></p>
+                   <p><strong>Model:</strong> <span class="expandable-mobile" onclick="openContentModal('Model', \`${lead.model || 'N/A'}\`)">${lead.model || 'N/A'}</span></p>
+                   <p><strong>Notes:</strong> <div class="notes-mobile expandable-mobile" onclick="openContentModal('Machines Notes', \`${lead.machines_notes || 'N/A'}\`)">${lead.machines_notes || 'N/A'}</div></p>
                    <div class="flex space-x-4 mt-4">
                      <button onclick="editLead(${lead.id})" class="action-btn bg-yellow-500 text-white px-4 py-2 rounded text-base hover:bg-yellow-600">Edit</button>
                      <button onclick="deleteLead(${lead.id})" class="action-btn bg-red-500 text-white px-4 py-2 rounded text-base hover:bg-red-600">Delete</button>
@@ -420,7 +418,7 @@
                  </div>
                  <div id="customer-details-${customer.id}" class="customer-details customer-card-details">
                    <p><strong>Email:</strong> ${customer.customer_email || 'N/A'}</p>
-                   <p><strong>Phone:</strong> ${customer.customer_phone || 'N/A'}</p>
+                   <p><strong>Phone:</strong> ${customer.customer_phone || 'N/A'}</p的值
                    <p><strong>Address:</strong> ${address}</p>
                    <div class="flex space-x-4 mt-4">
                      <button onclick="editCustomer(${customer.id})" class="action-btn bg-yellow-500 text-white px-4 py-2 rounded text-base hover:bg-yellow-600">Edit</button>
@@ -576,7 +574,7 @@
                    document.getElementById('customerZip').value = lead.customer_zip || '';
                    document.getElementById('categories').value = lead.categories || '';
                    document.getElementById('make').value = lead.make || '';
-                   document.getElementById('model').value = lead.model || '';
+                   document.getElementById('model').value = lead.make || '';
                    document.getElementById('machinesNotes').value = lead.machines_notes || '';
                    document.getElementById('status').value = lead.status || 'Quoted';
                  }
@@ -618,7 +616,7 @@
                  const customer = customers.find(c => c.id === customerId);
                  if (customer) {
                    document.getElementById('customerNameCustomer').value = customer.customer_name || '';
-                   document.getElementById('companyCustomer').value = customer.company || '';
+                   document.getElementById('customerCompany').value = customer.company || '';
                    document.getElementById('customerEmailCustomer').value = customer.customer_email || '';
                    document.getElementById('customerPhoneCustomer').value = customer.customer_phone || '';
                    document.getElementById('customerStreetCustomer').value = customer.customer_street || '';
@@ -640,17 +638,20 @@
              currentCustomerId = null;
            }
 
-           // Open Notes Modal
-           function openNotesModal(notes) {
-             const modal = document.getElementById('notes-modal');
-             const content = document.getElementById('notes-content');
-             content.textContent = notes || 'No notes available';
+           // Open Content Modal
+           function openContentModal(title, content) {
+             const modal = document.getElementById('content-modal');
+             const modalTitle = document.getElementById('content-modal-title');
+             const modalBody = document.getElementById('content-modal-body');
+             modalTitle.textContent = title;
+             modalBody.textContent = content || 'No content available';
+             modalBody.className = 'text-base mb-4' + (title === 'Machines Notes' ? ' whitespace-pre-wrap' : '');
              modal.style.display = 'flex';
            }
 
-           // Close Notes Modal
-           function closeNotesModal() {
-             document.getElementById('notes-modal').style.display = 'none';
+           // Close Content Modal
+           function closeContentModal() {
+             document.getElementById('content-modal').style.display = 'none';
            }
 
            // Save or Update Lead
@@ -683,7 +684,7 @@
                if (response.ok) {
                  closeLeadModal();
                  loadLeads();
-                 loadCustomers(); // Refresh customers to include new ones
+                 loadCustomers();
                } else {
                  alert(currentLeadId ? 'Error updating lead' : 'Error saving lead');
                }
@@ -697,7 +698,7 @@
              e.preventDefault();
              const customer = {
                customerName: document.getElementById('customerNameCustomer').value,
-               company: document.getElementById('companyCustomer').value,
+               company: document.getElementById('customerCompany').value,
                customerEmail: document.getElementById('customerEmailCustomer').value,
                customerPhone: document.getElementById('customerPhoneCustomer').value,
                customerStreet: document.getElementById('customerStreetCustomer').value,
