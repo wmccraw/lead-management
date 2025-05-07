@@ -15,32 +15,33 @@
            .lead-details.show, .customer-details.show { display: block; }
            .tab-active { background-color: #3b82f6; color: white; }
            .tab-inactive { background-color: #e5e7eb; color: black; }
-           .notes-cell { max-height: 100px; overflow-y: auto; }
+           .notes-cell { max-height: 100px; overflow-y: auto; white-space: pre-wrap; cursor: pointer; }
+           .notes-cell:hover { background-color: #f3f4f6; }
            @media (max-width: 639px) {
              .lead-card, .customer-card { border: 1px solid #e5e7eb; border-radius: 8px; margin-bottom: 1rem; }
              .lead-card-header, .customer-card-header { padding: 1rem; }
              .lead-card-details, .customer-card-details { padding: 1rem; border-top: 1px solid #e5e7eb; }
              .action-btn { min-width: 48px; min-height: 48px; }
-             .notes-mobile { max-height: 100px; overflow-y: auto; }
+             .notes-mobile { max-height: 100px; overflow-y: auto; white-space: pre-wrap; }
            }
            @media (min-width: 640px) {
              table { table-layout: fixed; width: 100%; }
              th, td { overflow: hidden; text-overflow: ellipsis; white-space: normal; }
-             .col-id { width: 5%; min-width: 40px; }
+             .col-id { width: 3%; min-width: 30px; }
              .col-customer-name { width: 8%; min-width: 80px; }
              .col-company { width: 8%; min-width: 80px; }
-             .col-email { width: 8%; min-width: 80px; }
-             .col-phone { width: 7%; min-width: 70px; }
+             .col-email { width: 12%; min-width: 100px; }
+             .col-phone { width: 6%; min-width: 60px; }
              .col-address { width: 10%; min-width: 100px; }
-             .col-category { width: 8%; min-width: 80px; }
-             .col-make { width: 7%; min-width: 70px; }
-             .col-model { width: 7%; min-width: 70px; }
-             .col-notes { width: 15%; min-width: 120px; }
-             .col-status { width: 6%; min-width: 60px; }
-             .col-time { width: 6%; min-width: 60px; }
-             .col-date { width: 7%; min-width: 70px; }
+             .col-category { width: 6%; min-width: 60px; }
+             .col-make { width: 6%; min-width: 60px; }
+             .col-model { width: 6%; min-width: 60px; }
+             .col-notes { width: 18%; min-width: 140px; }
+             .col-status { width: 5%; min-width: 50px; }
+             .col-time { width: 5%; min-width: 50px; }
+             .col-date { width: 6%; min-width: 60px; }
              .col-actions { width: 8%; min-width: 80px; }
-             th, td { padding: 8px; }
+             th, td { padding: 6px; }
            }
            .dropdown { position: relative; }
            .dropdown-menu { display: none; position: absolute; background: white; border: 1px solid #e5e7eb; width: 100%; max-height: 200px; overflow-y: auto; z-index: 100; }
@@ -233,6 +234,17 @@
            </div>
          </div>
 
+         <!-- Notes Modal -->
+         <div id="notes-modal" class="modal">
+           <div class="modal-content p-4 sm:p-6">
+             <h2 class="text-xl font-bold mb-4">Machines Notes</h2>
+             <pre id="notes-content" class="text-base mb-4 whitespace-pre-wrap"></pre>
+             <div class="flex justify-end">
+               <button onclick="closeNotesModal()" class="bg-gray-500 text-white px-4 py-2 rounded text-base hover:bg-gray-600">Close</button>
+             </div>
+           </div>
+         </div>
+
          <script>
            let currentLeadId = null;
            let currentCustomerId = null;
@@ -323,7 +335,7 @@
                  <td class="p-2 col-category">${lead.categories || ''}</td>
                  <td class="p-2 col-make">${lead.make || ''}</td>
                  <td class="p-2 col-model">${lead.model || ''}</td>
-                 <td class="p-2 col-notes notes-cell">${lead.machines_notes || ''}</td>
+                 <td class="p-2 col-notes notes-cell" onclick="openNotesModal(\`${lead.machines_notes || ''}\`)">${lead.machines_notes || ''}</td>
                  <td class="p-2 col-status">${lead.status || ''}</td>
                  <td class="p-2 col-time ${timeInSystem.class}">${timeInSystem.text}</td>
                  <td class="p-2 col-date">${dateAdded}</td>
@@ -353,7 +365,7 @@
                    <p><strong>Product Category:</strong> ${lead.categories || 'N/A'}</p>
                    <p><strong>Make:</strong> ${lead.make || 'N/A'}</p>
                    <p><strong>Model:</strong> ${lead.model || 'N/A'}</p>
-                   <p><strong>Notes:</strong> <div class="notes-mobile">${lead.machines_notes || 'N/A'}</div></p>
+                   <p><strong>Notes:</strong> <div class="notes-mobile" onclick="openNotesModal(\`${lead.machines_notes || ''}\`)">${lead.machines_notes || 'N/A'}</div></p>
                    <div class="flex space-x-4 mt-4">
                      <button onclick="editLead(${lead.id})" class="action-btn bg-yellow-500 text-white px-4 py-2 rounded text-base hover:bg-yellow-600">Edit</button>
                      <button onclick="deleteLead(${lead.id})" class="action-btn bg-red-500 text-white px-4 py-2 rounded text-base hover:bg-red-600">Delete</button>
@@ -624,6 +636,19 @@
            function closeCustomerModal() {
              document.getElementById('customer-modal').style.display = 'none';
              currentCustomerId = null;
+           }
+
+           // Open Notes Modal
+           function openNotesModal(notes) {
+             const modal = document.getElementById('notes-modal');
+             const content = document.getElementById('notes-content');
+             content.textContent = notes || 'No notes available';
+             modal.style.display = 'flex';
+           }
+
+           // Close Notes Modal
+           function closeNotesModal() {
+             document.getElementById('notes-modal').style.display = 'none';
            }
 
            // Save or Update Lead
