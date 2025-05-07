@@ -109,6 +109,33 @@ const express = require('express');
          }
 
          try {
+           // Check if customer exists
+           const { rows: existingCustomers } = await pool.query(
+             'SELECT * FROM customers WHERE customer_name = $1',
+             [customerName]
+           );
+
+           if (existingCustomers.length === 0) {
+             // Insert new customer
+             await pool.query(
+               `INSERT INTO customers (
+                 customer_name, company, customer_email, customer_phone,
+                 customer_street, customer_city, customer_state, customer_zip
+               ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8)`,
+               [
+                 customerName,
+                 company,
+                 customerEmail,
+                 customerPhone,
+                 customerStreet,
+                 customerCity,
+                 customerState,
+                 customerZip
+               ]
+             );
+           }
+
+           // Insert lead
            const { rows } = await pool.query(
              `INSERT INTO leads (
                categories, make, model, company, customer_name, customer_email,
@@ -161,6 +188,56 @@ const express = require('express');
          }
 
          try {
+           // Check if customer exists
+           const { rows: existingCustomers } = await pool.query(
+             'SELECT * FROM customers WHERE customer_name = $1',
+             [customerName]
+           );
+
+           if (existingCustomers.length === 0) {
+             // Insert new customer
+             await pool.query(
+               `INSERT INTO customers (
+                 customer_name, company, customer_email, customer_phone,
+                 customer_street, customer_city, customer_state, customer_zip
+               ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8)`,
+               [
+                 customerName,
+                 company,
+                 customerEmail,
+                 customerPhone,
+                 customerStreet,
+                 customerCity,
+                 customerState,
+                 customerZip
+               ]
+             );
+           } else {
+             // Update existing customer
+             await pool.query(
+               `UPDATE customers SET
+                 company = $2,
+                 customer_email = $3,
+                 customer_phone = $4,
+                 customer_street = $5,
+                 customer_city = $6,
+                 customer_state = $7,
+                 customer_zip = $8
+               WHERE customer_name = $1`,
+               [
+                 customerName,
+                 company,
+                 customerEmail,
+                 customerPhone,
+                 customerStreet,
+                 customerCity,
+                 customerState,
+                 customerZip
+               ]
+             );
+           }
+
+           // Update lead
            const updateQuery = status === 'Quoted' ? 
              `UPDATE leads SET
                categories = $1,
@@ -195,21 +272,21 @@ const express = require('express');
              WHERE id = $14`;
 
            await pool.query(updateQuery, [
-               Array.isArray(categories) ? categories.join(',') : categories,
-               make,
-               model,
-               company,
-               customerName,
-               customerEmail,
-               customerPhone,
-               customerStreet,
-               customerCity,
-               customerState,
-               customerZip,
-               machinesNotes,
-               status,
-               id
-             ]);
+             Array.isArray(categories) ? categories.join(',') : categories,
+             make,
+             model,
+             company,
+             customerName,
+             customerEmail,
+             customerPhone,
+             customerStreet,
+             customerCity,
+             customerState,
+             customerZip,
+             machinesNotes,
+             status,
+             id
+           ]);
            res.json({ message: 'Lead updated successfully' });
          } catch (err) {
            res.status(500).json({ error: err.message });
@@ -361,7 +438,7 @@ const express = require('express');
            if (rows.length > 0) {
              return res.status(400).json({ error: 'Cannot delete category used in leads' });
            }
-           await pool.query('DELETE FROM customers WHERE name = $1', [name]);
+           await pool.query('DELETE FROM categories WHERE name = $1', [name]);
            res.json({ message: 'Category deleted successfully' });
          } catch (err) {
            res.status(500).json({ error: err.message });

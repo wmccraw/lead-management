@@ -15,11 +15,13 @@
            .lead-details.show, .customer-details.show { display: block; }
            .tab-active { background-color: #3b82f6; color: white; }
            .tab-inactive { background-color: #e5e7eb; color: black; }
+           .notes-cell { max-height: 100px; overflow-y: auto; }
            @media (max-width: 639px) {
              .lead-card, .customer-card { border: 1px solid #e5e7eb; border-radius: 8px; margin-bottom: 1rem; }
              .lead-card-header, .customer-card-header { padding: 1rem; }
              .lead-card-details, .customer-card-details { padding: 1rem; border-top: 1px solid #e5e7eb; }
              .action-btn { min-width: 48px; min-height: 48px; }
+             .notes-mobile { max-height: 100px; overflow-y: auto; }
            }
            @media (min-width: 640px) {
              table { table-layout: fixed; }
@@ -57,10 +59,7 @@
                      <th class="p-2 text-left">Company</th>
                      <th class="p-2 text-left">Email</th>
                      <th class="p-2 text-left">Phone</th>
-                     <th class="p-2 text-left">Street</th>
-                     <th class="p-2 text-left">City</th>
-                     <th class="p-2 text-left">State</th>
-                     <th class="p-2 text-left">ZIP</th>
+                     <th class="p-2 text-left">Address</th>
                      <th class="p-2 text-left">Product Category</th>
                      <th class="p-2 text-left">Make</th>
                      <th class="p-2 text-left">Model</th>
@@ -93,10 +92,7 @@
                      <th class="p-2 text-left">Company</th>
                      <th class="p-2 text-left">Email</th>
                      <th class="p-2 text-left">Phone</th>
-                     <th class="p-2 text-left">Street</th>
-                     <th class="p-2 text-left">City</th>
-                     <th class="p-2 text-left">State</th>
-                     <th class="p-2 text-left">ZIP</th>
+                     <th class="p-2 text-left">Address</th>
                      <th class="p-2 text-left">Actions</th>
                    </tr>
                  </thead>
@@ -272,6 +268,17 @@
              return date.toISOString().split('T')[0]; // YYYY-MM-DD
            }
 
+           // Format Address
+           function formatAddress(street, city, state, zip) {
+             const parts = [
+               street,
+               city,
+               state,
+               zip
+             ].filter(part => part); // Remove empty parts
+             return parts.length ? parts.join(', ') : 'N/A';
+           }
+
            // Render Leads
            function renderLeads(leads) {
              const tableBody = document.getElementById('leads-table');
@@ -282,6 +289,12 @@
              leads.forEach(lead => {
                const timeInSystem = calculateTimeInSystem(lead.created_at);
                const dateAdded = formatDate(lead.created_at);
+               const address = formatAddress(
+                 lead.customer_street,
+                 lead.customer_city,
+                 lead.customer_state,
+                 lead.customer_zip
+               );
 
                // Desktop Table Row
                const row = document.createElement('tr');
@@ -291,14 +304,11 @@
                  <td class="p-2">${lead.company || ''}</td>
                  <td class="p-2">${lead.customer_email || ''}</td>
                  <td class="p-2">${lead.customer_phone || ''}</td>
-                 <td class="p-2">${lead.customer_street || ''}</td>
-                 <td class="p-2">${lead.customer_city || ''}</td>
-                 <td class="p-2">${lead.customer_state || ''}</td>
-                 <td class="p-2">${lead.customer_zip || ''}</td>
+                 <td class="p-2">${address}</td>
                  <td class="p-2">${lead.categories || ''}</td>
                  <td class="p-2">${lead.make || ''}</td>
                  <td class="p-2">${lead.model || ''}</td>
-                 <td class="p-2">${lead.machines_notes || ''}</td>
+                 <td class="p-2 notes-cell">${lead.machines_notes || ''}</td>
                  <td class="p-2">${lead.status || ''}</td>
                  <td class="p-2 ${timeInSystem.class}">${timeInSystem.text}</td>
                  <td class="p-2">${dateAdded}</td>
@@ -324,14 +334,11 @@
                  <div id="lead-details-${lead.id}" class="lead-details lead-card-details">
                    <p><strong>Email:</strong> ${lead.customer_email || 'N/A'}</p>
                    <p><strong>Phone:</strong> ${lead.customer_phone || 'N/A'}</p>
-                   <p><strong>Street:</strong> ${lead.customer_street || 'N/A'}</p>
-                   <p><strong>City:</strong> ${lead.customer_city || 'N/A'}</p>
-                   <p><strong>State:</strong> ${lead.customer_state || 'N/A'}</p>
-                   <p><strong>ZIP:</strong> ${lead.customer_zip || 'N/A'}</p>
+                   <p><strong>Address:</strong> ${address}</p>
                    <p><strong>Product Category:</strong> ${lead.categories || 'N/A'}</p>
                    <p><strong>Make:</strong> ${lead.make || 'N/A'}</p>
                    <p><strong>Model:</strong> ${lead.model || 'N/A'}</p>
-                   <p><strong>Notes:</strong> ${lead.machines_notes || 'N/A'}</p>
+                   <p><strong>Notes:</strong> <div class="notes-mobile">${lead.machines_notes || 'N/A'}</div></p>
                    <div class="flex space-x-4 mt-4">
                      <button onclick="editLead(${lead.id})" class="action-btn bg-yellow-500 text-white px-4 py-2 rounded text-base hover:bg-yellow-600">Edit</button>
                      <button onclick="deleteLead(${lead.id})" class="action-btn bg-red-500 text-white px-4 py-2 rounded text-base hover:bg-red-600">Delete</button>
@@ -350,6 +357,13 @@
              cardsContainer.innerHTML = '';
 
              customers.forEach(customer => {
+               const address = formatAddress(
+                 customer.customer_street,
+                 customer.customer_city,
+                 customer.customer_state,
+                 customer.customer_zip
+               );
+
                // Desktop Table Row
                const row = document.createElement('tr');
                row.innerHTML = `
@@ -358,10 +372,7 @@
                  <td class="p-2">${customer.company || ''}</td>
                  <td class="p-2">${customer.customer_email || ''}</td>
                  <td class="p-2">${customer.customer_phone || ''}</td>
-                 <td class="p-2">${customer.customer_street || ''}</td>
-                 <td class="p-2">${customer.customer_city || ''}</td>
-                 <td class="p-2">${customer.customer_state || ''}</td>
-                 <td class="p-2">${customer.customer_zip || ''}</td>
+                 <td class="p-2">${address}</td>
                  <td class="p-2">
                    <button onclick="editCustomer(${customer.id})" class="bg-yellow-500 text-white px-2 py-1 rounded hover:bg-yellow-600">Edit</button>
                    <button onclick="deleteCustomer(${customer.id})" class="bg-red-500 text-white px-2 py-1 rounded hover:bg-red-600">Delete</button>
@@ -381,10 +392,7 @@
                  <div id="customer-details-${customer.id}" class="customer-details customer-card-details">
                    <p><strong>Email:</strong> ${customer.customer_email || 'N/A'}</p>
                    <p><strong>Phone:</strong> ${customer.customer_phone || 'N/A'}</p>
-                   <p><strong>Street:</strong> ${customer.customer_street || 'N/A'}</p>
-                   <p><strong>City:</strong> ${customer.customer_city || 'N/A'}</p>
-                   <p><strong>State:</strong> ${customer.customer_state || 'N/A'}</p>
-                   <p><strong>ZIP:</strong> ${customer.customer_zip || 'N/A'}</p>
+                   <p><strong>Address:</strong> ${address}</p>
                    <div class="flex space-x-4 mt-4">
                      <button onclick="editCustomer(${customer.id})" class="action-btn bg-yellow-500 text-white px-4 py-2 rounded text-base hover:bg-yellow-600">Edit</button>
                      <button onclick="deleteCustomer(${customer.id})" class="action-btn bg-red-500 text-white px-4 py-2 rounded text-base hover:bg-red-600">Delete</button>
@@ -633,6 +641,7 @@
                if (response.ok) {
                  closeLeadModal();
                  loadLeads();
+                 loadCustomers(); // Refresh customers to include new ones
                } else {
                  alert(currentLeadId ? 'Error updating lead' : 'Error saving lead');
                }
@@ -715,10 +724,10 @@
                    alert('Error deleting customer');
                  }
                } catch (err) {
-                 alert('Error deleting customer');
+                   alert('Error deleting customer');
                }
-             }
            }
-         </script>
+       }
+       </script>
        </body>
        </html>
