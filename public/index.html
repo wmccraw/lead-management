@@ -24,8 +24,23 @@
              .notes-mobile { max-height: 100px; overflow-y: auto; }
            }
            @media (min-width: 640px) {
-             table { table-layout: fixed; }
-             th, td { word-wrap: break-word; overflow: hidden; text-overflow: ellipsis; }
+             table { table-layout: fixed; width: 100%; }
+             th, td { overflow: hidden; text-overflow: ellipsis; white-space: normal; }
+             .col-id { width: 5%; min-width: 40px; }
+             .col-customer-name { width: 8%; min-width: 80px; }
+             .col-company { width: 8%; min-width: 80px; }
+             .col-email { width: 8%; min-width: 80px; }
+             .col-phone { width: 7%; min-width: 70px; }
+             .col-address { width: 10%; min-width: 100px; }
+             .col-category { width: 8%; min-width: 80px; }
+             .col-make { width: 7%; min-width: 70px; }
+             .col-model { width: 7%; min-width: 70px; }
+             .col-notes { width: 15%; min-width: 120px; }
+             .col-status { width: 6%; min-width: 60px; }
+             .col-time { width: 6%; min-width: 60px; }
+             .col-date { width: 7%; min-width: 70px; }
+             .col-actions { width: 8%; min-width: 80px; }
+             th, td { padding: 8px; }
            }
            .dropdown { position: relative; }
            .dropdown-menu { display: none; position: absolute; background: white; border: 1px solid #e5e7eb; width: 100%; max-height: 200px; overflow-y: auto; z-index: 100; }
@@ -54,20 +69,20 @@
                <table class="w-full bg-white shadow-md rounded">
                  <thead>
                    <tr class="bg-gray-200">
-                     <th class="p-2 text-left">ID</th>
-                     <th class="p-2 text-left">Customer Name</th>
-                     <th class="p-2 text-left">Company</th>
-                     <th class="p-2 text-left">Email</th>
-                     <th class="p-2 text-left">Phone</th>
-                     <th class="p-2 text-left">Address</th>
-                     <th class="p-2 text-left">Product Category</th>
-                     <th class="p-2 text-left">Make</th>
-                     <th class="p-2 text-left">Model</th>
-                     <th class="p-2 text-left">Notes</th>
-                     <th class="p-2 text-left">Status</th>
-                     <th class="p-2 text-left">Time in System</th>
-                     <th class="p-2 text-left">Date Added</th>
-                     <th class="p-2 text-left">Actions</th>
+                     <th class="p-2 text-left col-id">ID</th>
+                     <th class="p-2 text-left col-customer-name">Customer Name</th>
+                     <th class="p-2 text-left col-company">Company</th>
+                     <th class="p-2 text-left col-email">Email</th>
+                     <th class="p-2 text-left col-phone">Phone</th>
+                     <th class="p-2 text-left col-address">Address</th>
+                     <th class="p-2 text-left col-category">Product Category</th>
+                     <th class="p-2 text-left col-make">Make</th>
+                     <th class="p-2 text-left col-model">Model</th>
+                     <th class="p-2 text-left col-notes">Notes</th>
+                     <th class="p-2 text-left col-status">Status</th>
+                     <th class="p-2 text-left col-time">Time in System</th>
+                     <th class="p-2 text-left col-date">Date Added</th>
+                     <th class="p-2 text-left col-actions">Actions</th>
                    </tr>
                  </thead>
                  <tbody id="leads-table"></tbody>
@@ -299,20 +314,20 @@
                // Desktop Table Row
                const row = document.createElement('tr');
                row.innerHTML = `
-                 <td class="p-2">${lead.id}</td>
-                 <td class="p-2">${lead.customer_name}</td>
-                 <td class="p-2">${lead.company || ''}</td>
-                 <td class="p-2">${lead.customer_email || ''}</td>
-                 <td class="p-2">${lead.customer_phone || ''}</td>
-                 <td class="p-2">${address}</td>
-                 <td class="p-2">${lead.categories || ''}</td>
-                 <td class="p-2">${lead.make || ''}</td>
-                 <td class="p-2">${lead.model || ''}</td>
-                 <td class="p-2 notes-cell">${lead.machines_notes || ''}</td>
-                 <td class="p-2">${lead.status || ''}</td>
-                 <td class="p-2 ${timeInSystem.class}">${timeInSystem.text}</td>
-                 <td class="p-2">${dateAdded}</td>
-                 <td class="p-2">
+                 <td class="p-2 col-id">${lead.id}</td>
+                 <td class="p-2 col-customer-name">${lead.customer_name}</td>
+                 <td class="p-2 col-company">${lead.company || ''}</td>
+                 <td class="p-2 col-email">${lead.customer_email || ''}</td>
+                 <td class="p-2 col-phone">${lead.customer_phone || ''}</td>
+                 <td class="p-2 col-address">${address}</td>
+                 <td class="p-2 col-category">${lead.categories || ''}</td>
+                 <td class="p-2 col-make">${lead.make || ''}</td>
+                 <td class="p-2 col-model">${lead.model || ''}</td>
+                 <td class="p-2 col-notes notes-cell">${lead.machines_notes || ''}</td>
+                 <td class="p-2 col-status">${lead.status || ''}</td>
+                 <td class="p-2 col-time ${timeInSystem.class}">${timeInSystem.text}</td>
+                 <td class="p-2 col-date">${dateAdded}</td>
+                 <td class="p-2 col-actions">
                    <button onclick="editLead(${lead.id})" class="bg-yellow-500 text-white px-2 py-1 rounded hover:bg-yellow-600">Edit</button>
                    <button onclick="deleteLead(${lead.id})" class="bg-red-500 text-white px-2 py-1 rounded hover:bg-red-600">Delete</button>
                  </td>
@@ -724,10 +739,10 @@
                    alert('Error deleting customer');
                  }
                } catch (err) {
-                   alert('Error deleting customer');
+                 alert('Error deleting customer');
                }
+             }
            }
-       }
-       </script>
+         </script>
        </body>
        </html>
