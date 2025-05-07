@@ -4,6 +4,9 @@ const express = require('express');
        const path = require('path');
 
        const app = express();
+       const port = process.env.PORT || 3000;
+
+       // Middleware
        app.use(cors());
        app.use(express.json());
        app.use(express.static(path.join(__dirname, '../public')));
@@ -14,509 +17,265 @@ const express = require('express');
          ssl: { rejectUnauthorized: false }
        });
 
-       // Create tables
-       const initializeDatabase = async () => {
-         try {
-           await pool.query(`
-             CREATE TABLE IF NOT EXISTS leads (
-               id SERIAL PRIMARY KEY,
-               categories TEXT,
-               make TEXT,
-               model TEXT,
-               company TEXT,
-               customer_name TEXT NOT NULL,
-               customer_email TEXT,
-               customer_phone TEXT,
-               customer_street TEXT,
-               customer_city TEXT,
-               customer_state TEXT,
-               customer_zip TEXT,
-               machines_notes TEXT,
-               status TEXT,
-               created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
-             )
-           `);
-           await pool.query(`
-             CREATE TABLE IF NOT EXISTS customers (
-               id SERIAL PRIMARY KEY,
-               customer_name TEXT NOT NULL,
-               company TEXT,
-               customer_email TEXT,
-               customer_phone TEXT,
-               customer_street TEXT,
-               customer_city TEXT,
-               customer_state TEXT,
-               customer_zip TEXT
-             )
-           `);
-           await pool.query(`
-             CREATE TABLE IF NOT EXISTS categories (
-               id SERIAL PRIMARY KEY,
-               name TEXT UNIQUE
-             )
-           `);
-           await pool.query(`
-             CREATE TABLE IF NOT EXISTS makes (
-               id SERIAL PRIMARY KEY,
-               name TEXT UNIQUE
-             )
-           `);
-           await pool.query(`
-             CREATE TABLE IF NOT EXISTS models (
-               id SERIAL PRIMARY KEY,
-               name TEXT UNIQUE
-             )
-           `);
-           console.log('Connected to PostgreSQL database.');
-         } catch (err) {
-           console.error('Database connection error:', err);
-           throw err;
-         }
-       };
+       // Connect to database
+       pool.connect()
+         .then(() => console.log('Connected to PostgreSQL database.'))
+         .catch(err => console.error('Database connection error:', err));
 
-       // Initialize database
-       initializeDatabase().catch(err => console.error('Initialization error:', err));
+       // Create Leads Table
+       pool.query(`
+         CREATE TABLE IF NOT EXISTS leads (
+           id SERIAL PRIMARY KEY,
+           customer_name VARCHAR(255) NOT NULL,
+           company VARCHAR(255),
+           customer_email VARCHAR(255),
+           customer_phone VARCHAR(50),
+           customer_street VARCHAR(255),
+           customer_city VARCHAR(100),
+           customer_state VARCHAR(100),
+           customer_zip VARCHAR(20),
+           categories VARCHAR(255),
+           make VARCHAR(255),
+           model VARCHAR(255),
+           machines_notes TEXT,
+           status VARCHAR(50),
+           created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+         );
+       `).catch(err => console.error('Error creating leads table:', err));
 
-       // Lead routes
+       // Create Customers Table
+       pool.query(`
+         CREATE TABLE IF NOT EXISTS customers (
+           id SERIAL PRIMARY KEY,
+           customer_name VARCHAR(255) NOT NULL,
+           company VARCHAR(255),
+           customer_email VARCHAR(255),
+           customer_phone VARCHAR(50),
+           customer_street VARCHAR(255),
+           customer_city VARCHAR(100),
+           customer_state VARCHAR(100),
+           customer_zip VARCHAR(20),
+           created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+         );
+       `).catch(err => console.error('Error creating customers table:', err));
+
+       // Get all leads
        app.get('/api/leads', async (req, res) => {
          try {
-           const { rows } = await pool.query('SELECT * FROM leads');
-           res.json(rows);
+           const result = await pool.query('SELECT * FROM leads ORDER BY id ASC');
+           res.json(result.rows);
          } catch (err) {
-           res.status(500).json({ error: err.message });
+           console.error(err);
+           res.status(500).json({ error: 'Internal server error' });
          }
        });
 
+       // Create a lead
        app.post('/api/leads', async (req, res) => {
          const {
-           categories,
-           make,
-           model,
-           company,
-           customerName,
-           customerEmail,
-           customerPhone,
-           customerStreet,
-           customerCity,
-           customerState,
-           customerZip,
-           machinesNotes,
-           status
+           customerName, company, customerEmail, customerPhone,
+           customerStreet, customerCity, customerState, customerZip,
+           categories, make, model, machinesNotes, status
          } = req.body;
 
-         if (!customerName) {
-           return res.status(400).json({ error: 'Customer Name is required' });
-         }
-
          try {
-           // Check if customer exists
-           const { rows: existingCustomers } = await pool.query(
-             'SELECT * FROM customers WHERE customer_name = $1',
-             [customerName]
-           );
-
-           if (existingCustomers.length === 0) {
-             // Insert new customer
-             await pool.query(
-               `INSERT INTO customers (
-                 customer_name, company, customer_email, customer_phone,
-                 customer_street, customer_city, customer_state, customer_zip
-               ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8)`,
-               [
-                 customerName,
-                 company,
-                 customerEmail,
-                 customerPhone,
-                 customerStreet,
-                 customerCity,
-                 customerState,
-                 customerZip
-               ]
-             );
-           }
+           // Insert or update customer
+           const customerResult = await pool.query(`
+             INSERT INTO customers (customer_name, company, customer_email, customer_phone, customer_street, customer_city, customer_state, customer_zip)
+             VALUES ($1, $2, $3, $4, $5, $6, $7, $8)
+             ON CONFLICT (customer_name) DO UPDATE
+             SET company = EXCLUDED.company,
+                 customer_email = EXCLUDED.customer_email,
+                 customer_phone = EXCLUDED.customer_phone,
+                 customer_street = EXCLUDED.customer_street,
+                 customer_city = EXCLUDED.customer_city,
+                 customer_state = EXCLUDED.customer_state,
+                 customer_zip = EXCLUDED.customer_zip
+             RETURNING id
+           `, [customerName, company, customerEmail, customerPhone, customerStreet, customerCity, customerState, customerZip]);
 
            // Insert lead
-           const { rows } = await pool.query(
-             `INSERT INTO leads (
-               categories, make, model, company, customer_name, customer_email,
-               customer_phone, customer_street, customer_city, customer_state,
-               customer_zip, machines_notes, status
-             ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13)
-             RETURNING id`,
-             [
-               Array.isArray(categories) ? categories.join(',') : categories,
-               make,
-               model,
-               company,
-               customerName,
-               customerEmail,
-               customerPhone,
-               customerStreet,
-               customerCity,
-               customerState,
-               customerZip,
-               machinesNotes,
-               status
-             ]
-           );
-           res.json({ message: 'Lead added successfully', id: rows[0].id });
+           const leadResult = await pool.query(`
+             INSERT INTO leads (
+               customer_name, company, customer_email, customer_phone,
+               customer_street, customer_city, customer_state, customer_zip,
+               categories, make, model, machines_notes, status
+             )
+             VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13)
+             RETURNING *
+           `, [
+             customerName, company, customerEmail, customerPhone,
+             customerStreet, customerCity, customerState, customerZip,
+             categories, make, model, machinesNotes, status
+           ]);
+
+           res.status(201).json(leadResult.rows[0]);
          } catch (err) {
-           res.status(500).json({ error: err.message });
+           console.error(err);
+           res.status(500).json({ error: 'Internal server error' });
          }
        });
 
+       // Update a lead
        app.put('/api/leads/:id', async (req, res) => {
          const { id } = req.params;
          const {
-           categories,
-           make,
-           model,
-           company,
-           customerName,
-           customerEmail,
-           customerPhone,
-           customerStreet,
-           customerCity,
-           customerState,
-           customerZip,
-           machinesNotes,
-           status
+           customerName, company, customerEmail, customerPhone,
+           customerStreet, customerCity, customerState, customerZip,
+           categories, make, model, machinesNotes, status
          } = req.body;
 
-         if (!customerName) {
-           return res.status(400).json({ error: 'Customer Name is required' });
-         }
-
          try {
-           // Check if customer exists
-           const { rows: existingCustomers } = await pool.query(
-             'SELECT * FROM customers WHERE customer_name = $1',
-             [customerName]
-           );
-
-           if (existingCustomers.length === 0) {
-             // Insert new customer
-             await pool.query(
-               `INSERT INTO customers (
-                 customer_name, company, customer_email, customer_phone,
-                 customer_street, customer_city, customer_state, customer_zip
-               ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8)`,
-               [
-                 customerName,
-                 company,
-                 customerEmail,
-                 customerPhone,
-                 customerStreet,
-                 customerCity,
-                 customerState,
-                 customerZip
-               ]
-             );
-           } else {
-             // Update existing customer
-             await pool.query(
-               `UPDATE customers SET
-                 company = $2,
-                 customer_email = $3,
-                 customer_phone = $4,
-                 customer_street = $5,
-                 customer_city = $6,
-                 customer_state = $7,
-                 customer_zip = $8
-               WHERE customer_name = $1`,
-               [
-                 customerName,
-                 company,
-                 customerEmail,
-                 customerPhone,
-                 customerStreet,
-                 customerCity,
-                 customerState,
-                 customerZip
-               ]
-             );
+           // Get existing lead to check status
+           const existingLead = await pool.query('SELECT status, created_at FROM leads WHERE id = $1', [id]);
+           if (existingLead.rows.length === 0) {
+             return res.status(404).json({ error: 'Lead not found' });
            }
 
-           // Update lead
-           const updateQuery = status === 'Quoted' ? 
-             `UPDATE leads SET
-               categories = $1,
-               make = $2,
-               model = $3,
-               company = $4,
-               customer_name = $5,
-               customer_email = $6,
-               customer_phone = $7,
-               customer_street = $8,
-               customer_city = $9,
-               customer_state = $10,
-               customer_zip = $11,
-               machines_notes = $12,
-               status = $13,
-               created_at = CURRENT_TIMESTAMP
-             WHERE id = $14` :
-             `UPDATE leads SET
-               categories = $1,
-               make = $2,
-               model = $3,
-               company = $4,
-               customer_name = $5,
-               customer_email = $6,
-               customer_phone = $7,
-               customer_street = $8,
-               customer_city = $9,
-               customer_state = $10,
-               customer_zip = $11,
-               machines_notes = $12,
-               status = $13
-             WHERE id = $14`;
+           // Determine if created_at should be updated
+           const updateCreatedAt = status !== existingLead.rows[0].status;
+           const createdAtValue = updateCreatedAt ? new Date().toISOString() : existingLead.rows[0].created_at;
 
-           await pool.query(updateQuery, [
-             Array.isArray(categories) ? categories.join(',') : categories,
-             make,
-             model,
-             company,
-             customerName,
-             customerEmail,
-             customerPhone,
-             customerStreet,
-             customerCity,
-             customerState,
-             customerZip,
-             machinesNotes,
-             status,
-             id
+           // Update customer
+           await pool.query(`
+             INSERT INTO customers (customer_name, company, customer_email, customer_phone, customer_street, customer_city, customer_state, customer_zip)
+             VALUES ($1, $2, $3, $4, $5, $6, $7, $8)
+             ON CONFLICT (customer_name) DO UPDATE
+             SET company = EXCLUDED.company,
+                 customer_email = EXCLUDED.customer_email,
+                 customer_phone = EXCLUDED.customer_phone,
+                 customer_street = EXCLUDED.customer_street,
+                 customer_city = EXCLUDED.customer_city,
+                 customer_state = EXCLUDED.customer_state,
+                 customer_zip = EXCLUDED.customer_zip
+           `, [customerName, company, customerEmail, customerPhone, customerStreet, customerCity, customerState, customerZip]);
+
+           // Update lead
+           const result = await pool.query(`
+             UPDATE leads
+             SET customer_name = $1, company = $2, customer_email = $3, customer_phone = $4,
+                 customer_street = $5, customer_city = $6, customer_state = $7, customer_zip = $8,
+                 categories = $9, make = $10, model = $11, machines_notes = $12, status = $13,
+                 created_at = $14
+             WHERE id = $15
+             RETURNING *
+           `, [
+             customerName, company, customerEmail, customerPhone,
+             customerStreet, customerCity, customerState, customerZip,
+             categories, make, model, machinesNotes, status,
+             createdAtValue, id
            ]);
-           res.json({ message: 'Lead updated successfully' });
+
+           if (result.rows.length === 0) {
+             return res.status(404).json({ error: 'Lead not found' });
+           }
+
+           res.json(result.rows[0]);
          } catch (err) {
-           res.status(500).json({ error: err.message });
+           console.error(err);
+           res.status(500).json({ error: 'Internal server error' });
          }
        });
 
+       // Delete a lead
        app.delete('/api/leads/:id', async (req, res) => {
          const { id } = req.params;
          try {
-           await pool.query('DELETE FROM leads WHERE id = $1', [id]);
-           res.json({ message: 'Lead deleted successfully' });
+           const result = await pool.query('DELETE FROM leads WHERE id = $1 RETURNING *', [id]);
+           if (result.rows.length === 0) {
+             return res.status(404).json({ error: 'Lead not found' });
+           }
+           res.json({ message: 'Lead deleted' });
          } catch (err) {
-           res.status(500).json({ error: err.message });
+           console.error(err);
+           res.status(500).json({ error: 'Internal server error' });
          }
        });
 
-       // Customer routes
+       // Get all customers
        app.get('/api/customers', async (req, res) => {
          try {
-           const { rows } = await pool.query('SELECT * FROM customers');
-           res.json(rows);
+           const result = await pool.query('SELECT * FROM customers ORDER BY id ASC');
+           res.json(result.rows);
          } catch (err) {
-           res.status(500).json({ error: err.message });
+           console.error(err);
+           res.status(500).json({ error: 'Internal server error' });
          }
        });
 
+       // Create a customer
        app.post('/api/customers', async (req, res) => {
          const {
-           customerName,
-           company,
-           customerEmail,
-           customerPhone,
-           customerStreet,
-           customerCity,
-           customerState,
-           customerZip
+           customerName, company, customerEmail, customerPhone,
+           customerStreet, customerCity, customerState, customerZip
          } = req.body;
 
-         if (!customerName) {
-           return res.status(400).json({ error: 'Customer Name is required' });
-         }
-
          try {
-           const { rows } = await pool.query(
-             `INSERT INTO customers (
+           const result = await pool.query(`
+             INSERT INTO customers (
                customer_name, company, customer_email, customer_phone,
                customer_street, customer_city, customer_state, customer_zip
-             ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8)
-             RETURNING id`,
-             [
-               customerName,
-               company,
-               customerEmail,
-               customerPhone,
-               customerStreet,
-               customerCity,
-               customerState,
-               customerZip
-             ]
-           );
-           res.json({ message: 'Customer added successfully', id: rows[0].id });
+             )
+             VALUES ($1, $2, $3, $4, $5, $6, $7, $8)
+             RETURNING *
+           `, [
+             customerName, company, customerEmail, customerPhone,
+             customerStreet, customerCity, customerState, customerZip
+           ]);
+           res.status(201).json(result.rows[0]);
          } catch (err) {
-           res.status(500).json({ error: err.message });
+           console.error(err);
+           res.status(500).json({ error: 'Internal server error' });
          }
        });
 
+       // Update a customer
        app.put('/api/customers/:id', async (req, res) => {
          const { id } = req.params;
          const {
-           customerName,
-           company,
-           customerEmail,
-           customerPhone,
-           customerStreet,
-           customerCity,
-           customerState,
-           customerZip
+           customerName, company, customerEmail, customerPhone,
+           customerStreet, customerCity, customerState, customerZip
          } = req.body;
 
-         if (!customerName) {
-           return res.status(400).json({ error: 'Customer Name is required' });
-         }
-
          try {
-           await pool.query(
-             `UPDATE customers SET
-               customer_name = $1,
-               company = $2,
-               customer_email = $3,
-               customer_phone = $4,
-               customer_street = $5,
-               customer_city = $6,
-               customer_state = $7,
-               customer_zip = $8
-             WHERE id = $9`,
-             [
-               customerName,
-               company,
-               customerEmail,
-               customerPhone,
-               customerStreet,
-               customerCity,
-               customerState,
-               customerZip,
-               id
-             ]
-           );
-           res.json({ message: 'Customer updated successfully' });
+           const result = await pool.query(`
+             UPDATE customers
+             SET customer_name = $1, company = $2, customer_email = $3, customer_phone = $4,
+                 customer_street = $5, customer_city = $6, customer_state = $7, customer_zip = $8
+             WHERE id = $9
+             RETURNING *
+           `, [
+             customerName, company, customerEmail, customerPhone,
+             customerStreet, customerCity, customerState, customerZip, id
+           ]);
+
+           if (result.rows.length === 0) {
+             return res.status(404).json({ error: 'Customer not found' });
+           }
+
+           res.json(result.rows[0]);
          } catch (err) {
-           res.status(500).json({ error: err.message });
+           console.error(err);
+           res.status(500).json({ error: 'Internal server error' });
          }
        });
 
+       // Delete a customer
        app.delete('/api/customers/:id', async (req, res) => {
          const { id } = req.params;
          try {
-           await pool.query('DELETE FROM customers WHERE id = $1', [id]);
-           res.json({ message: 'Customer deleted successfully' });
-         } catch (err) {
-           res.status(500).json({ error: err.message });
-         }
-       });
-
-       // Category routes
-       app.get('/api/categories', async (req, res) => {
-         try {
-           const { rows } = await pool.query('SELECT name FROM categories');
-           res.json(rows.map(row => row.name));
-         } catch (err) {
-           res.status(500).json({ error: err.message });
-         }
-       });
-
-       app.post('/api/categories', async (req, res) => {
-         const { name } = req.body;
-         if (!name) return res.status(400).json({ error: 'Category name is required' });
-         try {
-           await pool.query('INSERT INTO categories (name) VALUES ($1)', [name]);
-           res.json({ message: 'Category added successfully' });
-         } catch (err) {
-           res.status(500).json({ error: err.message });
-         }
-       });
-
-       app.delete('/api/categories/:name', async (req, res) => {
-         const { name } = req.params;
-         try {
-           const { rows } = await pool.query('SELECT * FROM leads WHERE categories LIKE $1', [`%${name}%`]);
-           if (rows.length > 0) {
-             return res.status(400).json({ error: 'Cannot delete category used in leads' });
+           const result = await pool.query('DELETE FROM customers WHERE id = $1 RETURNING *', [id]);
+           if (result.rows.length === 0) {
+             return res.status(404).json({ error: 'Customer not found' });
            }
-           await pool.query('DELETE FROM categories WHERE name = $1', [name]);
-           res.json({ message: 'Category deleted successfully' });
+           res.json({ message: 'Customer deleted' });
          } catch (err) {
-           res.status(500).json({ error: err.message });
-         }
-       });
-
-       // Make routes
-       app.get('/api/makes', async (req, res) => {
-         try {
-           const { rows } = await pool.query('SELECT name FROM makes');
-           res.json(rows.map(row => row.name));
-         } catch (err) {
-           res.status(500).json({ error: err.message });
-         }
-       });
-
-       app.post('/api/makes', async (req, res) => {
-         const { name } = req.body;
-         if (!name) return res.status(400).json({ error: 'Make name is required' });
-         try {
-           await pool.query('INSERT INTO makes (name) VALUES ($1)', [name]);
-           res.json({ message: 'Make added successfully' });
-         } catch (err) {
-           res.status(500).json({ error: err.message });
-         }
-       });
-
-       app.delete('/api/makes/:name', async (req, res) => {
-         const { name } = req.params;
-         try {
-           const { rows } = await pool.query('SELECT * FROM leads WHERE make = $1', [name]);
-           if (rows.length > 0) {
-             return res.status(400).json({ error: 'Cannot delete make used in leads' });
-           }
-           await pool.query('DELETE FROM makes WHERE name = $1', [name]);
-           res.json({ message: 'Make deleted successfully' });
-         } catch (err) {
-           res.status(500).json({ error: err.message });
-         }
-       });
-
-       // Model routes
-       app.get('/api/models', async (req, res) => {
-         try {
-           const { rows } = await pool.query('SELECT name FROM models');
-           res.json(rows.map(row => row.name));
-         } catch (err) {
-           res.status(500).json({ error: err.message });
-         }
-       });
-
-       app.post('/api/models', async (req, res) => {
-         const { name } = req.body;
-         if (!name) return res.status(400).json({ error: 'Model name is required' });
-         try {
-           await pool.query('INSERT INTO models (name) VALUES ($1)', [name]);
-           res.json({ message: 'Model added successfully' });
-         } catch (err) {
-           res.status(500).json({ error: err.message });
-         }
-       });
-
-       app.delete('/api/models/:name', async (req, res) => {
-         const { name } = req.params;
-         try {
-           const { rows } = await pool.query('SELECT * FROM leads WHERE model = $1', [name]);
-           if (rows.length > 0) {
-             return res.status(400).json({ error: 'Cannot delete model used in leads' });
-           }
-           await pool.query('DELETE FROM models WHERE name = $1', [name]);
-           res.json({ message: 'Model deleted successfully' });
-         } catch (err) {
-           res.status(500).json({ error: err.message });
+           console.error(err);
+           res.status(500).json({ error: 'Internal server error' });
          }
        });
 
        // Start server
-       const port = process.env.PORT || 3000;
-       app.listen(port, '0.0.0.0', () => {
+       app.listen(port, () => {
          console.log(`Server running at http://0.0.0.0:${port}`);
        });
