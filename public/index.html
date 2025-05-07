@@ -18,7 +18,7 @@
            .notes-cell { max-height: 100px; overflow-y: auto; white-space: pre-wrap; cursor: pointer; }
            .notes-cell:hover { background-color: #f3f4f6; }
            @media (max-width: 639px) {
-             .lead-card, .customer-card { border: 1px solid #e5e7eb; border-radius: 8px; margin-bottom: 1rem; }
+             .lead-card, .customer-card { border: 1px solid #d1d5db; border-radius: 8px; margin-bottom: 1.5rem; box-shadow: 0 2px 4px rgba(0,0,0,0.1); }
              .lead-card-header, .customer-card-header { padding: 1rem; }
              .lead-card-details, .customer-card-details { padding: 1rem; border-top: 1px solid #e5e7eb; }
              .action-btn { min-width: 48px; min-height: 48px; }
@@ -26,7 +26,9 @@
            }
            @media (min-width: 640px) {
              table { table-layout: fixed; width: 100%; }
-             th, td { overflow: hidden; text-overflow: ellipsis; white-space: normal; }
+             th, td { overflow: hidden; text-overflow: ellipsis; white-space: normal; border-bottom: 1px solid #e5e7eb; }
+             tr:nth-child(even) { background-color: #f9fafb; }
+             tr:nth-child(odd) { background-color: #ffffff; }
              .col-id { width: 3%; min-width: 30px; }
              .col-customer-name { width: 8%; min-width: 80px; }
              .col-company { width: 8%; min-width: 80px; }
