@@ -18,6 +18,46 @@
          .expandable-cell { max-height: 100px; overflow-y: auto; cursor: pointer; }
          .expandable-cell:hover { background-color: #f3f4f6; }
          .notes-cell { white-space: pre-wrap; }
+         .calendar-grid {
+           display: grid;
+           grid-template-columns: repeat(7, minmax(0, 1fr));
+           gap: 1px;
+           background-color: #e5e7eb;
+         }
+         .calendar-day {
+           background-color: #ffffff;
+           padding: 8px;
+           text-align: center;
+           cursor: pointer;
+           position: relative;
+         }
+         .calendar-day:hover {
+           background-color: #f3f4f6;
+         }
+         .calendar-day.today {
+           border: 2px solid #549253;
+         }
+         .calendar-day.disabled {
+           background-color: #f3f4f6;
+           color: #9ca3af;
+           cursor: not-allowed;
+         }
+         .calendar-header {
+           background-color: #e5e7eb;
+           padding: 8px;
+           text-align: center;
+           font-weight: bold;
+         }
+         .note-dot {
+           position: absolute;
+           bottom: 4px;
+           left: 50%;
+           transform: translateX(-50%);
+           width: 6px;
+           height: 6px;
+           background-color: #549253;
+           border-radius: 50%;
+         }
          @media (max-width: 639px) {
            .lead-card, .customer-card { border: 1px solid #d1d5db; border-radius: 8px; margin-bottom: 1.5rem; box-shadow: 0 2px 4px rgba(0,0,0,0.1); }
            .lead-card-header, .customer-card-header { padding: 1rem; }
@@ -26,6 +66,8 @@
            .expandable-mobile { cursor: pointer; }
            .expandable-mobile:hover { background-color: #f3f4f6; }
            .notes-mobile { max-height: 100px; overflow-y: auto; white-space: pre-wrap; }
+           .calendar-day { padding: 4px; font-size: 0.875rem; }
+           .calendar-header { font-size: 0.875rem; }
          }
          @media (min-width: 640px) {
            table { table-layout: fixed; width: 100%; }
@@ -61,6 +103,7 @@
          <div class="flex space-x-2 mb-4">
            <button id="leads-tab" class="px-4 py-2 rounded tab-active" onclick="showTab('leads')">Leads</button>
            <button id="customers-tab" class="px-4 py-2 rounded tab-inactive" onclick="showTab('customers')">Customers</button>
+           <button id="calendar-tab" class="px-4 py-2 rounded tab-inactive" onclick="showTab('calendar')">Calendar</button>
          </div>
 
          <!-- Leads Section -->
@@ -121,6 +164,18 @@
              </table>
            </div>
          </div>
+
+         <!-- Calendar Section -->
+         <div id="calendar-section" class="tab-content hidden">
+           <h2 class="text-2xl font-bold mb-4">Calendar</h2>
+           <div class="flex justify-between items-center mb-4">
+             <button id="prev-month" class="bg-[#549253] text-white px-4 py-2 rounded hover:bg-[#3e6b3d]">Previous Month</button>
+             <span id="month-year" class="text-xl font-semibold"></span>
+             <button id="next-month" class="bg-[#549253] text-white px-4 py-2 rounded hover:bg-[#3e6b3d]">Next Month</button>
+           </div>
+           <div id="calendar-grid" class="calendar-grid"></div>
+         </div>
+
        </div>
 
        <!-- Lead Modal (Create/Edit) -->
@@ -239,6 +294,23 @@
          </div>
        </div>
 
+       <!-- Notes Modal (Create/Edit) -->
+       <div id="notes-modal" class="modal">
+         <div class="modal-content p-4 sm:p-6">
+           <h2 id="notes-modal-title" class="text-xl font-bold mb-4">Notes for [Date]</h2>
+           <form id="notes-form">
+             <div class="mb-4">
+               <label class="block text-base font-medium mb-1">Notes</label>
+               <textarea id="day-notes" class="w-full p-3 text-base border rounded" rows="5"></textarea>
+             </div>
+             <div class="flex justify-end space-x-4">
+               <button type="button" onclick="closeNotesModal()" class="bg-gray-500 text-white px-4 py-2 rounded text-base hover:bg-gray-600">Cancel</button>
+               <button type="submit" id="save-notes-btn" class="bg-[#549253] text-white px-4 py-2 rounded text-base hover:bg-[#3e6b3d]">Save</button>
+             </div>
+           </form>
+         </div>
+       </div>
+
        <!-- Content Modal (for all expandable columns) -->
        <div id="content-modal" class="modal">
          <div class="modal-content p-4 sm:p-6">
@@ -253,12 +325,15 @@
        <script>
          let currentLeadId = null;
          let currentCustomerId = null;
+         let currentDate = null;
          let customers = [];
+         let currentMonth = new Date();
 
          // Load Data on Page Load
          window.onload = () => {
            loadLeads();
            loadCustomers();
+           renderCalendar();
            showTab('leads');
          };
 
@@ -266,10 +341,13 @@
          function showTab(tab) {
            document.getElementById('leads-section').classList.toggle('hidden', tab !== 'leads');
            document.getElementById('customers-section').classList.toggle('hidden', tab !== 'customers');
+           document.getElementById('calendar-section').classList.toggle('hidden', tab !== 'calendar');
            document.getElementById('leads-tab').classList.toggle('tab-active', tab === 'leads');
            document.getElementById('leads-tab').classList.toggle('tab-inactive', tab !== 'leads');
            document.getElementById('customers-tab').classList.toggle('tab-active', tab === 'customers');
            document.getElementById('customers-tab').classList.toggle('tab-inactive', tab !== 'customers');
+           document.getElementById('calendar-tab').classList.toggle('tab-active', tab === 'calendar');
+           document.getElementById('calendar-tab').classList.toggle('tab-inactive', tab !== 'calendar');
          }
 
          // Load Leads
@@ -644,6 +722,54 @@
            currentCustomerId = null;
          }
 
+         // Open Notes Modal
+         async function openNotesModal(date) {
+           currentDate = date;
+           const modal = document.getElementById('notes-modal');
+           const title = document.getElementById('notes-modal-title');
+           const notesTextarea = document.getElementById('day-notes');
+           title.textContent = `Notes for ${date.toLocaleDateString('en-US', { month: 'long', day: 'numeric', year: 'numeric' })}`;
+           try {
+             const response = await fetch(`https://lead-management-system-f6v2.onrender.com/api/calendar_notes?date=${date.toISOString().split('T')[0]}`);
+             const data = await response.json();
+             notesTextarea.value = data.notes || '';
+           } catch (err) {
+             console.error('Error loading notes:', err);
+             notesTextarea.value = '';
+           }
+           modal.style.display = 'flex';
+         }
+
+         // Close Notes Modal
+         function closeNotesModal() {
+           document.getElementById('notes-modal').style.display = 'none';
+           currentDate = null;
+         }
+
+         // Save or Update Notes
+         document.getElementById('notes-form').addEventListener('submit', async (e) => {
+           e.preventDefault();
+           if (!currentDate) return;
+           const notes = document.getElementById('day-notes').value;
+           try {
+             const url = `https://lead-management-system-f6v2.onrender.com/api/calendar_notes`;
+             const method = notes ? 'POST' : 'DELETE'; // Create or delete if empty
+             const response = await fetch(url, {
+               method,
+               headers: { 'Content-Type': 'application/json' },
+               body: JSON.stringify({ date: currentDate.toISOString().split('T')[0], notes })
+             });
+             if (response.ok) {
+               closeNotesModal();
+               renderCalendar(); // Refresh calendar to update note dots
+             } else {
+               alert('Error saving notes');
+             }
+           } catch (err) {
+             alert('Error saving notes');
+           }
+         });
+
          // Open Content Modal
          function openContentModal(title, content) {
            const modal = document.getElementById('content-modal');
@@ -777,6 +903,65 @@
              }
            }
          }
+
+         // Render Calendar
+         function renderCalendar() {
+           const grid = document.getElementById('calendar-grid');
+           const monthYear = document.getElementById('month-year');
+           const firstDay = new Date(currentMonth.getFullYear(), currentMonth.getMonth(), 1);
+           const lastDay = new Date(currentMonth.getFullYear(), currentMonth.getMonth() + 1, 0);
+           const today = new Date();
+
+           monthYear.textContent = currentMonth.toLocaleDateString('en-US', { month: 'long', year: 'numeric' });
+           grid.innerHTML = '';
+
+           // Add day names
+           const days = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
+           days.forEach(day => {
+             const header = document.createElement('div');
+             header.className = 'calendar-header';
+             header.textContent = day;
+             grid.appendChild(header);
+           });
+
+           // Add empty cells for days before the first of the month
+           const startDay = firstDay.getDay();
+           for (let i = 0; i < startDay; i++) {
+             const empty = document.createElement('div');
+             empty.className = 'calendar-day disabled';
+             grid.appendChild(empty);
+           }
+
+           // Add days of the month
+           for (let day = 1; day <= lastDay.getDate(); day++) {
+             const date = new Date(currentMonth.getFullYear(), currentMonth.getMonth(), day);
+             const dayElement = document.createElement('div');
+             dayElement.className = 'calendar-day';
+             if (date.toDateString() === today.toDateString()) dayElement.classList.add('today');
+             dayElement.textContent = day;
+             dayElement.onclick = () => openNotesModal(date);
+             grid.appendChild(dayElement);
+           }
+
+           // Add empty cells for days after the last of the month
+           const totalCells = startDay + lastDay.getDate();
+           while (totalCells % 7 !== 0) {
+             const empty = document.createElement('div');
+             empty.className = 'calendar-day disabled';
+             grid.appendChild(empty);
+             totalCells++;
+           }
+         }
+
+         // Navigate Months
+         document.getElementById('prev-month').onclick = () => {
+           currentMonth.setMonth(currentMonth.getMonth() - 1);
+           renderCalendar();
+         };
+         document.getElementById('next-month').onclick = () => {
+           currentMonth.setMonth(currentMonth.getMonth() + 1);
+           renderCalendar();
+         };
        </script>
      </body>
      </html>
