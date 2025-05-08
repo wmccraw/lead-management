@@ -7,6 +7,7 @@ const express = require('express');
 
      const pool = new Pool({
        connectionString: process.env.DATABASE_URL,
+       ssl: { rejectUnauthorized: false }
      });
 
      // Initialize database schema
