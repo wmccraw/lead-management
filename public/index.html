@@ -26,12 +26,12 @@
          }
          .calendar-day {
            background-color: #ffffff;
-           padding: 4px;
+           padding: 2px;
            text-align: left;
            cursor: pointer;
            position: relative;
            aspect-ratio: 1 / 1; /* Keep days square */
-           min-height: 60px; /* Smaller size to fit all days */
+           min-height: 30px; /* Halved from 60px */
            display: flex;
            flex-direction: column;
            justify-content: flex-start;
@@ -50,18 +50,18 @@
          }
          .calendar-header {
            background-color: #e5e7eb;
-           padding: 4px;
+           padding: 2px;
            text-align: center;
            font-weight: bold;
          }
          .day-number {
-           font-size: 1rem;
+           font-size: 0.75rem; /* Adjusted for smaller size */
            font-weight: bold;
          }
          .has-notes {
-           font-size: 0.75rem;
+           font-size: 0.625rem; /* Adjusted for smaller size */
            color: #549253;
-           margin-top: 2px;
+           margin-top: 1px;
            cursor: pointer;
          }
          .has-notes:hover {
@@ -75,10 +75,10 @@
            .expandable-mobile { cursor: pointer; }
            .expandable-mobile:hover { background-color: #f3f4f6; }
            .notes-mobile { max-height: 100px; overflow-y: auto; white-space: pre-wrap; }
-           .calendar-day { padding: 2px; font-size: 0.625rem; min-height: 40px; }
-           .calendar-header { font-size: 0.75rem; }
-           .day-number { font-size: 0.875rem; }
-           .has-notes { font-size: 0.625rem; }
+           .calendar-day { padding: 1px; font-size: 0.5rem; min-height: 20px; } /* Halved from 40px */
+           .calendar-header { font-size: 0.625rem; }
+           .day-number { font-size: 0.625rem; }
+           .has-notes { font-size: 0.5rem; }
          }
          @media (min-width: 640px) {
            table { table-layout: fixed; width: 100%; }
