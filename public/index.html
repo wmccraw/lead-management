@@ -26,12 +26,12 @@
          }
          .calendar-day {
            background-color: #ffffff;
-           padding: 8px;
+           padding: 4px;
            text-align: left;
            cursor: pointer;
            position: relative;
-           aspect-ratio: 1 / 1; /* Make days square */
-           min-height: 120px; /* Increase size for notes */
+           aspect-ratio: 1 / 1; /* Keep days square */
+           min-height: 60px; /* Smaller size to fit all days */
            display: flex;
            flex-direction: column;
            justify-content: flex-start;
@@ -50,24 +50,22 @@
          }
          .calendar-header {
            background-color: #e5e7eb;
-           padding: 8px;
+           padding: 4px;
            text-align: center;
            font-weight: bold;
          }
          .day-number {
-           font-size: 1.25rem;
+           font-size: 1rem;
            font-weight: bold;
          }
-         .day-notes {
-           font-size: 0.875rem;
-           color: #4b5563;
-           margin-top: 4px;
-           overflow: hidden;
-           text-overflow: ellipsis;
-           display: -webkit-box;
-           -webkit-line-clamp: 3; /* Limit to 3 lines */
-           -webkit-box-orient: vertical;
-           white-space: normal;
+         .has-notes {
+           font-size: 0.75rem;
+           color: #549253;
+           margin-top: 2px;
+           cursor: pointer;
+         }
+         .has-notes:hover {
+           text-decoration: underline;
          }
          @media (max-width: 639px) {
            .lead-card, .customer-card { border: 1px solid #d1d5db; border-radius: 8px; margin-bottom: 1.5rem; box-shadow: 0 2px 4px rgba(0,0,0,0.1); }
@@ -77,10 +75,10 @@
            .expandable-mobile { cursor: pointer; }
            .expandable-mobile:hover { background-color: #f3f4f6; }
            .notes-mobile { max-height: 100px; overflow-y: auto; white-space: pre-wrap; }
-           .calendar-day { padding: 4px; font-size: 0.75rem; min-height: 80px; }
-           .calendar-header { font-size: 0.875rem; }
-           .day-number { font-size: 1rem; }
-           .day-notes { font-size: 0.75rem; -webkit-line-clamp: 2; }
+           .calendar-day { padding: 2px; font-size: 0.625rem; min-height: 40px; }
+           .calendar-header { font-size: 0.75rem; }
+           .day-number { font-size: 0.875rem; }
+           .has-notes { font-size: 0.625rem; }
          }
          @media (min-width: 640px) {
            table { table-layout: fixed; width: 100%; }
@@ -790,7 +788,7 @@
            const modalBody = document.getElementById('content-modal-body');
            modalTitle.textContent = title;
            modalBody.textContent = content || 'No content available';
-           modalBody.className = 'text-base mb-4' + (title === 'Machines Notes' ? ' whitespace-pre-wrap' : '');
+           modalBody.className = 'text-base mb-4' + (title === 'Machines Notes' || title === 'Day Notes' ? ' whitespace-pre-wrap' : '');
            modal.style.display = 'flex';
          }
 
@@ -966,7 +964,7 @@
              if (date.toDateString() === today.toDateString()) dayElement.classList.add('today');
              dayElement.innerHTML = `
                <div class="day-number">${day}</div>
-               ${notes ? `<div class="day-notes">${notes}</div>` : ''}
+               ${notes ? `<div class="has-notes" onclick="event.stopPropagation(); openContentModal('Day Notes', \`${notes}\`)">Has Notes</div>` : ''}
              `;
              dayElement.onclick = () => openNotesModal(date);
              grid.appendChild(dayElement);
