@@ -66,7 +66,7 @@
          <!-- Leads Section -->
          <div id="leads-section" class="tab-content">
            <h2 class="text-2xl font-bold mb-4">Leads Dashboard</h2>
-           <input id="leads-search-bar" type="text" placeholder="Search leads..." class="w-full p-3 text-base border rounded mb-4" oninput="filterLeads()">
+           <input id="leads-search-bar" type="text" placeholder="Search leads by customer or company..." class="w-full p-3 text-base border rounded mb-4" oninput="filterLeads()">
            <button onclick="openLeadModal('create')" class="w-full sm:w-auto bg-[#549253] text-white px-4 py-2 mb-4 rounded text-base hover:bg-[#3e6b3d]">Create Lead</button>
            <!-- Mobile Card Layout -->
            <div id="leads-cards" class="block sm:hidden"></div>
@@ -463,16 +463,19 @@
            const cards = document.getElementById('leads-cards').getElementsByClassName('lead-card');
            const rows = document.getElementById('leads-table').getElementsByTagName('tr');
            for (let card of cards) {
-             const text = card.textContent.toLowerCase();
-             card.style.display = text.includes(search) ? '' : 'none';
+             const customerName = card.querySelector('.expandable-mobile:nth-child(1)').textContent.toLowerCase();
+             const company = card.querySelector('.expandable-mobile:nth-child(2)').textContent.toLowerCase();
+             card.style.display = (customerName.includes(search) || company.includes(search)) ? '' : 'none';
            }
            for (let row of rows) {
              const cells = row.getElementsByTagName('td');
              let match = false;
              for (let cell of cells) {
-               if (cell.textContent.toLowerCase().includes(search)) {
-                 match = true;
-                 break;
+               if (cell.classList.contains('col-customer-name') || cell.classList.contains('col-company')) {
+                 if (cell.textContent.toLowerCase().includes(search)) {
+                   match = true;
+                   break;
+                 }
                }
              }
              row.style.display = match ? '' : 'none';
