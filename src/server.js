@@ -1,13 +1,20 @@
 const express = require('express');
      const { Pool } = require('pg');
+     const path = require('path');
      const app = express();
      const port = 3000;
 
      app.use(express.json());
+     app.use(express.static(path.join(__dirname, '../public')));
 
      const pool = new Pool({
        connectionString: process.env.DATABASE_URL,
        ssl: { rejectUnauthorized: false }
+     });
+
+     // Default route to serve index.html
+     app.get('/', (req, res) => {
+       res.sendFile(path.join(__dirname, '../public/index.html'));
      });
 
      // Initialize database schema
