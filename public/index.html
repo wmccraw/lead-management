@@ -31,7 +31,7 @@
            cursor: pointer;
            position: relative;
            aspect-ratio: 1 / 1; /* Keep days square */
-           min-height: 15px; /* Halved from 30px */
+           min-height: 10px; /* Matched to mobile */
            display: flex;
            flex-direction: column;
            justify-content: flex-start;
@@ -55,11 +55,11 @@
            font-weight: bold;
          }
          .day-number {
-           font-size: 1rem; /* Restored to original */
+           font-size: 1rem;
            font-weight: bold;
          }
          .has-notes {
-           font-size: 0.75rem; /* Restored to original */
+           font-size: 0.75rem;
            color: #549253;
            margin-top: 2px;
            cursor: pointer;
@@ -75,10 +75,10 @@
            .expandable-mobile { cursor: pointer; }
            .expandable-mobile:hover { background-color: #f3f4f6; }
            .notes-mobile { max-height: 100px; overflow-y: auto; white-space: pre-wrap; }
-           .calendar-day { padding: 1px; font-size: 0.625rem; min-height: 10px; } /* Halved from 20px */
-           .calendar-header { font-size: 0.75rem; } /* Restored to original */
-           .day-number { font-size: 0.875rem; } /* Restored to original */
-           .has-notes { font-size: 0.625rem; } /* Restored to original */
+           .calendar-day { padding: 1px; font-size: 0.625rem; min-height: 10px; }
+           .calendar-header { font-size: 0.75rem; }
+           .day-number { font-size: 0.875rem; }
+           .has-notes { font-size: 0.625rem; }
          }
          @media (min-width: 640px) {
            table { table-layout: fixed; width: 100%; }
