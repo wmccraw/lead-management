@@ -30,8 +30,8 @@
            text-align: left;
            cursor: pointer;
            position: relative;
-           aspect-ratio: 1 / 1; /* Keep days square */
-           min-height: 10px; /* Matched to mobile */
+           aspect-ratio: 1 / 1;
+           min-height: 10px;
            display: flex;
            flex-direction: column;
            justify-content: flex-start;
@@ -339,6 +339,7 @@
          let currentDate = null;
          let customers = [];
          let currentMonth = new Date();
+         let leadsData = new Map(); // Store lead data with reset timestamps
 
          // Load Data on Page Load
          window.onload = () => {
@@ -366,6 +367,13 @@
            try {
              const response = await fetch('https://lead-management-system-f6v2.onrender.com/api/leads');
              const leads = await response.json();
+             leadsData.clear(); // Reset stored data
+             leads.forEach(lead => {
+               leadsData.set(lead.id, {
+                 ...lead,
+                 resetTimestamp: lead.created_at // Initial reset timestamp
+               });
+             });
              renderLeads(leads);
            } catch (err) {
              console.error('Error loading leads:', err);
@@ -395,6 +403,18 @@
            return parts.length ? parts.join(', ') : 'N/A';
          }
 
+         // Calculate Time in System with Reset Logic
+         function calculateTimeInSystem(createdAt, resetTimestamp) {
+           const now = new Date();
+           const startDate = new Date(resetTimestamp || createdAt);
+           const diffMs = now - startDate;
+           const hours = Math.floor(diffMs / (1000 * 60 * 60));
+           const days = Math.floor(hours / 24);
+           let text = hours < 24 ? `${hours} hours` : `${days} days`;
+           let className = hours < 24 ? 'time-green' : hours < 72 ? 'time-yellow' : 'time-red';
+           return { text, class: className };
+         }
+
          // Render Leads
          function renderLeads(leads) {
            const tableBody = document.getElementById('leads-table');
@@ -402,11 +422,11 @@
            tableBody.innerHTML = '';
            cardsContainer.innerHTML = '';
 
-           // Sort leads by ID (ascending)
            leads.sort((a, b) => a.id - b.id);
 
            leads.forEach(lead => {
-             const timeInSystem = calculateTimeInSystem(lead.created_at);
+             const leadData = leadsData.get(lead.id);
+             const timeInSystem = calculateTimeInSystem(lead.created_at, leadData.resetTimestamp);
              const dateAdded = formatDate(lead.created_at);
              const address = formatAddress(
                lead.customer_street,
@@ -415,7 +435,6 @@
                lead.customer_zip
              );
 
-             // Desktop Table Row
              const row = document.createElement('tr');
              row.innerHTML = `
                <td class="p-2 col-id">${lead.id}</td>
@@ -438,7 +457,6 @@
              `;
              tableBody.appendChild(row);
 
-             // Mobile Card
              const card = document.createElement('div');
              card.className = 'lead-card bg-white';
              card.innerHTML = `
@@ -483,7 +501,6 @@
                customer.customer_zip
              );
 
-             // Desktop Table Row
              const row = document.createElement('tr');
              row.innerHTML = `
                <td class="p-2">${customer.id}</td>
@@ -499,7 +516,6 @@
              `;
              tableBody.appendChild(row);
 
-             // Mobile Card
              const card = document.createElement('div');
              card.className = 'customer-card bg-white';
              card.innerHTML = `
@@ -532,18 +548,6 @@
          function toggleCustomerDetails(customerId) {
            const details = document.getElementById(`customer-details-${customerId}`);
            details.classList.toggle('show');
-         }
-
-         // Calculate Time in System
-         function calculateTimeInSystem(createdAt) {
-           const now = new Date();
-           const created = new Date(createdAt);
-           const diffMs = now - created;
-           const hours = Math.floor(diffMs / (1000 * 60 * 60));
-           const days = Math.floor(hours / 24);
-           let text = hours < 24 ? `${hours} hours` : `${days} days`;
-           let className = hours < 24 ? 'time-green' : hours < 72 ? 'time-yellow' : 'time-red';
-           return { text, class: className };
          }
 
          // Filter Leads
@@ -764,7 +768,7 @@
            const notes = document.getElementById('day-notes').value;
            try {
              const url = `https://lead-management-system-f6v2.onrender.com/api/calendar_notes`;
-             const method = notes ? 'POST' : 'DELETE'; // Create or delete if empty
+             const method = notes ? 'POST' : 'DELETE';
              const response = await fetch(url, {
                method,
                headers: { 'Content-Type': 'application/json' },
@@ -772,7 +776,7 @@
              });
              if (response.ok) {
                closeNotesModal();
-               renderCalendar(); // Refresh calendar to update notes
+               renderCalendar();
              } else {
                alert('Error saving notes');
              }
@@ -825,9 +829,23 @@
                body: JSON.stringify(lead)
              });
              if (response.ok) {
+               const updatedLead = await response.json();
+               const originalLeadData = leadsData.get(currentLeadId) || updatedLead;
+               let resetTimestamp = originalLeadData.resetTimestamp;
+
+               // Reset timestamp only if status changes from Pending to Quoted
+               if (currentLeadId && originalLeadData.status === 'Pending' && lead.status === 'Quoted') {
+                 resetTimestamp = new Date().toISOString();
+               }
+
+               leadsData.set(currentLeadId || updatedLead.id, {
+                 ...updatedLead,
+                 resetTimestamp: resetTimestamp
+               });
+
                closeLeadModal();
                loadLeads();
-               loadCustomers(); // Refresh customers to include new ones
+               loadCustomers();
              } else {
                alert(currentLeadId ? 'Error updating lead' : 'Error saving lead');
              }
@@ -882,6 +900,7 @@
                  method: 'DELETE'
                });
                if (response.ok) {
+                 leadsData.delete(id);
                  loadLeads();
                } else {
                  alert('Error deleting lead');
@@ -938,7 +957,6 @@
            monthYear.textContent = currentMonth.toLocaleDateString('en-US', { month: 'long', year: 'numeric' });
            grid.innerHTML = '';
 
-           // Add day names
            const days = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
            days.forEach(day => {
              const header = document.createElement('div');
@@ -947,7 +965,6 @@
              grid.appendChild(header);
            });
 
-           // Add empty cells for days before the first of the month
            const startDay = firstDay.getDay();
            for (let i = 0; i < startDay; i++) {
              const empty = document.createElement('div');
@@ -955,7 +972,6 @@
              grid.appendChild(empty);
            }
 
-           // Add days of the month
            for (let day = 1; day <= lastDay.getDate(); day++) {
              const date = new Date(currentMonth.getFullYear(), currentMonth.getMonth(), day);
              const notes = await fetchNotesForDate(date);
@@ -970,7 +986,6 @@
              grid.appendChild(dayElement);
            }
 
-           // Add empty cells for days after the last of the month
            const totalCells = startDay + lastDay.getDate();
            while (totalCells % 7 !== 0) {
              const empty = document.createElement('div');
