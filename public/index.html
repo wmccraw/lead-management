@@ -367,11 +367,13 @@
            try {
              const response = await fetch('https://lead-management-system-f6v2.onrender.com/api/leads');
              const leads = await response.json();
-             leadsData.clear(); // Reset stored data
+             const existingLeadsData = new Map(leadsData); // Preserve existing reset timestamps
+             leadsData.clear();
              leads.forEach(lead => {
+               const existingLead = existingLeadsData.get(lead.id);
                leadsData.set(lead.id, {
                  ...lead,
-                 resetTimestamp: lead.created_at // Initial reset timestamp
+                 resetTimestamp: existingLead ? existingLead.resetTimestamp : lead.created_at // Keep existing resetTimestamp if available, else use created_at
                });
              });
              renderLeads(leads);
@@ -643,7 +645,7 @@
          // Open Lead Modal
          async function openLeadModal(mode, leadId = null) {
            const modal = document.getElementById('lead-modal');
-           const form = document.getElementById('lead-form');
+           const form = document.getElementByD
            const title = document.getElementById('lead-modal-title');
            const saveBtn = document.getElementById('save-lead-btn');
            currentLeadId = leadId;
@@ -672,7 +674,7 @@
                  document.getElementById('customerState').value = lead.customer_state || '';
                  document.getElementById('customerZip').value = lead.customer_zip || '';
                  document.getElementById('categories').value = lead.categories || '';
-                 document.getElementById('make').value = lead.make || '';
+                 document.getElementBy Sov.getElementById('make').value = lead.make || '';
                  document.getElementById('model').value = lead.model || '';
                  document.getElementById('machinesNotes').value = lead.machines_notes || '';
                  document.getElementById('status').value = lead.status || 'Quoted';
@@ -830,14 +832,23 @@
              });
              if (response.ok) {
                const updatedLead = await response.json();
-               const originalLeadData = leadsData.get(currentLeadId) || updatedLead;
-               let resetTimestamp = originalLeadData.resetTimestamp;
+               let resetTimestamp;
 
-               // Reset timestamp only if status changes from Pending to Quoted
-               if (currentLeadId && originalLeadData.status === 'Pending' && lead.status === 'Quoted') {
-                 resetTimestamp = new Date().toISOString();
+               if (currentLeadId) {
+                 // Fetch the original lead data from leadsData
+                 const originalLeadData = leadsData.get(currentLeadId);
+                 resetTimestamp = originalLeadData.resetTimestamp;
+
+                 // Only reset timestamp if status changes from Pending to Quoted
+                 if (originalLeadData.status === 'Pending' && lead.status === 'Quoted') {
+                   resetTimestamp = new Date().toISOString();
+                 }
+               } else {
+                 // For new leads, use the created_at as the initial resetTimestamp
+                 resetTimestamp = updatedLead.created_at;
                }
 
+               // Update leadsData with the new lead data and preserved resetTimestamp
                leadsData.set(currentLeadId || updatedLead.id, {
                  ...updatedLead,
                  resetTimestamp: resetTimestamp
