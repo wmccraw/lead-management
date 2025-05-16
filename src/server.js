@@ -14,9 +14,7 @@ app.use(express.urlencoded({ extended: true }));
 
 const pool = new Pool({
     connectionString: process.env.DATABASE_URL,
-    ssl: {
-        rejectUnauthorized: false // Required for Render's free tier
-    }
+    ssl: { rejectUnauthorized: false }
 });
 
 // Run migration on startup

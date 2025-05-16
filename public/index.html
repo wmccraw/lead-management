@@ -8,12 +8,12 @@
 </head>
 <body>
     <div class="tabs">
-        <div class="tab" data-tab="leads">Leads</div>
+        <div class="tab active" data-tab="leads">Leads</div>
         <div class="tab" data-tab="customers">Customers</div>
         <div class="tab" data-tab="calendar">Calendar</div>
         <div class="tab" data-tab="inventory">Inventory</div>
     </div>
-    <div id="leads" class="content">
+    <div id="leads" class="content" style="display: block;">
         <h2>Leads Dashboard</h2>
         <form id="lead-form">
             <input type="text" id="lead-name" placeholder="Name" required>
@@ -43,12 +43,31 @@
         </table>
     </div>
     <div id="customers" class="content">
-        <h2>Customers</h2>
-        <p>Customers dashboard (to be implemented).</p>
+        <h2>Customers Dashboard</h2>
+        <table id="customers-table">
+            <thead>
+                <tr>
+                    <th>Name</th>
+                    <th>Email</th>
+                    <th>Actions</th>
+                </tr>
+            </thead>
+            <tbody></tbody>
+        </table>
+        <button id="export-customers">Export Customers to CSV</button>
     </div>
     <div id="calendar" class="content">
         <h2>Calendar</h2>
-        <p>Calendar view (to be implemented).</p>
+        <input type="date" id="calendar-date">
+        <table id="calendar-events">
+            <thead>
+                <tr>
+                    <th>Event</th>
+                    <th>Time</th>
+                </tr>
+            </thead>
+            <tbody></tbody>
+        </table>
     </div>
     <div id="inventory" class="content">
         <h2>Inventory</h2>

@@ -1,5 +1,5 @@
 DO $$ BEGIN
-    -- Check if leads table exists and has data, do nothing if it does
+    -- Create leads table if it doesn't exist
     IF NOT EXISTS (
         SELECT FROM pg_tables
         WHERE schemaname = 'public' AND tablename = 'leads'
@@ -15,7 +15,7 @@ DO $$ BEGIN
         );
     END IF;
 
-    -- Create inventory table if it doesn’t exist
+    -- Create inventory table if it doesn't exist
     IF NOT EXISTS (
         SELECT FROM pg_tables
         WHERE schemaname = 'public' AND tablename = 'inventory'

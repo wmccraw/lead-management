@@ -1,8 +1,8 @@
 body {
     font-family: Arial, sans-serif;
+    background-color: #f0f0f0;
     margin: 0;
     padding: 20px;
-    background: #f0f0f0;
 }
 .tabs {
     display: flex;
@@ -17,7 +17,7 @@ body {
     border-radius: 5px 5px 0 0;
 }
 .tab.active {
-    background: #007bff;
+    background: #28a745;
     color: white;
     border-bottom: none;
 }
@@ -28,36 +28,37 @@ body {
     border-radius: 0 5px 5px 5px;
     background: white;
 }
-.content.active {
-    display: block;
-}
 table {
     width: 100%;
     border-collapse: collapse;
     margin-top: 20px;
 }
 th, td {
-    border: 1px solid #ddd;
-    padding: 8px;
+    padding: 10px;
     text-align: left;
+    border: 1px solid #ddd;
 }
-th {
-    background: #f4f4f4;
+tr:nth-child(even) {
+    background-color: #f0f0f0;
 }
-input, select, button {
-    padding: 5px;
-    margin: 5px;
-    font-family: Arial, sans-serif;
+tr:nth-child(odd) {
+    background-color: #ffffff;
 }
 button {
-    background: #007bff;
+    background-color: #28a745;
     color: white;
     border: none;
     padding: 8px 16px;
     cursor: pointer;
+    border-radius: 5px;
 }
 button:hover {
-    background: #0056b3;
+    background-color: #218838;
+}
+input, select {
+    padding: 5px;
+    margin: 5px;
+    font-family: Arial, sans-serif;
 }
 img.thumbnail {
     width: 50px;
