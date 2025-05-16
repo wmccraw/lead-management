@@ -1,0 +1,46 @@
+body {
+    font-family: Arial, sans-serif;
+    margin: 0;
+    padding: 20px;
+}
+.tabs {
+    display: flex;
+    gap: 10px;
+    margin-bottom: 20px;
+}
+.tab {
+    padding: 10px;
+    cursor: pointer;
+    background: #f0f0f0;
+}
+.tab.active {
+    background: #007bff;
+    color: white;
+}
+.content {
+    display: none;
+}
+.content.active {
+    display: block;
+}
+table {
+    width: 100%;
+    border-collapse: collapse;
+}
+th, td {
+    border: 1px solid #ddd;
+    padding: 8px;
+    text-align: left;
+}
+th {
+    background: #f4f4f4;
+}
+input, select, button {
+    padding: 5px;
+    margin: 5px;
+}
+img.thumbnail {
+    width: 50px;
+    height: 50px;
+    object-fit: cover;
+}

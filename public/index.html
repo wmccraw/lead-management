@@ -1,1055 +1,124 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Lead Management System</title>
-  <script src="https://cdn.tailwindcss.com"></script>
-  <style>
-    .modal { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.5); z-index: 50; }
-    .modal-content { background: white; margin: 5% auto; padding: 20px; width: 90%; max-width: 600px; border-radius: 8px; max-height: 80vh; overflow-y: auto; }
-    .time-green { background-color: #d4edda; }
-    .time-yellow { background-color: #fff3cd; }
-    .time-red { background-color: #f8d7da; }
-    .lead-details, .customer-details { display: none; }
-    .lead-details.show, .customer-details.show { display: block; }
-    .tab-active { background-color: #549253; color: white; }
-    .tab-inactive { background-color: #e5e7eb; color: black; }
-    .expandable-cell { max-height: 100px; overflow-y: auto; cursor: pointer; }
-    .expandable-cell:hover { background-color: #f3f4f6; }
-    .notes-cell { white-space: pre-wrap; }
-    .calendar-grid {
-      display: grid;
-      grid-template-columns: repeat(7, minmax(0, 1fr));
-      gap: 1px;
-      background-color: #e5e7eb;
-    }
-    .calendar-day {
-      background-color: #ffffff;
-      padding: 2px;
-      text-align: left;
-      cursor: pointer;
-      position: relative;
-      aspect-ratio: 1 / 1;
-      min-height: 10px;
-      display: flex;
-      flex-direction: column;
-      justify-content: flex-start;
-      align-items: flex-start;
-    }
-    .calendar-day:hover {
-      background-color: #f3f4f6;
-    }
-    .calendar-day.today {
-      border: 2px solid #549253;
-    }
-    .calendar-day.disabled {
-      background-color: #f3f4f6;
-      color: #9ca3af;
-      cursor: not-allowed;
-    }
-    .calendar-header {
-      background-color: #e5e7eb;
-      padding: 4px;
-      text-align: center;
-      font-weight: bold;
-    }
-    .day-number {
-      font-size: 1rem;
-      font-weight: bold;
-    }
-    .has-notes {
-      font-size: 0.75rem;
-      color: #549253;
-      margin-top: 2px;
-      cursor: pointer;
-    }
-    .has-notes:hover {
-      text-decoration: underline;
-    }
-    @media (max-width: 639px) {
-      .lead-card, .customer-card { border: 1px solid #d1d5db; border-radius: 8px; margin-bottom: 1.5rem; box-shadow: 0 2px 4px rgba(0,0,0,0.1); }
-      .lead-card-header, .customer-card-header { padding: 1rem; }
-      .lead-card-details, .customer-card-details { padding: 1rem; border-top: 1px solid #e5e7eb; }
-      .action-btn { min-width: 48px; min-height: 48px; }
-      .expandable-mobile { cursor: pointer; }
-      .expandable-mobile:hover { background-color: #f3f4f6; }
-      .notes-mobile { max-height: 100px; overflow-y: auto; white-space: pre-wrap; }
-      .calendar-day { padding: 1px; font-size: 0.625rem; min-height: 10px; }
-      .calendar-header { font-size: 0.75rem; }
-      .day-number { font-size: 0.875rem; }
-      .has-notes { font-size: 0.625rem; }
-    }
-    @media (min-width: 640px) {
-      table { table-layout: fixed; width: 100%; }
-      th, td { overflow: hidden; text-overflow: ellipsis; white-space: normal; border-bottom: 1px solid #e5e7eb; }
-      tr:nth-child(even) { background-color: #f9fafb; }
-      tr:nth-child(odd) { background-color: #ffffff; }
-      .col-id { width: 3%; min-width: 30px; }
-      .col-customer-name { width: 8%; min-width: 80px; }
-      .col-company { width: 8%; min-width: 80px; }
-      .col-email { width: 12%; min-width: 100px; }
-      .col-phone { width: 6%; min-width: 60px; }
-      .col-category { width: 6%; min-width: 60px; }
-      .col-make { width: 6%; min-width: 60px; }
-      .col-model { width: 6%; min-width: 60px; }
-      .col-notes { width: 18%; min-width: 140px; }
-      .col-quoted-vendor { width: 5%; min-width: 50px; text-align: center; }
-      .col-status { width: 5%; min-width: 50px; }
-      .col-time { width: 5%; min-width: 50px; }
-      .col-date { width: 6%; min-width: 60px; }
-      .col-actions { width: 8%; min-width: 80px; }
-      th, td { padding: 6px; }
-    }
-    .dropdown { position: relative; }
-    .dropdown-menu { display: none; position: absolute; background: white; border: 1px solid #e5e7eb; width: 100%; max-height: 200px; overflow-y: auto; z-index: 100; }
-    .dropdown-menu.show { display: block; }
-    .dropdown-item { padding: 8px; cursor: pointer; }
-    .dropdown-item:hover { background: #f3f4f6; }
-  </style>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Lead Management System</title>
+    <link rel="stylesheet" href="/css/styles.css">
 </head>
-<body class="bg-gray-100">
-  <!-- Tabs -->
-  <div class="p-4 sm:p-6">
-    <div class="flex space-x-2 mb-4">
-      <button id="leads-tab" class="px-4 py-2 rounded tab-active" onclick="showTab('leads')">Leads</button>
-      <button id="customers-tab" class="px-4 py-2 rounded tab-inactive" onclick="showTab('customers')">Customers</button>
-      <button id="calendar-tab" class="px-4 py-2 rounded tab-inactive" onclick="showTab('calendar')">Calendar</button>
+<body>
+    <div class="tabs">
+        <div class="tab" data-tab="leads">Leads</div>
+        <div class="tab" data-tab="customers">Customers</div>
+        <div class="tab" data-tab="calendar">Calendar</div>
+        <div class="tab" data-tab="inventory">Inventory</div>
     </div>
-
-    <!-- Leads Section -->
-    <div id="leads-section" class="tab-content">
-      <h2 class="text-2xl font-bold mb-4">Leads Dashboard</h2>
-      <input id="leads-search-bar" type="text" placeholder="Search leads by customer or company..." class="w-full p-3 text-base border rounded mb-4" oninput="filterLeads()">
-      <button onclick="openLeadModal('create')" class="w-full sm:w-auto bg-[#549253] text-white px-4 py-2 mb-4 rounded text-base hover:bg-[#3e6b3d]">Create Lead</button>
-      <!-- Mobile Card Layout -->
-      <div id="leads-cards" class="block sm:hidden"></div>
-      <!-- Desktop Table Layout -->
-      <div class="hidden sm:block overflow-x-auto">
-        <table class="w-full bg-white shadow-md rounded">
-          <thead>
-            <tr class="bg-gray-200">
-              <th class="p-2 text-left col-id">ID</th>
-              <th class="p-2 text-left col-customer-name">Customer Name</th>
-              <th class="p-2 text-left col-company">Company</th>
-              <th class="p-2 text-left col-email">Email</th>
-              <th class="p-2 text-left col-phone">Phone</th>
-              <th class="p-2 text-left col-category">Product Category</th>
-              <th class="p-2 text-left col-make">Make</th>
-              <th class="p-2 text-left col-model">Model</th>
-              <th class="p-2 text-left col-notes">Notes</th>
-              <th class="p-2 text-left col-quoted-vendor">Quoted from Vendor?</th>
-              <th class="p-2 text-left col-status">Status</th>
-              <th class="p-2 text-left col-time">Time in System</th>
-              <th class="p-2 text-left col-date">Date Added</th>
-              <th class="p-2 text-left col-actions">Actions</th>
-            </tr>
-          </thead>
-          <tbody id="leads-table"></tbody>
+    <div id="leads" class="content">
+        <h2>Leads Dashboard</h2>
+        <form id="lead-form">
+            <input type="text" id="lead-name" placeholder="Name" required>
+            <input type="email" id="lead-email" placeholder="Email" required>
+            <select id="lead-status">
+                <option value="Pending">Pending</option>
+                <option value="Quoted">Quoted</option>
+                <option value="Converted">Converted</option>
+            </select>
+            <input type="checkbox" id="quoted-vendor" name="quoted-vendor">
+            <label for="quoted-vendor">Quoted from Vendor?</label>
+            <button type="submit">Add Lead</button>
+        </form>
+        <table id="leads-table">
+            <thead>
+                <tr>
+                    <th>Name</th>
+                    <th>Email</th>
+                    <th>Status</th>
+                    <th>Time in System</th>
+                    <th>Quoted from Vendor?</th>
+                    <th>Actions</th>
+                </tr>
+            </thead>
+            <tbody></tbody>
         </table>
-      </div>
     </div>
-
-    <!-- Customers Section -->
-    <div id="customers-section" class="tab-content hidden">
-      <h2 class="text-2xl font-bold mb-4">Customers Dashboard</h2>
-      <input id="customers-search-bar" type="text" placeholder="Search customers..." class="w-full p-3 text-base border rounded mb-4" oninput="filterCustomers()">
-      <button onclick="openCustomerModal('create')" class="w-full sm:w-auto bg-[#549253] text-white px-4 py-2 mb-4 rounded text-base hover:bg-[#3e6b3d]">Create Customer</button>
-      <!-- Mobile Card Layout -->
-      <div id="customers-cards" class="block sm:hidden"></div>
-      <!-- Desktop Table Layout -->
-      <div class="hidden sm:block overflow-x-auto">
-        <table class="w-full bg-white shadow-md rounded">
-          <thead>
-            <tr class="bg-gray-200">
-              <th class="p-2 text-left">ID</th>
-              <th class="p-2 text-left">Customer Name</th>
-              <th class="p-2 text-left">Company</th>
-              <th class="p-2 text-left">Email</th>
-              <th class="p-2 text-left">Phone</th>
-              <th class="p-2 text-left">Address</th>
-              <th class="p-2 text-left">Actions</th>
-            </tr>
-          </thead>
-          <tbody id="customers-table"></tbody>
+    <div id="customers" class="content">
+        <h2>Customers</h2>
+        <p>Customers dashboard (to be implemented).</p>
+    </div>
+    <div id="calendar" class="content">
+        <h2>Calendar</h2>
+        <p>Calendar view (to be implemented).</p>
+    </div>
+    <div id="inventory" class="content">
+        <h2>Inventory</h2>
+        <form id="inventory-form">
+            <input type="text" id="part-number" placeholder="Part Number" required>
+            <input type="text" id="serial-number" placeholder="Serial Number">
+            <input type="text" id="part-name" placeholder="Part Name" required>
+            <input type="text" id="description" placeholder="Description">
+            <select id="category" required>
+                <option value="" disabled selected>Select Category</option>
+                <option value="Hydraulics">Hydraulics</option>
+                <option value="Filters">Filters</option>
+            </select>
+            <input type="text" id="manufacturer" placeholder="Manufacturer">
+            <input type="text" id="model-compatibility" placeholder="Model Compatibility">
+            <input type="number" id="quantity" placeholder="Quantity" min="0">
+            <input type="text" id="location" placeholder="Location">
+            <select id="stock-status">
+                <option value="In Stock">In Stock</option>
+                <option value="Supplier-Sourced">Supplier-Sourced</option>
+                <option value="On Order">On Order</option>
+            </select>
+            <input type="number" id="reorder-point" placeholder="Reorder Point" min="0">
+            <input type="text" id="supplier-name" placeholder="Supplier Name" required>
+            <input type="text" id="supplier-part-number" placeholder="Supplier Part Number">
+            <input type="text" id="supplier-contact" placeholder="Supplier Contact">
+            <input type="number" id="supplier-cost" placeholder="Supplier Cost" step="0.01">
+            <input type="text" id="latest-lead-time" placeholder="Latest Lead Time Received">
+            <input type="number" id="retail-price" placeholder="Retail Price" step="0.01">
+            <input type="date" id="last-sold-date" placeholder="Last Sold Date">
+            <input type="text" id="sales-frequency" placeholder="Sales Frequency">
+            <select id="condition">
+                <option value="New">New</option>
+                <option value="Used">Used</option>
+                <option value="Refurbished">Refurbished</option>
+            </select>
+            <input type="text" id="image-url" placeholder="Image URL">
+            <input type="text" id="attachment-files" placeholder="Attachment Files URL">
+            <input type="text" id="tags" placeholder="Tags">
+            <input type="text" id="custom-attributes" placeholder="Custom Attributes (JSON)">
+            <button type="submit">Add Part</button>
+        </form>
+        <div>
+            <button id="download-csv">Download CSV</button>
+            <input type="file" id="upload-main-csv" accept=".csv">
+            <input type="file" id="upload-retail-csv" accept=".csv">
+            <input type="file" id="upload-image-zip" accept=".zip">
+            <button id="upload-files">Upload Files</button>
+        </div>
+        <table id="inventory-table">
+            <thead>
+                <tr>
+                    <th>Part Number</th>
+                    <th>Serial Number</th>
+                    <th>Part Name</th>
+                    <th>Category</th>
+                    <th>Supplier</th>
+                    <th>Quantity</th>
+                    <th>Stock Status</th>
+                    <th>Retail Price</th>
+                    <th>Condition</th>
+                    <th>Image</th>
+                    <th>Actions</th>
+                </tr>
+            </thead>
+            <tbody></tbody>
         </table>
-      </div>
     </div>
-
-    <!-- Calendar Section -->
-    <div id="calendar-section" class="tab-content hidden">
-      <h2 class="text-2xl font-bold mb-4">Calendar</h2>
-      <div class="flex justify-between items-center mb-4">
-        <button id="prev-month" class="bg-[#549253] text-white px-4 py-2 rounded hover:bg-[#3e6b3d]">Previous Month</button>
-        <span id="month-year" class="text-xl font-semibold"></span>
-        <button id="next-month" class="bg-[#549253] text-white px-4 py-2 rounded hover:bg-[#3e6b3d]">Next Month</button>
-      </div>
-      <div id="calendar-grid" class="calendar-grid"></div>
-    </div>
-
-  </div>
-
-  <!-- Lead Modal (Create/Edit) -->
-  <div id="lead-modal" class="modal">
-    <div class="modal-content p-4 sm:p-6">
-      <h2 id="lead-modal-title" class="text-xl font-bold mb-4">Create Lead</h2>
-      <form id="lead-form">
-        <div class="mb-4 dropdown">
-          <label class="block text-base font-medium mb-1">Customer Name *</label>
-          <input id="customerName" type="text" class="w-full p-3 text-base border rounded" required oninput="filterCustomerDropdown()">
-          <div id="customer-dropdown" class="dropdown-menu"></div>
-        </div>
-        <div class="mb-4">
-          <label class="block text-base font-medium mb-1">Company</label>
-          <input id="company" type="text" class="w-full p-3 text-base border rounded">
-        </div>
-        <div class="mb-4">
-          <label class="block text-base font-medium mb-1">Customer Email</label>
-          <input id="customerEmail" type="email" class="w-full p-3 text-base border rounded">
-        </div>
-        <div class="mb-4">
-          <label class="block text-base font-medium mb-1">Customer Phone</label>
-          <input id="customerPhone" type="tel" class="w-full p-3 text-base border rounded">
-        </div>
-        <div class="mb-4">
-          <label class="block text-base font-medium mb-1">Street Address</label>
-          <input id="customerStreet" type="text" class="w-full p-3 text-base border rounded">
-        </div>
-        <div class="mb-4">
-          <label class="block text-base font-medium mb-1">City</label>
-          <input id="customerCity" type="text" class="w-full p-3 text-base border rounded">
-        </div>
-        <div class="mb-4">
-          <label class="block text-base font-medium mb-1">State</label>
-          <input id="customerState" type="text" class="w-full p-3 text-base border rounded">
-        </div>
-        <div class="mb-4">
-          <label class="block text-base font-medium mb-1">ZIP Code</label>
-          <input id="customerZip" type="text" class="w-full p-3 text-base border rounded">
-        </div>
-        <div class="mb-4">
-          <label class="block text-base font-medium mb-1">Product Category</label>
-          <input id="categories" type="text" class="w-full p-3 text-base border rounded" placeholder="e.g., Excavator,Crusher">
-        </div>
-        <div class="mb-4">
-          <label class="block text-base font-medium mb-1">Make</label>
-          <input id="make" type="text" class="w-full p-3 text-base border rounded">
-        </div>
-        <div class="mb-4">
-          <label class="block text-base font-medium mb-1">Model</label>
-          <input id="model" type="text" class="w-full p-3 text-base border rounded">
-        </div>
-        <div class="mb-4">
-          <label class="block text-base font-medium mb-1">Machines Notes</label>
-          <textarea id="machinesNotes" class="w-full p-3 text-base border rounded"></textarea>
-        </div>
-        <div class="mb-4">
-          <label class="block text-base font-medium mb-1">Status</label>
-          <select id="status" class="w-full p-3 text-base border rounded">
-            <option value="Quoted">Quoted</option>
-            <option value="Closed">Closed</option>
-            <option value="Pending">Pending</option>
-            <option value="Lost">Lost</option>
-          </select>
-        </div>
-        <div class="flex justify-end space-x-4">
-          <button type="button" onclick="closeLeadModal()" class="bg-gray-500 text-white px-4 py-2 rounded text-base hover:bg-gray-600">Cancel</button>
-          <button type="submit" id="save-lead-btn" class="bg-[#549253] text-white px-4 py-2 rounded text-base hover:bg-[#3e6b3d]">Save Lead</button>
-        </div>
-      </form>
-    </div>
-  </div>
-
-  <!-- Customer Modal (Create/Edit) -->
-  <div id="customer-modal" class="modal">
-    <div class="modal-content p-4 sm:p-6">
-      <h2 id="customer-modal-title" class="text-xl font-bold mb-4">Create Customer</h2>
-      <form id="customer-form">
-        <div class="mb-4">
-          <label class="block text-base font-medium mb-1">Customer Name *</label>
-          <input id="customerNameCustomer" type="text" class="w-full p-3 text-base border rounded" required>
-        </div>
-        <div class="mb-4">
-          <label class="block text-base font-medium mb-1">Company</label>
-          <input id="companyCustomer" type="text" class="w-full p-3 text-base border rounded">
-        </div>
-        <div class="mb-4">
-          <label class="block text-base font-medium mb-1">Customer Email</label>
-          <input id="customerEmailCustomer" type="email" class="w-full p-3 text-base border rounded">
-        </div>
-        <div class="mb-4">
-          <label class="block text-base font-medium mb-1">Customer Phone</label>
-          <input id="customerPhoneCustomer" type="tel" class="w-full p-3 text-base border rounded">
-        </div>
-        <div class="mb-4">
-          <label class="block text-base font-medium mb-1">Street Address</label>
-          <input id="customerStreetCustomer" type="text" class="w-full p-3 text-base border rounded">
-        </div>
-        <div class="mb-4">
-          <label class="block text-base font-medium mb-1">City</label>
-          <input id="customerCityCustomer" type="text" class="w-full p-3 text-base border rounded">
-        </div>
-        <div class="mb-4">
-          <label class="block text-base font-medium mb-1">State</label>
-          <input id="customerStateCustomer" type="text" class="w-full p-3 text-base border rounded">
-        </div>
-        <div class="mb-4">
-          <label class="block text-base font-medium mb-1">ZIP Code</label>
-          <input id="customerZipCustomer" type="text" class="w-full p-3 text-base border rounded">
-        </div>
-        <div class="flex justify-end space-x-4">
-          <button type="button" onclick="closeCustomerModal()" class="bg-gray-500 text-white px-4 py-2 rounded text-base hover:bg-gray-600">Cancel</button>
-          <button type="submit" id="save-customer-btn" class="bg-[#549253] text-white px-4 py-2 rounded text-base hover:bg-[#3e6b3d]">Save Customer</button>
-        </div>
-      </form>
-    </div>
-  </div>
-
-  <!-- Notes Modal (Create/Edit) -->
-  <div id="notes-modal" class="modal">
-    <div class="modal-content p-4 sm:p-6">
-      <h2 id="notes-modal-title" class="text-xl font-bold mb-4">Notes for [Date]</h2>
-      <form id="notes-form">
-        <div class="mb-4">
-          <label class="block text-base font-medium mb-1">Notes</label>
-          <textarea id="day-notes" class="w-full p-3 text-base border rounded" rows="5"></textarea>
-        </div>
-        <div class="flex justify-end space-x-4">
-          <button type="button" onclick="closeNotesModal()" class="bg-gray-500 text-white px-4 py-2 rounded text-base hover:bg-gray-600">Cancel</button>
-          <button type="submit" id="save-notes-btn" class="bg-[#549253] text-white px-4 py-2 rounded text-base hover:bg-[#3e6b3d]">Save</button>
-        </div>
-      </form>
-    </div>
-  </div>
-
-  <!-- Content Modal (for all expandable columns) -->
-  <div id="content-modal" class="modal">
-    <div class="modal-content p-4 sm:p-6">
-      <h2 id="content-modal-title" class="text-xl font-bold mb-4"></h2>
-      <pre id="content-modal-body" class="text-base mb-4"></pre>
-      <div class="flex justify-end">
-        <button onclick="closeContentModal()" class="bg-gray-500 text-white px-4 py-2 rounded text-base hover:bg-gray-600">Close</button>
-      </div>
-    </div>
-  </div>
-
-  <script>
-    let currentLeadId = null;
-    let currentCustomerId = null;
-    let currentDate = null;
-    let customers = [];
-    let currentMonth = new Date();
-    let leadsData = new Map(); // Store lead data with reset timestamps
-
-    // Load Data on Page Load
-    window.onload = () => {
-      loadLeads();
-      loadCustomers();
-      renderCalendar();
-      showTab('leads');
-    };
-
-    // Show Tab
-    function showTab(tab) {
-      document.getElementById('leads-section').classList.toggle('hidden', tab !== 'leads');
-      document.getElementById('customers-section').classList.toggle('hidden', tab !== 'customers');
-      document.getElementById('calendar-section').classList.toggle('hidden', tab !== 'calendar');
-      document.getElementById('leads-tab').classList.toggle('tab-active', tab === 'leads');
-      document.getElementById('leads-tab').classList.toggle('tab-inactive', tab !== 'leads');
-      document.getElementById('customers-tab').classList.toggle('tab-active', tab === 'customers');
-      document.getElementById('customers-tab').classList.toggle('tab-inactive', tab !== 'customers');
-      document.getElementById('calendar-tab').classList.toggle('tab-active', tab === 'calendar');
-      document.getElementById('calendar-tab').classList.toggle('tab-inactive', tab !== 'calendar');
-    }
-
-    // Load Leads
-    async function loadLeads() {
-      try {
-        const response = await fetch('https://lead-management-system-f6v2.onrender.com/api/leads');
-        if (!response.ok) throw new Error('Failed to fetch leads');
-        const leads = await response.json();
-        const existingLeadsData = new Map(leadsData); // Preserve existing reset timestamps
-        leadsData.clear();
-        leads.forEach(lead => {
-          const existingLead = existingLeadsData.get(lead.id);
-          leadsData.set(lead.id, {
-            ...lead,
-            resetTimestamp: existingLead?.resetTimestamp ?? lead.created_at // Use existing resetTimestamp if available, else created_at
-          });
-        });
-        renderLeads(leads);
-      } catch (err) {
-        console.error('Error loading leads:', err);
-        alert('Error loading leads. Please check the console for details.');
-      }
-    }
-
-    // Load Customers
-    async function loadCustomers() {
-      try {
-        const response = await fetch('https://lead-management-system-f6v2.onrender.com/api/customers');
-        if (!response.ok) throw new Error('Failed to fetch customers');
-        customers = await response.json();
-        renderCustomers(customers);
-      } catch (err) {
-        console.error('Error loading customers:', err);
-        alert('Error loading customers. Please check the console for details.');
-      }
-    }
-
-    // Format Date
-    function formatDate(dateStr) {
-      const date = new Date(dateStr);
-      return date.toISOString().split('T')[0]; // YYYY-MM-DD
-    }
-
-    // Format Address
-    function formatAddress(street, city, state, zip) {
-      const parts = [street, city, state, zip].filter(part => part);
-      return parts.length ? parts.join(', ') : 'N/A';
-    }
-
-    // Calculate Time in System with Reset Logic
-    function calculateTimeInSystem(createdAt, resetTimestamp) {
-      const now = new Date();
-      const startDate = new Date(resetTimestamp || createdAt);
-      const diffMs = now - startDate;
-      const hours = Math.floor(diffMs / (1000 * 60 * 60));
-      const days = Math.floor(hours / 24);
-      let text = hours < 24 ? `${hours} hours` : `${days} days`;
-      let className = hours < 24 ? 'time-green' : hours < 72 ? 'time-yellow' : 'time-red';
-      return { text, class: className };
-    }
-
-    // Toggle Quoted from Vendor
-    async function toggleQuotedFromVendor(leadId) {
-      const leadData = leadsData.get(leadId);
-      const newValue = !leadData.quoted_from_vendor;
-      try {
-        const response = await fetch(`https://lead-management-system-f6v2.onrender.com/api/leads/${leadId}/quoted-from-vendor`, {
-          method: 'PUT',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ quoted_from_vendor: newValue })
-        });
-        if (response.ok) {
-          const updatedLead = await response.json();
-          leadsData.set(leadId, {
-            ...updatedLead,
-            resetTimestamp: leadData.resetTimestamp
-          });
-          renderLeads(Array.from(leadsData.values()));
-        } else {
-          alert('Error updating Quoted from Vendor status');
-        }
-      } catch (err) {
-        console.error('Error updating Quoted from Vendor:', err);
-        alert('Error updating Quoted from Vendor');
-      }
-    }
-
-    // Render Leads
-    function renderLeads(leads) {
-      const tableBody = document.getElementById('leads-table');
-      const cardsContainer = document.getElementById('leads-cards');
-      tableBody.innerHTML = '';
-      cardsContainer.innerHTML = '';
-
-      leads.sort((a, b) => a.id - b.id);
-
-      leads.forEach(lead => {
-        const leadData = leadsData.get(lead.id);
-        const timeInSystem = calculateTimeInSystem(lead.created_at, leadData.resetTimestamp);
-        const dateAdded = formatDate(lead.created_at);
-
-        const row = document.createElement('tr');
-        row.innerHTML = `
-          <td class="p-2 col-id">${lead.id}</td>
-          <td class="p-2 col-customer-name expandable-cell" onclick="openContentModal('Customer Name', \`${lead.customer_name || ''}\`)">${lead.customer_name}</td>
-          <td class="p-2 col-company expandable-cell" onclick="openContentModal('Company', \`${lead.company || ''}\`)">${lead.company || ''}</td>
-          <td class="p-2 col-email expandable-cell" onclick="openContentModal('Email', \`${lead.customer_email || ''}\`)">${lead.customer_email || ''}</td>
-          <td class="p-2 col-phone expandable-cell" onclick="openContentModal('Phone', \`${lead.customer_phone || ''}\`)">${lead.customer_phone || ''}</td>
-          <td class="p-2 col-category expandable-cell" onclick="openContentModal('Product Category', \`${lead.categories || ''}\`)">${lead.categories || ''}</td>
-          <td class="p-2 col-make expandable-cell" onclick="openContentModal('Make', \`${lead.make || ''}\`)">${lead.make || ''}</td>
-          <td class="p-2 col-model expandable-cell" onclick="openContentModal('Model', \`${lead.model || ''}\`)">${lead.model || ''}</td>
-          <td class="p-2 col-notes expandable-cell notes-cell" onclick="openContentModal('Machines Notes', \`${lead.machines_notes || ''}\`)">${lead.machines_notes || ''}</td>
-          <td class="p-2 col-quoted-vendor text-center">
-            <input type="checkbox" ${lead.quoted_from_vendor ? 'checked' : ''} onclick="toggleQuotedFromVendor(${lead.id})">
-          </td>
-          <td class="p-2 col-status expandable-cell" onclick="openContentModal('Status', \`${lead.status || ''}\`)">${lead.status || ''}</td>
-          <td class="p-2 col-time expandable-cell ${timeInSystem.class}" onclick="openContentModal('Time in System', \`${timeInSystem.text}\`)">${timeInSystem.text}</td>
-          <td class="p-2 col-date expandable-cell" onclick="openContentModal('Date Added', \`${dateAdded}\`)">${dateAdded}</td>
-          <td class="p-2 col-actions">
-            <button onclick="editLead(${lead.id})" class="bg-yellow-500 text-white px-2 py-1 rounded hover:bg-yellow-600">Edit</button>
-            <button onclick="deleteLead(${lead.id})" class="bg-red-500 text-white px-2 py-1 rounded hover:bg-red-600">Delete</button>
-          </td>
-        `;
-        tableBody.appendChild(row);
-
-        const card = document.createElement('div');
-        card.className = 'lead-card bg-white';
-        card.innerHTML = `
-          <div class="lead-card-header">
-            <h3 class="text-lg font-semibold expandable-mobile" onclick="openContentModal('Customer Name', \`${lead.customer_name}\`)">${lead.customer_name}</h3>
-            <p class="text-base expandable-mobile" onclick="openContentModal('Company', \`${lead.company || 'No Company'}\`)">${lead.company || 'No Company'}</p>
-            <p class="text-base expandable-mobile" onclick="openContentModal('Status', \`${lead.status || 'N/A'}\`)">Status: ${lead.status || 'N/A'}</p>
-            <p class="text-base ${timeInSystem.class} p-1 rounded expandable-mobile" onclick="openContentModal('Time in System', \`${timeInSystem.text}\`)">Time: ${timeInSystem.text}</p>
-            <p class="text-base expandable-mobile" onclick="openContentModal('Date Added', \`${dateAdded}\`)">Date Added: ${dateAdded}</p>
-            <button onclick="toggleLeadDetails(${lead.id})" class="text-[#549253] text-base mt-2">Show Details</button>
-          </div>
-          <div id="lead-details-${lead.id}" class="lead-details lead-card-details">
-            <p><strong>Email:</strong> <span class="expandable-mobile" onclick="openContentModal('Email', \`${lead.customer_email || 'N/A'}\`)">${lead.customer_email || 'N/A'}</span></p>
-            <p><strong>Phone:</strong> <span class="expandable-mobile" onclick="openContentModal('Phone', \`${lead.customer_phone || 'N/A'}\`)">${lead.customer_phone || 'N/A'}</span></p>
-            <p><strong>Product Category:</strong> <span class="expandable-mobile" onclick="openContentModal('Product Category', \`${lead.categories || 'N/A'}\`)">${lead.categories || 'N/A'}</span></p>
-            <p><strong>Make:</strong> <span class="expandable-mobile" onclick="openContentModal('Make', \`${lead.make || 'N/A'}\`)">${lead.make || 'N/A'}</span></p>
-            <p><strong>Model:</strong> <span class="expandable-mobile" onclick="openContentModal('Model', \`${lead.model || 'N/A'}\`)">${lead.model || 'N/A'}</span></p>
-            <p><strong>Notes:</strong> <div class="notes-mobile expandable-mobile" onclick="openContentModal('Machines Notes', \`${lead.machines_notes || 'N/A'}\`)">${lead.machines_notes || 'N/A'}</div></p>
-            <p><strong>Quoted from Vendor?:</strong> <input type="checkbox" ${lead.quoted_from_vendor ? 'checked' : ''} onclick="toggleQuotedFromVendor(${lead.id})"></p>
-            <div class="flex space-x-4 mt-4">
-              <button onclick="editLead(${lead.id})" class="action-btn bg-yellow-500 text-white px-4 py-2 rounded text-base hover:bg-yellow-600">Edit</button>
-              <button onclick="deleteLead(${lead.id})" class="action-btn bg-red-500 text-white px-4 py-2 rounded text-base hover:bg-red-600">Delete</button>
-            </div>
-          </div>
-        `;
-        cardsContainer.appendChild(card);
-      });
-    }
-
-    // Render Customers
-    function renderCustomers(customers) {
-      const tableBody = document.getElementById('customers-table');
-      const cardsContainer = document.getElementById('customers-cards');
-      tableBody.innerHTML = '';
-      cardsContainer.innerHTML = '';
-
-      customers.forEach(customer => {
-        const address = formatAddress(
-          customer.customer_street,
-          customer.customer_city,
-          customer.customer_state,
-          customer.customer_zip
-        );
-
-        const row = document.createElement('tr');
-        row.innerHTML = `
-          <td class="p-2">${customer.id}</td>
-          <td class="p-2">${customer.customer_name}</td>
-          <td class="p-2">${customer.company || ''}</td>
-          <td class="p-2">${customer.customer_email || ''}</td>
-          <td class="p-2">${customer.customer_phone || ''}</td>
-          <td class="p-2">${address}</td>
-          <td class="p-2">
-            <button onclick="editCustomer(${customer.id})" class="bg-yellow-500 text-white px-2 py-1 rounded hover:bg-yellow-600">Edit</button>
-            <button onclick="deleteCustomer(${customer.id})" class="bg-red-500 text-white px-2 py-1 rounded hover:bg-red-600">Delete</button>
-          </td>
-        `;
-        tableBody.appendChild(row);
-
-        const card = document.createElement('div');
-        card.className = 'customer-card bg-white';
-        card.innerHTML = `
-          <div class="customer-card-header">
-            <h3 class="text-lg font-semibold">${customer.customer_name}</h3>
-            <p class="text-base">${customer.company || 'No Company'}</p>
-            <button onclick="toggleCustomerDetails(${customer.id})" class="text-[#549253] text-base mt-2">Show Details</button>
-          </div>
-          <div id="customer-details-${customer.id}" class="customer-details customer-card-details">
-            <p><strong>Email:</strong> ${customer.customer_email || 'N/A'}</p>
-            <p><strong>Phone:</strong> ${customer.customer_phone || 'N/A'}</p>
-            <p><strong>Address:</strong> ${address}</p>
-            <div class="flex space-x-4 mt-4">
-              <button onclick="editCustomer(${customer.id})" class="action-btn bg-yellow-500 text-white px-4 py-2 rounded text-base hover:bg-yellow-600">Edit</button>
-              <button onclick="deleteCustomer(${customer.id})" class="action-btn bg-red-500 text-white px-4 py-2 rounded text-base hover:bg-red-600">Delete</button>
-            </div>
-          </div>
-        `;
-        cardsContainer.appendChild(card);
-      });
-    }
-
-    // Toggle Lead Details
-    function toggleLeadDetails(leadId) {
-      const details = document.getElementById(`lead-details-${leadId}`);
-      details.classList.toggle('show');
-    }
-
-    // Toggle Customer Details
-    function toggleCustomerDetails(customerId) {
-      const details = document.getElementById(`customer-details-${customerId}`);
-      details.classList.toggle('show');
-    }
-
-    // Filter Leads
-    function filterLeads() {
-      const search = document.getElementById('leads-search-bar').value.toLowerCase();
-      const cards = document.getElementById('leads-cards').getElementsByClassName('lead-card');
-      const rows = document.getElementById('leads-table').getElementsByTagName('tr');
-      for (let card of cards) {
-        const customerName = card.querySelector('.expandable-mobile:nth-child(1)').textContent.toLowerCase();
-        const company = card.querySelector('.expandable-mobile:nth-child(2)').textContent.toLowerCase();
-        card.style.display = (customerName.includes(search) || company.includes(search)) ? '' : 'none';
-      }
-      for (let row of rows) {
-        const cells = row.getElementsByTagName('td');
-        let match = false;
-        for (let cell of cells) {
-          if (cell.classList.contains('col-customer-name') || cell.classList.contains('col-company')) {
-            if (cell.textContent.toLowerCase().includes(search)) {
-              match = true;
-              break;
-            }
-          }
-        }
-        row.style.display = match ? '' : 'none';
-      }
-    }
-
-    // Filter Customers
-    function filterCustomers() {
-      const search = document.getElementById('customers-search-bar').value.toLowerCase();
-      const cards = document.getElementById('customers-cards').getElementsByClassName('customer-card');
-      const rows = document.getElementById('customers-table').getElementsByTagName('tr');
-      for (let card of cards) {
-        const text = card.textContent.toLowerCase();
-        card.style.display = text.includes(search) ? '' : 'none';
-      }
-      for (let row of rows) {
-        const cells = row.getElementsByTagName('td');
-        let match = false;
-        for (let cell of cells) {
-          if (cell.textContent.toLowerCase().includes(search)) {
-            match = true;
-            break;
-          }
-        }
-        row.style.display = match ? '' : 'none';
-      }
-    }
-
-    // Filter Customer Dropdown
-    function filterCustomerDropdown() {
-      const input = document.getElementById('customerName').value.toLowerCase();
-      const dropdown = document.getElementById('customer-dropdown');
-      dropdown.innerHTML = '';
-      if (!input) {
-        dropdown.classList.remove('show');
-        return;
-      }
-
-      const matches = customers.filter(customer => 
-        customer.customer_name.toLowerCase().includes(input)
-      );
-
-      if (matches.length === 0) {
-        dropdown.classList.remove('show');
-        return;
-      }
-
-      matches.forEach(customer => {
-        const item = document.createElement('div');
-        item.className = 'dropdown-item';
-        item.textContent = customer.customer_name;
-        item.onclick = () => selectCustomer(customer);
-        dropdown.appendChild(item);
-      });
-
-      dropdown.classList.add('show');
-    }
-
-    // Select Customer from Dropdown
-    function selectCustomer(customer) {
-      document.getElementById('customerName').value = customer.customer_name || '';
-      document.getElementById('company').value = customer.company || '';
-      document.getElementById('customerEmail').value = customer.customer_email || '';
-      document.getElementById('customerPhone').value = customer.customer_phone || '';
-      document.getElementById('customerStreet').value = customer.customer_street || '';
-      document.getElementById('customerCity').value = customer.customer_city || '';
-      document.getElementById('customerState').value = customer.customer_state || '';
-      document.getElementById('customerZip').value = customer.customer_zip || '';
-      document.getElementById('customer-dropdown').classList.remove('show');
-    }
-
-    // Open Lead Modal
-    async function openLeadModal(mode, leadId = null) {
-      const modal = document.getElementById('lead-modal');
-      const form = document.getElementById('lead-form');
-      const title = document.getElementById('lead-modal-title');
-      const saveBtn = document.getElementById('save-lead-btn');
-      currentLeadId = leadId;
-
-      form.reset();
-      modal.style.display = 'flex';
-      document.getElementById('customer-dropdown').classList.remove('show');
-
-      if (mode === 'create') {
-        title.textContent = 'Create Lead';
-        saveBtn.textContent = 'Save Lead';
-      } else {
-        title.textContent = 'Edit Lead';
-        saveBtn.textContent = 'Update Lead';
-        try {
-          const response = await fetch(`https://lead-management-system-f6v2.onrender.com/api/leads`);
-          if (!response.ok) throw new Error('Failed to fetch leads for editing');
-          const leads = await response.json();
-          const lead = leads.find(l => l.id === leadId);
-          if (lead) {
-            document.getElementById('customerName').value = lead.customer_name || '';
-            document.getElementById('company').value = lead.company || '';
-            document.getElementById('customerEmail').value = lead.customer_email || '';
-            document.getElementById('customerPhone').value = lead.customer_phone || '';
-            document.getElementById('customerStreet').value = lead.customer_street || '';
-            document.getElementById('customerCity').value = lead.customer_city || '';
-            document.getElementById('customerState').value = lead.customer_state || '';
-            document.getElementById('customerZip').value = lead.customer_zip || '';
-            document.getElementById('categories').value = lead.categories || '';
-            document.getElementById('make').value = lead.make || '';
-            document.getElementById('model').value = lead.model || '';
-            document.getElementById('machinesNotes').value = lead.machines_notes || '';
-            document.getElementById('status').value = lead.status || 'Quoted';
-          }
-        } catch (err) {
-          console.error('Error loading lead:', err);
-          alert('Error loading lead. Please check the console for details.');
-          closeLeadModal();
-        }
-      }
-    }
-
-    // Close Lead Modal
-    function closeLeadModal() {
-      document.getElementById('lead-modal').style.display = 'none';
-      document.getElementById('customer-dropdown').classList.remove('show');
-      currentLeadId = null;
-    }
-
-    // Open Customer Modal
-    async function openCustomerModal(mode, customerId = null) {
-      const modal = document.getElementById('customer-modal');
-      const form = document.getElementById('customer-form');
-      const title = document.getElementById('customer-modal-title');
-      const saveBtn = document.getElementById('save-customer-btn');
-      currentCustomerId = customerId;
-
-      form.reset();
-      modal.style.display = 'flex';
-
-      if (mode === 'create') {
-        title.textContent = 'Create Customer';
-        saveBtn.textContent = 'Save Customer';
-      } else {
-        title.textContent = 'Edit Customer';
-        saveBtn.textContent = 'Update Customer';
-        try {
-          const response = await fetch(`https://lead-management-system-f6v2.onrender.com/api/customers`);
-          if (!response.ok) throw new Error('Failed to fetch customers for editing');
-          const customers = await response.json();
-          const customer = customers.find(c => c.id === customerId);
-          if (customer) {
-            document.getElementById('customerNameCustomer').value = customer.customer_name || '';
-            document.getElementById('companyCustomer').value = customer.company || '';
-            document.getElementById('customerEmailCustomer').value = customer.customer_email || '';
-            document.getElementById('customerPhoneCustomer').value = customer.customer_phone || '';
-            document.getElementById('customerStreetCustomer').value = customer.customer_street || '';
-            document.getElementById('customerCityCustomer').value = customer.customer_city || '';
-            document.getElementById('customerStateCustomer').value = customer.customer_state || '';
-            document.getElementById('customerZipCustomer').value = customer.customer_zip || '';
-          }
-        } catch (err) {
-          console.error('Error loading customer:', err);
-          alert('Error loading customer. Please check the console for details.');
-          closeCustomerModal();
-        }
-      }
-    }
-
-    // Close Customer Modal
-    function closeCustomerModal() {
-      document.getElementById('customer-modal').style.display = 'none';
-      currentCustomerId = null;
-    }
-
-    // Open Notes Modal
-    async function openNotesModal(date) {
-      currentDate = date;
-      const modal = document.getElementById('notes-modal');
-      const title = document.getElementById('notes-modal-title');
-      const notesTextarea = document.getElementById('day-notes');
-      title.textContent = `Notes for ${date.toLocaleDateString('en-US', { month: 'long', day: 'numeric', year: 'numeric' })}`;
-      try {
-        const response = await fetch(`https://lead-management-system-f6v2.onrender.com/api/calendar_notes?date=${date.toISOString().split('T')[0]}`);
-        if (!response.ok) throw new Error('Failed to fetch notes');
-        const data = await response.json();
-        notesTextarea.value = data.notes || '';
-      } catch (err) {
-        console.error('Error loading notes:', err);
-        notesTextarea.value = '';
-      }
-      modal.style.display = 'flex';
-    }
-
-    // Close Notes Modal
-    function closeNotesModal() {
-      document.getElementById('notes-modal').style.display = 'none';
-      currentDate = null;
-    }
-
-    // Save or Update Notes
-    document.getElementById('notes-form').addEventListener('submit', async (e) => {
-      e.preventDefault();
-      if (!currentDate) return;
-      const notes = document.getElementById('day-notes').value;
-      try {
-        const url = `https://lead-management-system-f6v2.onrender.com/api/calendar_notes`;
-        const method = notes ? 'POST' : 'DELETE';
-        const response = await fetch(url, {
-          method,
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ date: currentDate.toISOString().split('T')[0], notes })
-        });
-        if (response.ok) {
-          closeNotesModal();
-          renderCalendar();
-        } else {
-          alert('Error saving notes');
-        }
-      } catch (err) {
-        console.error('Error saving notes:', err);
-        alert('Error saving notes');
-      }
-    });
-
-    // Open Content Modal
-    function openContentModal(title, content) {
-      const modal = document.getElementById('content-modal');
-      const modalTitle = document.getElementById('content-modal-title');
-      const modalBody = document.getElementById('content-modal-body');
-      modalTitle.textContent = title;
-      modalBody.textContent = content || 'No content available';
-      modalBody.className = 'text-base mb-4' + (title === 'Machines Notes' || title === 'Day Notes' ? ' whitespace-pre-wrap' : '');
-      modal.style.display = 'flex';
-    }
-
-    // Close Content Modal
-    function closeContentModal() {
-      document.getElementById('content-modal').style.display = 'none';
-    }
-
-    // Save or Update Lead
-    document.getElementById('lead-form').addEventListener('submit', async (e) => {
-      e.preventDefault();
-      const lead = {
-        customerName: document.getElementById('customerName').value,
-        company: document.getElementById('company').value,
-        customerEmail: document.getElementById('customerEmail').value,
-        customerPhone: document.getElementById('customerPhone').value,
-        customerStreet: document.getElementById('customerStreet').value,
-        customerCity: document.getElementById('customerCity').value,
-        customerState: document.getElementById('customerState').value,
-        customerZip: document.getElementById('customerZip').value,
-        categories: document.getElementById('categories').value,
-        make: document.getElementById('make').value,
-        model: document.getElementById('model').value,
-        machinesNotes: document.getElementById('machinesNotes').value,
-        status: document.getElementById('status').value
-      };
-
-      try {
-        const url = currentLeadId ? `https://lead-management-system-f6v2.onrender.com/api/leads/${currentLeadId}` : 'https://lead-management-system-f6v2.onrender.com/api/leads';
-        const method = currentLeadId ? 'PUT' : 'POST';
-        const response = await fetch(url, {
-          method,
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify(lead)
-        });
-        if (response.ok) {
-          const updatedLead = await response.json();
-          let resetTimestamp;
-
-          if (currentLeadId) {
-            // Get the original lead data from leadsData
-            const originalLeadData = leadsData.get(currentLeadId);
-            resetTimestamp = originalLeadData.resetTimestamp;
-
-            // Only reset timestamp if status changes from Pending to Quoted
-            if (originalLeadData.status === 'Pending' && lead.status === 'Quoted') {
-              resetTimestamp = new Date().toISOString();
-            }
-          } else {
-            // For new leads, use created_at as the initial resetTimestamp
-            resetTimestamp = updatedLead.created_at;
-          }
-
-          // Update leadsData with the new lead data and the correct resetTimestamp
-          leadsData.set(currentLeadId || updatedLead.id, {
-            ...updatedLead,
-            resetTimestamp: resetTimestamp
-          });
-
-          closeLeadModal();
-          loadLeads();
-          loadCustomers();
-        } else {
-          alert(currentLeadId ? 'Error updating lead' : 'Error saving lead');
-        }
-      } catch (err) {
-        console.error('Error saving/updating lead:', err);
-        alert(currentLeadId ? 'Error updating lead' : 'Error saving lead');
-      }
-    });
-
-    // Save or Update Customer
-    document.getElementById('customer-form').addEventListener('submit', async (e) => {
-      e.preventDefault();
-      const customer = {
-        customerName: document.getElementById('customerNameCustomer').value,
-        company: document.getElementById('companyCustomer').value,
-        customerEmail: document.getElementById('customerEmailCustomer').value,
-        customerPhone: document.getElementById('customerPhoneCustomer').value,
-        customerStreet: document.getElementById('customerStreetCustomer').value,
-        customerCity: document.getElementById('customerCityCustomer').value,
-        customerState: document.getElementById('customerStateCustomer').value,
-        customerZip: document.getElementById('customerZipCustomer').value
-      };
-
-      try {
-        const url = currentCustomerId ? `https://lead-management-system-f6v2.onrender.com/api/customers/${currentCustomerId}` : 'https://lead-management-system-f6v2.onrender.com/api/customers';
-        const method = currentCustomerId ? 'PUT' : 'POST';
-        const response = await fetch(url, {
-          method,
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify(customer)
-        });
-        if (response.ok) {
-          closeCustomerModal();
-          loadCustomers();
-        } else {
-          alert(currentCustomerId ? 'Error updating customer' : 'Error saving customer');
-        }
-      } catch (err) {
-        console.error('Error saving/updating customer:', err);
-        alert(currentCustomerId ? 'Error updating customer' : 'Error saving customer');
-      }
-    });
-
-    // Edit Lead
-    function editLead(id) {
-      openLeadModal('edit', id);
-    }
-
-    // Delete Lead
-    async function deleteLead(id) {
-      if (confirm('Are you sure you want to delete this lead?')) {
-        try {
-          const response = await fetch(`https://lead-management-system-f6v2.onrender.com/api/leads/${id}`, {
-            method: 'DELETE'
-          });
-          if (response.ok) {
-            leadsData.delete(id);
-            loadLeads();
-          } else {
-            alert('Error deleting lead');
-          }
-        } catch (err) {
-          console.error('Error deleting lead:', err);
-          alert('Error deleting lead');
-        }
-      }
-    }
-
-    // Edit Customer
-    function editCustomer(id) {
-      openCustomerModal('edit', id);
-    }
-
-    // Delete Customer
-    async function deleteCustomer(id) {
-      if (confirm('Are you sure you want to delete this customer?')) {
-        try {
-          const response = await fetch(`https://lead-management-system-f6v2.onrender.com/api/customers/${id}`, {
-            method: 'DELETE'
-          });
-          if (response.ok) {
-            loadCustomers();
-          } else {
-            alert('Error deleting customer');
-          }
-        } catch (err) {
-          console.error('Error deleting customer:', err);
-          alert('Error deleting customer');
-        }
-      }
-    }
-
-    // Fetch Notes for a Date
-    async function fetchNotesForDate(date) {
-      try {
-        const response = await fetch(`https://lead-management-system-f6v2.onrender.com/api/calendar_notes?date=${date.toISOString().split('T')[0]}`);
-        if (!response.ok) throw new Error('Failed to fetch notes');
-        const data = await response.json();
-        return data.notes || '';
-      } catch (err) {
-        console.error('Error fetching notes:', err);
-        return '';
-      }
-    }
-
-    // Render Calendar
-    async function renderCalendar() {
-      const grid = document.getElementById('calendar-grid');
-      const monthYear = document.getElementById('month-year');
-      const firstDay = new Date(currentMonth.getFullYear(), currentMonth.getMonth(), 1);
-      const lastDay = new Date(currentMonth.getFullYear(), currentMonth.getMonth() + 1, 0);
-      const today = new Date();
-
-      monthYear.textContent = currentMonth.toLocaleDateString('en-US', { month: 'long', year: 'numeric' });
-      grid.innerHTML = '';
-
-      const days = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
-      days.forEach(day => {
-        const header = document.createElement('div');
-        header.className = 'calendar-header';
-        header.textContent = day;
-        grid.appendChild(header);
-      });
-
-      const startDay = firstDay.getDay();
-      for (let i = 0; i < startDay; i++) {
-        const empty = document.createElement('div');
-        empty.className = 'calendar-day disabled';
-        grid.appendChild(empty);
-      }
-
-      for (let day = 1; day <= lastDay.getDate(); day++) {
-        const date = new Date(currentMonth.getFullYear(), currentMonth.getMonth(), day);
-        const notes = await fetchNotesForDate(date);
-        const dayElement = document.createElement('div');
-        dayElement.className = 'calendar-day';
-        if (date.toDateString() === today.toDateString()) dayElement.classList.add('today');
-        dayElement.innerHTML = `
-          <div class="day-number">${day}</div>
-          ${notes ? `<div class="has-notes" onclick="event.stopPropagation(); openContentModal('Day Notes', \`${notes}\`)">Has Notes</div>` : ''}
-        `;
-        dayElement.onclick = () => openNotesModal(date);
-        grid.appendChild(dayElement);
-      }
-
-      const totalCells = startDay + lastDay.getDate();
-      while (totalCells % 7 !== 0) {
-        const empty = document.createElement('div');
-        empty.className = 'calendar-day disabled';
-        grid.appendChild(empty);
-        totalCells++;
-      }
-    }
-
-    // Navigate Months
-    document.getElementById('prev-month').onclick = () => {
-      currentMonth.setMonth(currentMonth.getMonth() - 1);
-      renderCalendar();
-    };
-    document.getElementById('next-month').onclick = () => {
-      currentMonth.setMonth(currentMonth.getMonth() + 1);
-      renderCalendar();
-    };
-  </script>
+    <script src="/js/leads.js"></script>
+    <script src="/js/customers.js"></script>
+    <script src="/js/calendar.js"></script>
+    <script src="/js/inventory.js"></script>
 </body>
 </html>
