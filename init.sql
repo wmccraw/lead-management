@@ -15,6 +15,18 @@ DO $$ BEGIN
         );
     END IF;
 
+    -- Create customers table if it doesn't exist
+    IF NOT EXISTS (
+        SELECT FROM pg_tables
+        WHERE schemaname = 'public' AND tablename = 'customers'
+    ) THEN
+        CREATE TABLE customers (
+            id SERIAL PRIMARY KEY,
+            name VARCHAR(100) NOT NULL,
+            email VARCHAR(100) UNIQUE NOT NULL
+        );
+    END IF;
+
     -- Create inventory table if it doesn't exist
     IF NOT EXISTS (
         SELECT FROM pg_tables

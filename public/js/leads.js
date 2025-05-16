@@ -57,7 +57,7 @@ function editLead(id) {
 
 function loadTab(tab) {
     document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
-    document.querySelectorAll('.content').forEach(c => c.classList.remove('active'));
+    document.querySelectorAll('.content').forEach(c => c.style.display = 'none');
     document.querySelector(`.tab[data-tab="${tab}"]`).classList.add('active');
-    document.getElementById(tab).classList.add('active');
+    document.getElementById(tab).style.display = 'block';
 }
