@@ -1,13 +1,7 @@
-document.addEventListener('DOMContentLoaded', () => {
-    const leadsTab = document.querySelector('.tab[data-tab="leads"]');
-    if (leadsTab) {
-        leadsTab.addEventListener('click', () => loadTab('leads'));
-    }
-    if (document.getElementById('leads').classList.contains('active')) {
-        loadLeads();
-    }
+let loadLeads; // Declare globally so tabs.js can call it
 
-    async function loadLeads() {
+document.addEventListener('DOMContentLoaded', () => {
+    loadLeads = async () => {
         const response = await fetch('/api/leads');
         const leads = await response.json();
         const tbody = document.querySelector('#leads-table tbody');
@@ -24,7 +18,7 @@ document.addEventListener('DOMContentLoaded', () => {
             `;
             tbody.appendChild(tr);
         });
-    }
+    };
 
     const form = document.getElementById('lead-form');
     if (form) {
@@ -53,11 +47,4 @@ document.addEventListener('DOMContentLoaded', () => {
 
 function editLead(id) {
     alert('Edit lead functionality to be implemented');
-}
-
-function loadTab(tab) {
-    document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
-    document.querySelectorAll('.content').forEach(c => c.style.display = 'none');
-    document.querySelector(`.tab[data-tab="${tab}"]`).classList.add('active');
-    document.getElementById(tab).style.display = 'block';
 }

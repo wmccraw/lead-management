@@ -3,6 +3,7 @@ const { Pool } = require('pg');
 const dotenv = require('dotenv');
 const fs = require('fs').promises;
 const leadsRoutes = require('./routes/leads');
+const customersRoutes = require('./routes/customers');
 const inventoryRoutes = require('./routes/inventory');
 
 dotenv.config();
@@ -29,6 +30,7 @@ const pool = new Pool({
 })();
 
 app.use('/api/leads', leadsRoutes);
+app.use('/api/customers', customersRoutes);
 app.use('/api/inventory', inventoryRoutes);
 
 const PORT = process.env.PORT || 3000;

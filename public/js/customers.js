@@ -1,13 +1,7 @@
-document.addEventListener('DOMContentLoaded', () => {
-    const customersTab = document.querySelector('.tab[data-tab="customers"]');
-    if (customersTab) {
-        customersTab.addEventListener('click', () => loadTab('customers'));
-    }
-    if (document.getElementById('customers').classList.contains('active')) {
-        loadCustomers();
-    }
+let loadCustomers; // Declare globally so tabs.js can call it
 
-    async function loadCustomers() {
+document.addEventListener('DOMContentLoaded', () => {
+    loadCustomers = async () => {
         const response = await fetch('/api/customers');
         const customers = await response.json();
         const tbody = document.querySelector('#customers-table tbody');
@@ -21,7 +15,7 @@ document.addEventListener('DOMContentLoaded', () => {
             `;
             tbody.appendChild(tr);
         });
-    }
+    };
 
     document.getElementById('export-customers').addEventListener('click', () => {
         window.location.href = '/api/customers/csv';
@@ -30,11 +24,4 @@ document.addEventListener('DOMContentLoaded', () => {
 
 function editCustomer(id) {
     alert('Edit customer functionality to be implemented');
-}
-
-function loadTab(tab) {
-    document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
-    document.querySelectorAll('.content').forEach(c => c.style.display = 'none');
-    document.querySelector(`.tab[data-tab="${tab}"]`).classList.add('active');
-    document.getElementById(tab).style.display = 'block';
 }
