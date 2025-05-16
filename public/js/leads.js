@@ -45,6 +45,10 @@ document.addEventListener('DOMContentLoaded', () => {
             loadLeads();
         });
     }
+
+    document.getElementById('export-leads').addEventListener('click', () => {
+        window.location.href = '/api/leads/csv';
+    });
 });
 
 function editLead(id) {

@@ -2,6 +2,7 @@ body {
     font-family: Arial, sans-serif;
     margin: 0;
     padding: 20px;
+    background: #f0f0f0;
 }
 .tabs {
     display: flex;
@@ -9,16 +10,23 @@ body {
     margin-bottom: 20px;
 }
 .tab {
-    padding: 10px;
+    padding: 10px 20px;
     cursor: pointer;
     background: #f0f0f0;
+    border: 1px solid #ddd;
+    border-radius: 5px 5px 0 0;
 }
 .tab.active {
     background: #007bff;
     color: white;
+    border-bottom: none;
 }
 .content {
     display: none;
+    padding: 20px;
+    border: 1px solid #ddd;
+    border-radius: 0 5px 5px 5px;
+    background: white;
 }
 .content.active {
     display: block;
@@ -26,6 +34,7 @@ body {
 table {
     width: 100%;
     border-collapse: collapse;
+    margin-top: 20px;
 }
 th, td {
     border: 1px solid #ddd;
@@ -38,6 +47,17 @@ th {
 input, select, button {
     padding: 5px;
     margin: 5px;
+    font-family: Arial, sans-serif;
+}
+button {
+    background: #007bff;
+    color: white;
+    border: none;
+    padding: 8px 16px;
+    cursor: pointer;
+}
+button:hover {
+    background: #0056b3;
 }
 img.thumbnail {
     width: 50px;
