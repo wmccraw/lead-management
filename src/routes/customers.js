@@ -10,7 +10,11 @@ const pool = new Pool({
 router.get('/', async (req, res) => {
     try {
         const result = await pool.query('SELECT * FROM customers');
-        res.json(result.rows);
+        res.json(result.rows.map(row => ({
+            id: row.id,
+            name: row.name || 'Unnamed',
+            email: row.email || 'No Email'
+        })));
     } catch (err) {
         console.error(err);
         res.status(500).send('Server error');
@@ -25,7 +29,7 @@ router.get('/csv', async (req, res) => {
         result.rows.forEach(row => {
             const values = headers.map(h => {
                 const val = row[h];
-                return val ? `"${val.toString().replace(/"/g, '""')}"` : '';
+                return val !== null && val !== undefined ? `"${val.toString().replace(/"/g, '""')}"` : '';
             });
             csv += values.join(',') + '\n';
         });

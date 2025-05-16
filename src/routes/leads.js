@@ -10,7 +10,15 @@ const pool = new Pool({
 router.get('/', async (req, res) => {
     try {
         const result = await pool.query('SELECT * FROM leads');
-        res.json(result.rows);
+        res.json(result.rows.map(row => ({
+            id: row.id,
+            name: row.name || 'Unnamed',
+            email: row.email || 'No Email',
+            status: row.status || 'Unknown',
+            quoted_from_vendor: row.quoted_from_vendor || false,
+            created_at: row.created_at || null,
+            time_in_system: row.time_in_system || 0
+        })));
     } catch (err) {
         console.error(err);
         res.status(500).send('Server error');
@@ -39,7 +47,7 @@ router.get('/csv', async (req, res) => {
         result.rows.forEach(row => {
             const values = headers.map(h => {
                 const val = row[h];
-                return val ? `"${val.toString().replace(/"/g, '""')}"` : '';
+                return val !== null && val !== undefined ? `"${val.toString().replace(/"/g, '""')}"` : '';
             });
             csv += values.join(',') + '\n';
         });

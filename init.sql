@@ -1,5 +1,5 @@
 DO $$ BEGIN
-    -- Create leads table if it doesn't exist
+    -- Check and create leads table if it doesn't exist, preserving data
     IF NOT EXISTS (
         SELECT FROM pg_tables
         WHERE schemaname = 'public' AND tablename = 'leads'
@@ -15,7 +15,7 @@ DO $$ BEGIN
         );
     END IF;
 
-    -- Create customers table if it doesn't exist
+    -- Check and create customers table if it doesn't exist, preserving data
     IF NOT EXISTS (
         SELECT FROM pg_tables
         WHERE schemaname = 'public' AND tablename = 'customers'
