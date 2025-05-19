@@ -41,9 +41,33 @@
             </thead>
             <tbody></tbody>
         </table>
+        <!-- Modal for editing leads -->
+        <div id="lead-modal" class="modal">
+            <div class="modal-content">
+                <span class="close">&times;</span>
+                <h3>Edit Lead</h3>
+                <input type="hidden" id="lead-id">
+                <input type="text" id="edit-lead-name" placeholder="Name" required>
+                <input type="email" id="edit-lead-email" placeholder="Email" required>
+                <select id="edit-lead-status">
+                    <option value="Pending">Pending</option>
+                    <option value="Quoted">Quoted</option>
+                    <option value="Converted">Converted</option>
+                </select>
+                <input type="checkbox" id="edit-quoted-vendor">
+                <label for="edit-quoted-vendor">Quoted from Vendor?</label>
+                <button onclick="saveLead()">Save</button>
+            </div>
+        </div>
     </div>
     <div id="customers" class="content">
         <h2>Customers Dashboard</h2>
+        <form id="customer-form">
+            <input type="text" id="customer-name" placeholder="Name" required>
+            <input type="email" id="customer-email" placeholder="Email" required>
+            <button type="submit">Add Customer</button>
+        </form>
+        <button id="export-customers">Export Customers to CSV</button>
         <table id="customers-table">
             <thead>
                 <tr>
@@ -54,20 +78,47 @@
             </thead>
             <tbody></tbody>
         </table>
-        <button id="export-customers">Export Customers to CSV</button>
+        <!-- Modal for editing customers -->
+        <div id="customer-modal" class="modal">
+            <div class="modal-content">
+                <span class="close">&times;</span>
+                <h3>Edit Customer</h3>
+                <input type="hidden" id="customer-id">
+                <input type="text" id="edit-customer-name" placeholder="Name" required>
+                <input type="email" id="edit-customer-email" placeholder="Email" required>
+                <button onclick="saveCustomer()">Save</button>
+            </div>
+        </div>
     </div>
     <div id="calendar" class="content">
         <h2>Calendar</h2>
         <input type="date" id="calendar-date">
+        <form id="event-form">
+            <input type="text" id="event-name" placeholder="Event Name" required>
+            <input type="time" id="event-time" required>
+            <button type="submit">Add Event</button>
+        </form>
         <table id="calendar-events">
             <thead>
                 <tr>
                     <th>Event</th>
                     <th>Time</th>
+                    <th>Actions</th>
                 </tr>
             </thead>
             <tbody></tbody>
         </table>
+        <!-- Modal for editing events -->
+        <div id="event-modal" class="modal">
+            <div class="modal-content">
+                <span class="close">&times;</span>
+                <h3>Edit Event</h3>
+                <input type="hidden" id="event-id">
+                <input type="text" id="edit-event-name" placeholder="Event Name" required>
+                <input type="time" id="edit-event-time" required>
+                <button onclick="saveEvent()">Save</button>
+            </div>
+        </div>
     </div>
     <div id="inventory" class="content">
         <h2>Inventory</h2>
@@ -135,6 +186,51 @@
             </thead>
             <tbody></tbody>
         </table>
+        <!-- Modal for editing inventory -->
+        <div id="inventory-modal" class="modal">
+            <div class="modal-content">
+                <span class="close">&times;</span>
+                <h3>Edit Inventory</h3>
+                <input type="hidden" id="inventory-id">
+                <input type="text" id="edit-part-number" placeholder="Part Number" required>
+                <input type="text" id="edit-serial-number" placeholder="Serial Number">
+                <input type="text" id="edit-part-name" placeholder="Part Name" required>
+                <input type="text" id="edit-description" placeholder="Description">
+                <select id="edit-category" required>
+                    <option value="" disabled>Select Category</option>
+                    <option value="Hydraulics">Hydraulics</option>
+                    <option value="Filters">Filters</option>
+                </select>
+                <input type="text" id="edit-manufacturer" placeholder="Manufacturer">
+                <input type="text" id="edit-model-compatibility" placeholder="Model Compatibility">
+                <input type="number" id="edit-quantity" placeholder="Quantity" min="0">
+                <input type="text" id="edit-location" placeholder="Location">
+                <select id="edit-stock-status">
+                    <option value="In Stock">In Stock</option>
+                    <option value="Supplier-Sourced">Supplier-Sourced</option>
+                    <option value="On Order">On Order</option>
+                </select>
+                <input type="number" id="edit-reorder-point" placeholder="Reorder Point" min="0">
+                <input type="text" id="edit-supplier-name" placeholder="Supplier Name" required>
+                <input type="text" id="edit-supplier-part-number" placeholder="Supplier Part Number">
+                <input type="text" id="edit-supplier-contact" placeholder="Supplier Contact">
+                <input type="number" id="edit-supplier-cost" placeholder="Supplier Cost" step="0.01">
+                <input type="text" id="edit-latest-lead-time" placeholder="Latest Lead Time Received">
+                <input type="number" id="edit-retail-price" placeholder="Retail Price" step="0.01">
+                <input type="date" id="edit-last-sold-date" placeholder="Last Sold Date">
+                <input type="text" id="edit-sales-frequency" placeholder="Sales Frequency">
+                <select id="edit-condition">
+                    <option value="New">New</option>
+                    <option value="Used">Used</option>
+                    <option value="Refurbished">Refurbished</option>
+                </select>
+                <input type="text" id="edit-image-url" placeholder="Image URL">
+                <input type="text" id="edit-attachment-files" placeholder="Attachment Files URL">
+                <input type="text" id="edit-tags" placeholder="Tags">
+                <input type="text" id="edit-custom-attributes" placeholder="Custom Attributes (JSON)">
+                <button onclick="saveInventory()">Save</button>
+            </div>
+        </div>
     </div>
     <script src="/js/tabs.js"></script>
     <script src="/js/leads.js"></script>

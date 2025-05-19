@@ -10,15 +10,7 @@ const pool = new Pool({
 router.get('/', async (req, res) => {
     try {
         const result = await pool.query('SELECT * FROM leads');
-        res.json(result.rows.map(row => ({
-            id: row.id,
-            name: row.name || 'Unnamed',
-            email: row.email || 'No Email',
-            status: row.status || 'Unknown',
-            quoted_from_vendor: row.quoted_from_vendor || false,
-            created_at: row.created_at || null,
-            time_in_system: row.time_in_system || 0
-        })));
+        res.json(result.rows);
     } catch (err) {
         console.error(err);
         res.status(500).send('Server error');
@@ -28,11 +20,37 @@ router.get('/', async (req, res) => {
 router.post('/', async (req, res) => {
     const { name, email, status, quoted_from_vendor } = req.body;
     try {
-        await pool.query(
-            'INSERT INTO leads (name, email, status, quoted_from_vendor, created_at, time_in_system) VALUES ($1, $2, $3, $4, NOW(), 0) ON CONFLICT (email) DO UPDATE SET status = $3, quoted_from_vendor = $4',
+        const result = await pool.query(
+            'INSERT INTO leads (name, email, status, quoted_from_vendor, created_at, time_in_system) VALUES ($1, $2, $3, $4, NOW(), 0) RETURNING id',
             [name, email, status, quoted_from_vendor]
         );
-        res.status(201).send('Lead added');
+        res.status(201).json({ id: result.rows[0].id, ...req.body });
+    } catch (err) {
+        console.error(err);
+        res.status(500).send('Server error');
+    }
+});
+
+router.put('/:id', async (req, res) => {
+    const { id } = req.params;
+    const { name, email, status, quoted_from_vendor } = req.body;
+    try {
+        await pool.query(
+            'UPDATE leads SET name = $1, email = $2, status = $3, quoted_from_vendor = $4 WHERE id = $5',
+            [name, email, status, quoted_from_vendor, id]
+        );
+        res.sendStatus(200);
+    } catch (err) {
+        console.error(err);
+        res.status(500).send('Server error');
+    }
+});
+
+router.delete('/:id', async (req, res) => {
+    const { id } = req.params;
+    try {
+        await pool.query('DELETE FROM leads WHERE id = $1', [id]);
+        res.sendStatus(200);
     } catch (err) {
         console.error(err);
         res.status(500).send('Server error');

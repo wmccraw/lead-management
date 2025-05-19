@@ -8,8 +8,12 @@ const pool = new Pool({
 });
 
 router.get('/', async (req, res) => {
+    const { date } = req.query;
     try {
-        const result = await pool.query('SELECT * FROM customers');
+        const result = await pool.query(
+            'SELECT * FROM calendar WHERE date = $1',
+            [date || new Date().toISOString().split('T')[0]]
+        );
         res.json(result.rows);
     } catch (err) {
         console.error(err);
@@ -18,11 +22,11 @@ router.get('/', async (req, res) => {
 });
 
 router.post('/', async (req, res) => {
-    const { name, email } = req.body;
+    const { name, time, date } = req.body;
     try {
         const result = await pool.query(
-            'INSERT INTO customers (name, email) VALUES ($1, $2) RETURNING id',
-            [name, email]
+            'INSERT INTO calendar (name, time, date) VALUES ($1, $2, $3) RETURNING id',
+            [name, time, date]
         );
         res.status(201).json({ id: result.rows[0].id, ...req.body });
     } catch (err) {
@@ -33,11 +37,11 @@ router.post('/', async (req, res) => {
 
 router.put('/:id', async (req, res) => {
     const { id } = req.params;
-    const { name, email } = req.body;
+    const { name, time, date } = req.body;
     try {
         await pool.query(
-            'UPDATE customers SET name = $1, email = $2 WHERE id = $3',
-            [name, email, id]
+            'UPDATE calendar SET name = $1, time = $2, date = $3 WHERE id = $4',
+            [name, time, date, id]
         );
         res.sendStatus(200);
     } catch (err) {
@@ -49,29 +53,8 @@ router.put('/:id', async (req, res) => {
 router.delete('/:id', async (req, res) => {
     const { id } = req.params;
     try {
-        await pool.query('DELETE FROM customers WHERE id = $1', [id]);
+        await pool.query('DELETE FROM calendar WHERE id = $1', [id]);
         res.sendStatus(200);
-    } catch (err) {
-        console.error(err);
-        res.status(500).send('Server error');
-    }
-});
-
-router.get('/csv', async (req, res) => {
-    try {
-        const result = await pool.query('SELECT * FROM customers');
-        const headers = ['id', 'name', 'email'];
-        let csv = headers.join(',') + '\n';
-        result.rows.forEach(row => {
-            const values = headers.map(h => {
-                const val = row[h];
-                return val !== null && val !== undefined ? `"${val.toString().replace(/"/g, '""')}"` : '';
-            });
-            csv += values.join(',') + '\n';
-        });
-        res.header('Content-Type', 'text/csv');
-        res.attachment('customers.csv');
-        res.send(csv);
     } catch (err) {
         console.error(err);
         res.status(500).send('Server error');

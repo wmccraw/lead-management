@@ -1,4 +1,4 @@
-let loadLeads; // Declare globally so tabs.js can call it
+let loadLeads;
 
 document.addEventListener('DOMContentLoaded', () => {
     loadLeads = async () => {
@@ -14,7 +14,10 @@ document.addEventListener('DOMContentLoaded', () => {
                 <td>${lead.status}</td>
                 <td>${lead.time_in_system}</td>
                 <td>${lead.quoted_from_vendor ? 'Yes' : 'No'}</td>
-                <td><button onclick="editLead(${lead.id})">Edit</button></td>
+                <td>
+                    <button onclick="openLeadModal(${lead.id}, '${lead.name}', '${lead.email}', '${lead.status}', ${lead.quoted_from_vendor})">Edit</button>
+                    <button onclick="deleteLead(${lead.id})">Delete</button>
+                </td>
             `;
             tbody.appendChild(tr);
         });
@@ -45,6 +48,38 @@ document.addEventListener('DOMContentLoaded', () => {
     });
 });
 
-function editLead(id) {
-    alert('Edit lead functionality to be implemented');
+function openLeadModal(id, name, email, status, quoted) {
+    document.getElementById('lead-id').value = id;
+    document.getElementById('edit-lead-name').value = name;
+    document.getElementById('edit-lead-email').value = email;
+    document.getElementById('edit-lead-status').value = status;
+    document.getElementById('edit-quoted-vendor').checked = quoted;
+    document.getElementById('lead-modal').style.display = 'block';
+}
+
+function saveLead() {
+    const id = document.getElementById('lead-id').value;
+    const lead = {
+        id: id,
+        name: document.getElementById('edit-lead-name').value,
+        email: document.getElementById('edit-lead-email').value,
+        status: document.getElementById('edit-lead-status').value,
+        quoted_from_vendor: document.getElementById('edit-quoted-vendor').checked
+    };
+    fetch(`/api/leads/${id}`, {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(lead)
+    }).then(() => {
+        document.getElementById('lead-modal').style.display = 'none';
+        loadLeads();
+    });
+}
+
+function deleteLead(id) {
+    if (confirm('Are you sure you want to delete this lead?')) {
+        fetch(`/api/leads/${id}`, {
+            method: 'DELETE'
+        }).then(() => loadLeads());
+    }
 }

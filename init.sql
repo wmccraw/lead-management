@@ -1,5 +1,5 @@
 DO $$ BEGIN
-    -- Check and create leads table if it doesn't exist, preserving data
+    -- Create leads table if it doesn't exist
     IF NOT EXISTS (
         SELECT FROM pg_tables
         WHERE schemaname = 'public' AND tablename = 'leads'
@@ -15,7 +15,7 @@ DO $$ BEGIN
         );
     END IF;
 
-    -- Check and create customers table if it doesn't exist, preserving data
+    -- Create customers table if it doesn't exist
     IF NOT EXISTS (
         SELECT FROM pg_tables
         WHERE schemaname = 'public' AND tablename = 'customers'
@@ -24,6 +24,19 @@ DO $$ BEGIN
             id SERIAL PRIMARY KEY,
             name VARCHAR(100) NOT NULL,
             email VARCHAR(100) UNIQUE NOT NULL
+        );
+    END IF;
+
+    -- Create calendar table if it doesn't exist
+    IF NOT EXISTS (
+        SELECT FROM pg_tables
+        WHERE schemaname = 'public' AND tablename = 'calendar'
+    ) THEN
+        CREATE TABLE calendar (
+            id SERIAL PRIMARY KEY,
+            name VARCHAR(100) NOT NULL,
+            time TIME NOT NULL,
+            date DATE NOT NULL
         );
     END IF;
 
