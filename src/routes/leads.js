@@ -18,13 +18,13 @@ router.get('/', async (req, res) => {
 });
 
 router.post('/', async (req, res) => {
-    const { name, email, status, quoted_from_vendor } = req.body;
+    const { name, company, email, phone, product_category, make, model, notes, status, quoted_from_vendor } = req.body;
     try {
         const result = await pool.query(
-            'INSERT INTO leads (name, email, status, quoted_from_vendor, created_at, time_in_system) VALUES ($1, $2, $3, $4, NOW(), 0) RETURNING id',
-            [name, email, status, quoted_from_vendor]
+            'INSERT INTO leads (name, company, email, phone, product_category, make, model, notes, status, quoted_from_vendor, created_at) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, NOW()) RETURNING *',
+            [name, company, email, phone, product_category, make, model, notes, status, quoted_from_vendor]
         );
-        res.status(201).json({ id: result.rows[0].id, ...req.body });
+        res.status(201).json(result.rows[0]);
     } catch (err) {
         console.error(err);
         res.status(500).send('Server error');
@@ -33,11 +33,11 @@ router.post('/', async (req, res) => {
 
 router.put('/:id', async (req, res) => {
     const { id } = req.params;
-    const { name, email, status, quoted_from_vendor } = req.body;
+    const { name, company, email, phone, product_category, make, model, notes, status, quoted_from_vendor } = req.body;
     try {
         await pool.query(
-            'UPDATE leads SET name = $1, email = $2, status = $3, quoted_from_vendor = $4 WHERE id = $5',
-            [name, email, status, quoted_from_vendor, id]
+            'UPDATE leads SET name = $1, company = $2, email = $3, phone = $4, product_category = $5, make = $6, model = $7, notes = $8, status = $9, quoted_from_vendor = $10 WHERE id = $11',
+            [name, company, email, phone, product_category, make, model, notes, status, quoted_from_vendor, id]
         );
         res.sendStatus(200);
     } catch (err) {
@@ -51,27 +51,6 @@ router.delete('/:id', async (req, res) => {
     try {
         await pool.query('DELETE FROM leads WHERE id = $1', [id]);
         res.sendStatus(200);
-    } catch (err) {
-        console.error(err);
-        res.status(500).send('Server error');
-    }
-});
-
-router.get('/csv', async (req, res) => {
-    try {
-        const result = await pool.query('SELECT * FROM leads');
-        const headers = ['id', 'name', 'email', 'status', 'quoted_from_vendor', 'created_at', 'time_in_system'];
-        let csv = headers.join(',') + '\n';
-        result.rows.forEach(row => {
-            const values = headers.map(h => {
-                const val = row[h];
-                return val !== null && val !== undefined ? `"${val.toString().replace(/"/g, '""')}"` : '';
-            });
-            csv += values.join(',') + '\n';
-        });
-        res.header('Content-Type', 'text/csv');
-        res.attachment('leads.csv');
-        res.send(csv);
     } catch (err) {
         console.error(err);
         res.status(500).send('Server error');

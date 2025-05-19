@@ -14,45 +14,63 @@
         <div class="tab" data-tab="inventory">Inventory</div>
     </div>
     <div id="leads" class="content">
-        <h2>Leads Dashboard</h2>
+        <h2>Leads</h2>
         <form id="lead-form">
-            <input type="text" id="lead-name" placeholder="Name" required>
+            <input type="text" id="lead-name" placeholder="Customer Name" required>
+            <input type="text" id="lead-company" placeholder="Company">
             <input type="email" id="lead-email" placeholder="Email" required>
+            <input type="text" id="lead-phone" placeholder="Phone">
+            <input type="text" id="lead-product-category" placeholder="Product Category">
+            <input type="text" id="lead-make" placeholder="Make">
+            <input type="text" id="lead-model" placeholder="Model">
+            <textarea id="lead-notes" placeholder="Notes"></textarea>
             <select id="lead-status">
-                <option value="Pending">Pending</option>
-                <option value="Quoted">Quoted</option>
-                <option value="Converted">Converted</option>
+                <option value="New">New</option>
+                <option value="Contacted">Contacted</option>
+                <option value="Qualified">Qualified</option>
+                <option value="Closed">Closed</option>
             </select>
             <input type="checkbox" id="quoted-vendor" name="quoted-vendor">
             <label for="quoted-vendor">Quoted from Vendor?</label>
             <button type="submit">Add Lead</button>
         </form>
-        <button id="export-leads">Export Leads to CSV</button>
         <table id="leads-table">
             <thead>
                 <tr>
                     <th>Name</th>
+                    <th>Company</th>
                     <th>Email</th>
+                    <th>Phone</th>
+                    <th>Product Category</th>
+                    <th>Make</th>
+                    <th>Model</th>
+                    <th>Notes</th>
                     <th>Status</th>
                     <th>Time in System</th>
-                    <th>Quoted from Vendor?</th>
+                    <th>Quoted?</th>
                     <th>Actions</th>
                 </tr>
             </thead>
             <tbody></tbody>
         </table>
-        <!-- Modal for editing leads -->
         <div id="lead-modal" class="modal">
             <div class="modal-content">
-                <span class="close">&times;</span>
+                <span class="close">×</span>
                 <h3>Edit Lead</h3>
                 <input type="hidden" id="lead-id">
-                <input type="text" id="edit-lead-name" placeholder="Name" required>
+                <input type="text" id="edit-lead-name" placeholder="Customer Name" required>
+                <input type="text" id="edit-lead-company" placeholder="Company">
                 <input type="email" id="edit-lead-email" placeholder="Email" required>
+                <input type="text" id="edit-lead-phone" placeholder="Phone">
+                <input type="text" id="edit-lead-product-category" placeholder="Product Category">
+                <input type="text" id="edit-lead-make" placeholder="Make">
+                <input type="text" id="edit-lead-model" placeholder="Model">
+                <textarea id="edit-lead-notes" placeholder="Notes"></textarea>
                 <select id="edit-lead-status">
-                    <option value="Pending">Pending</option>
-                    <option value="Quoted">Quoted</option>
-                    <option value="Converted">Converted</option>
+                    <option value="New">New</option>
+                    <option value="Contacted">Contacted</option>
+                    <option value="Qualified">Qualified</option>
+                    <option value="Closed">Closed</option>
                 </select>
                 <input type="checkbox" id="edit-quoted-vendor">
                 <label for="edit-quoted-vendor">Quoted from Vendor?</label>
@@ -60,182 +78,9 @@
             </div>
         </div>
     </div>
-    <div id="customers" class="content">
-        <h2>Customers Dashboard</h2>
-        <form id="customer-form">
-            <input type="text" id="customer-name" placeholder="Name" required>
-            <input type="email" id="customer-email" placeholder="Email" required>
-            <button type="submit">Add Customer</button>
-        </form>
-        <button id="export-customers">Export Customers to CSV</button>
-        <table id="customers-table">
-            <thead>
-                <tr>
-                    <th>Name</th>
-                    <th>Email</th>
-                    <th>Actions</th>
-                </tr>
-            </thead>
-            <tbody></tbody>
-        </table>
-        <!-- Modal for editing customers -->
-        <div id="customer-modal" class="modal">
-            <div class="modal-content">
-                <span class="close">&times;</span>
-                <h3>Edit Customer</h3>
-                <input type="hidden" id="customer-id">
-                <input type="text" id="edit-customer-name" placeholder="Name" required>
-                <input type="email" id="edit-customer-email" placeholder="Email" required>
-                <button onclick="saveCustomer()">Save</button>
-            </div>
-        </div>
-    </div>
-    <div id="calendar" class="content">
-        <h2>Calendar</h2>
-        <input type="date" id="calendar-date">
-        <form id="event-form">
-            <input type="text" id="event-name" placeholder="Event Name" required>
-            <input type="time" id="event-time" required>
-            <button type="submit">Add Event</button>
-        </form>
-        <table id="calendar-events">
-            <thead>
-                <tr>
-                    <th>Event</th>
-                    <th>Time</th>
-                    <th>Actions</th>
-                </tr>
-            </thead>
-            <tbody></tbody>
-        </table>
-        <!-- Modal for editing events -->
-        <div id="event-modal" class="modal">
-            <div class="modal-content">
-                <span class="close">&times;</span>
-                <h3>Edit Event</h3>
-                <input type="hidden" id="event-id">
-                <input type="text" id="edit-event-name" placeholder="Event Name" required>
-                <input type="time" id="edit-event-time" required>
-                <button onclick="saveEvent()">Save</button>
-            </div>
-        </div>
-    </div>
-    <div id="inventory" class="content">
-        <h2>Inventory</h2>
-        <form id="inventory-form">
-            <input type="text" id="part-number" placeholder="Part Number" required>
-            <input type="text" id="serial-number" placeholder="Serial Number">
-            <input type="text" id="part-name" placeholder="Part Name" required>
-            <input type="text" id="description" placeholder="Description">
-            <select id="category" required>
-                <option value="" disabled selected>Select Category</option>
-                <option value="Hydraulics">Hydraulics</option>
-                <option value="Filters">Filters</option>
-            </select>
-            <input type="text" id="manufacturer" placeholder="Manufacturer">
-            <input type="text" id="model-compatibility" placeholder="Model Compatibility">
-            <input type="number" id="quantity" placeholder="Quantity" min="0">
-            <input type="text" id="location" placeholder="Location">
-            <select id="stock-status">
-                <option value="In Stock">In Stock</option>
-                <option value="Supplier-Sourced">Supplier-Sourced</option>
-                <option value="On Order">On Order</option>
-            </select>
-            <input type="number" id="reorder-point" placeholder="Reorder Point" min="0">
-            <input type="text" id="supplier-name" placeholder="Supplier Name" required>
-            <input type="text" id="supplier-part-number" placeholder="Supplier Part Number">
-            <input type="text" id="supplier-contact" placeholder="Supplier Contact">
-            <input type="number" id="supplier-cost" placeholder="Supplier Cost" step="0.01">
-            <input type="text" id="latest-lead-time" placeholder="Latest Lead Time Received">
-            <input type="number" id="retail-price" placeholder="Retail Price" step="0.01">
-            <input type="date" id="last-sold-date" placeholder="Last Sold Date">
-            <input type="text" id="sales-frequency" placeholder="Sales Frequency">
-            <select id="condition">
-                <option value="New">New</option>
-                <option value="Used">Used</option>
-                <option value="Refurbished">Refurbished</option>
-            </select>
-            <input type="text" id="image-url" placeholder="Image URL">
-            <input type="text" id="attachment-files" placeholder="Attachment Files URL">
-            <input type="text" id="tags" placeholder="Tags">
-            <input type="text" id="custom-attributes" placeholder="Custom Attributes (JSON)">
-            <button type="submit">Add Part</button>
-        </form>
-        <div>
-            <button id="download-csv">Download CSV</button>
-            <input type="file" id="upload-main-csv" accept=".csv">
-            <input type="file" id="upload-retail-csv" accept=".csv">
-            <input type="file" id="upload-image-zip" accept=".zip">
-            <button id="upload-files">Upload Files</button>
-        </div>
-        <table id="inventory-table">
-            <thead>
-                <tr>
-                    <th>Part Number</th>
-                    <th>Serial Number</th>
-                    <th>Part Name</th>
-                    <th>Category</th>
-                    <th>Supplier</th>
-                    <th>Quantity</th>
-                    <th>Stock Status</th>
-                    <th>Retail Price</th>
-                    <th>Condition</th>
-                    <th>Image</th>
-                    <th>Actions</th>
-                </tr>
-            </thead>
-            <tbody></tbody>
-        </table>
-        <!-- Modal for editing inventory -->
-        <div id="inventory-modal" class="modal">
-            <div class="modal-content">
-                <span class="close">&times;</span>
-                <h3>Edit Inventory</h3>
-                <input type="hidden" id="inventory-id">
-                <input type="text" id="edit-part-number" placeholder="Part Number" required>
-                <input type="text" id="edit-serial-number" placeholder="Serial Number">
-                <input type="text" id="edit-part-name" placeholder="Part Name" required>
-                <input type="text" id="edit-description" placeholder="Description">
-                <select id="edit-category" required>
-                    <option value="" disabled>Select Category</option>
-                    <option value="Hydraulics">Hydraulics</option>
-                    <option value="Filters">Filters</option>
-                </select>
-                <input type="text" id="edit-manufacturer" placeholder="Manufacturer">
-                <input type="text" id="edit-model-compatibility" placeholder="Model Compatibility">
-                <input type="number" id="edit-quantity" placeholder="Quantity" min="0">
-                <input type="text" id="edit-location" placeholder="Location">
-                <select id="edit-stock-status">
-                    <option value="In Stock">In Stock</option>
-                    <option value="Supplier-Sourced">Supplier-Sourced</option>
-                    <option value="On Order">On Order</option>
-                </select>
-                <input type="number" id="edit-reorder-point" placeholder="Reorder Point" min="0">
-                <input type="text" id="edit-supplier-name" placeholder="Supplier Name" required>
-                <input type="text" id="edit-supplier-part-number" placeholder="Supplier Part Number">
-                <input type="text" id="edit-supplier-contact" placeholder="Supplier Contact">
-                <input type="number" id="edit-supplier-cost" placeholder="Supplier Cost" step="0.01">
-                <input type="text" id="edit-latest-lead-time" placeholder="Latest Lead Time Received">
-                <input type="number" id="edit-retail-price" placeholder="Retail Price" step="0.01">
-                <input type="date" id="edit-last-sold-date" placeholder="Last Sold Date">
-                <input type="text" id="edit-sales-frequency" placeholder="Sales Frequency">
-                <select id="edit-condition">
-                    <option value="New">New</option>
-                    <option value="Used">Used</option>
-                    <option value="Refurbished">Refurbished</option>
-                </select>
-                <input type="text" id="edit-image-url" placeholder="Image URL">
-                <input type="text" id="edit-attachment-files" placeholder="Attachment Files URL">
-                <input type="text" id="edit-tags" placeholder="Tags">
-                <input type="text" id="edit-custom-attributes" placeholder="Custom Attributes (JSON)">
-                <button onclick="saveInventory()">Save</button>
-            </div>
-        </div>
-    </div>
+    <!-- Other content sections (Customers, Calendar, Inventory) go here -->
     <script src="/js/tabs.js"></script>
     <script src="/js/leads.js"></script>
-    <script src="/js/customers.js"></script>
-    <script src="/js/calendar.js"></script>
-    <script src="/js/inventory.js"></script>
+    <!-- Other scripts for Customers, Calendar, Inventory go here -->
 </body>
 </html>

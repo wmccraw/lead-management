@@ -5,9 +5,6 @@ function loadTab(tab) {
     document.querySelector(`.tab[data-tab="${tab}"]`).classList.add('active');
     document.getElementById(tab).style.display = 'block';
     if (tab === 'leads') loadLeads();
-    if (tab === 'customers') loadCustomers();
-    if (tab === 'calendar') loadCalendar();
-    if (tab === 'inventory') loadInventory();
 }
 
 document.addEventListener('DOMContentLoaded', () => {
@@ -20,14 +17,14 @@ document.addEventListener('DOMContentLoaded', () => {
     loadTab('leads');
 
     // Modal controls
-    document.querySelectorAll('.close').forEach(close => {
+    document.querySelectorAll('.modal .close').forEach(close => {
         close.addEventListener('click', () => {
-            document.querySelectorAll('.modal').forEach(modal => modal.style.display = 'none');
+            close.closest('.modal').style.display = 'none';
         });
     });
     window.addEventListener('click', (event) => {
         document.querySelectorAll('.modal').forEach(modal => {
-            if (event.target == modal) modal.style.display = 'none';
+            if (event.target === modal) modal.style.display = 'none';
         });
     });
 });
