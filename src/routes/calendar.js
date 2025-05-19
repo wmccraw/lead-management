@@ -18,11 +18,12 @@ router.get('/', async (req, res) => {
 });
 
 router.post('/', async (req, res) => {
-    const { title, event_date, description } = req.body;
+    const { title, event_date, description, organizer, location, priority, status } = req.body;
     try {
         const result = await pool.query(
-            'INSERT INTO calendar_events (title, event_date, description, created_at) VALUES ($1, $2, $3, NOW()) RETURNING *',
-            [title, event_date, description]
+            'INSERT INTO calendar_events (title, event_date, description, organizer, location, priority, status, created_at) ' +
+            'VALUES ($1, $2, $3, $4, $5, $6, $7, NOW()) RETURNING *',
+            [title, event_date, description, organizer, location, priority, status]
         );
         res.status(201).json(result.rows[0]);
     } catch (err) {
@@ -32,11 +33,11 @@ router.post('/', async (req, res) => {
 });
 
 router.put('/:id', async (req, res) => {
-    const { title, event_date, description } = req.body;
+    const { title, event_date, description, organizer, location, priority, status } = req.body;
     try {
         await pool.query(
-            'UPDATE calendar_events SET title = $1, event_date = $2, description = $3 WHERE id = $4',
-            [title, event_date, description, req.params.id]
+            'UPDATE calendar_events SET title = $1, event_date = $2, description = $3, organizer = $4, location = $5, priority = $6, status = $7 WHERE id = $8',
+            [title, event_date, description, organizer, location, priority, status, req.params.id]
         );
         res.sendStatus(200);
     } catch (err) {

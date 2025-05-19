@@ -12,6 +12,10 @@ async function loadCalendar() {
             <td class="py-3 px-6">${event.title}</td>
             <td class="py-3 px-6">${event.event_date}</td>
             <td class="py-3 px-6">${event.description || ''}</td>
+            <td class="py-3 px-6">${event.organizer || ''}</td>
+            <td class="py-3 px-6">${event.location || ''}</td>
+            <td class="py-3 px-6">${event.priority || ''}</td>
+            <td class="py-3 px-6">${event.status || ''}</td>
             <td class="py-3 px-6">
                 <button onclick="showEventModal('edit', ${event.id})" class="bg-blue-500 text-white px-3 py-1 rounded hover:bg-blue-600 mr-2">Edit</button>
                 <button onclick="deleteEvent(${event.id})" class="bg-red-500 text-white px-3 py-1 rounded hover:bg-red-600">Delete</button>
@@ -32,6 +36,10 @@ function showEventModal(mode, id = null) {
         document.getElementById('event-title').value = '';
         document.getElementById('event-date').value = '';
         document.getElementById('event-description').value = '';
+        document.getElementById('event-organizer').value = '';
+        document.getElementById('event-location').value = '';
+        document.getElementById('event-priority').value = '';
+        document.getElementById('event-status').value = '';
     } else if (mode === 'edit') {
         title.textContent = 'Edit Event';
         fetch(`/api/calendar/${id}`)
@@ -40,6 +48,10 @@ function showEventModal(mode, id = null) {
                 document.getElementById('event-title').value = event.title;
                 document.getElementById('event-date').value = event.event_date;
                 document.getElementById('event-description').value = event.description || '';
+                document.getElementById('event-organizer').value = event.organizer || '';
+                document.getElementById('event-location').value = event.location || '';
+                document.getElementById('event-priority').value = event.priority || '';
+                document.getElementById('event-status').value = event.status || '';
             });
     }
     modal.classList.remove('hidden');
@@ -52,7 +64,11 @@ async function saveEvent() {
     const data = {
         title: document.getElementById('event-title').value,
         event_date: document.getElementById('event-date').value,
-        description: document.getElementById('event-description').value
+        description: document.getElementById('event-description').value,
+        organizer: document.getElementById('event-organizer').value,
+        location: document.getElementById('event-location').value,
+        priority: document.getElementById('event-priority').value,
+        status: document.getElementById('event-status').value
     };
 
     const url = mode === 'add' ? '/api/calendar' : `/api/calendar/${id}`;

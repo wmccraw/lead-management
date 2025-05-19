@@ -13,6 +13,8 @@ async function loadCustomers() {
             <td class="py-3 px-6">${customer.company || ''}</td>
             <td class="py-3 px-6">${customer.email}</td>
             <td class="py-3 px-6">${customer.phone || ''}</td>
+            <td class="py-3 px-6">${new Date(customer.date_added).toLocaleDateString()}</td>
+            <td class="py-3 px-6">${new Date(customer.last_updated).toLocaleDateString()}</td>
         `;
         tbody.appendChild(tr);
     });

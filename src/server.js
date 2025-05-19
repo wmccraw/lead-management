@@ -30,7 +30,9 @@ const pool = new Pool({
                 name VARCHAR(100) NOT NULL,
                 company VARCHAR(100),
                 email VARCHAR(100) UNIQUE NOT NULL,
-                phone VARCHAR(20)
+                phone VARCHAR(20),
+                date_added TIMESTAMP DEFAULT NOW(),
+                last_updated TIMESTAMP DEFAULT NOW()
             )
         `);
 
@@ -56,6 +58,10 @@ const pool = new Pool({
                 title VARCHAR(100) NOT NULL,
                 event_date DATE NOT NULL,
                 description TEXT,
+                organizer VARCHAR(100),
+                location VARCHAR(100),
+                priority VARCHAR(50),
+                status VARCHAR(50),
                 created_at TIMESTAMP DEFAULT NOW()
             )
         `);
@@ -64,10 +70,32 @@ const pool = new Pool({
         await pool.query(`
             CREATE TABLE inventory (
                 id SERIAL PRIMARY KEY,
-                name VARCHAR(100) NOT NULL,
-                category VARCHAR(50),
-                quantity INTEGER NOT NULL,
-                price DECIMAL(10, 2) NOT NULL,
+                part_number VARCHAR(50) NOT NULL,
+                serial_number VARCHAR(50) NOT NULL,
+                part_name VARCHAR(100),
+                description TEXT,
+                category VARCHAR(50) NOT NULL,
+                manufacturer VARCHAR(100),
+                model_compatibility TEXT,
+                quantity_in_stock INTEGER NOT NULL,
+                location VARCHAR(100),
+                stock_status VARCHAR(50),
+                reorder_point INTEGER,
+                supplier_name VARCHAR(100) NOT NULL,
+                supplier_part_number VARCHAR(50),
+                supplier_contact VARCHAR(100),
+                supplier_cost DECIMAL(10, 2),
+                latest_lead_time_received VARCHAR(50),
+                retail_price DECIMAL(10, 2),
+                last_sold_date DATE,
+                sales_frequency VARCHAR(50),
+                condition VARCHAR(50),
+                image_url TEXT,
+                attachment_files TEXT,
+                date_added TIMESTAMP DEFAULT NOW(),
+                last_updated TIMESTAMP DEFAULT NOW(),
+                usage_rate DECIMAL(10, 2),
+                inventory_turnover DECIMAL(10, 2),
                 created_at TIMESTAMP DEFAULT NOW()
             )
         `);

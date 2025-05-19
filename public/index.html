@@ -51,15 +51,15 @@
             </div>
             <div id="lead-modal" class="modal hidden fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center">
                 <div class="modal-content bg-white p-6 rounded-lg w-full max-w-md">
-                    <span class="close text-gray-500 text-2xl font-bold cursor-pointer float-right">&times;</span>
+                    <span class="close text-gray-500 text-2xl font-bold cursor-pointer float-right">×</span>
                     <h3 id="lead-modal-title" class="text-xl font-semibold mb-4">Add Lead</h3>
                     <div id="lead-form">
                         <div id="lead-customer-fields">
-                            <label class="block text-gray-700 mb-2">Customer Name</label>
+                            <label class="block text-gray-700 mb-2">Customer Name*</label>
                             <input type="text" id="lead-name" class="w-full p-2 mb-4 border rounded" required>
                             <label class="block text-gray-700 mb-2">Company</label>
                             <input type="text" id="lead-company" class="w-full p-2 mb-4 border rounded">
-                            <label class="block text-gray-700 mb-2">Email</label>
+                            <label class="block text-gray-700 mb-2">Email*</label>
                             <input type="email" id="lead-email" class="w-full p-2 mb-4 border rounded" required>
                             <label class="block text-gray-700 mb-2">Phone</label>
                             <input type="text" id="lead-phone" class="w-full p-2 mb-4 border rounded">
@@ -72,7 +72,7 @@
                         <input type="text" id="lead-model" class="w-full p-2 mb-4 border rounded">
                         <label class="block text-gray-700 mb-2">Notes</label>
                         <textarea id="lead-notes" class="w-full p-2 mb-4 border rounded"></textarea>
-                        <label class="block text-gray-700 mb-2">Status</label>
+                        <label class="block text-gray-700 mb-2">Status*</label>
                         <select id="lead-status" class="w-full p-2 mb-4 border rounded">
                             <option value="Pending">Pending</option>
                             <option value="Quoted">Quoted</option>
@@ -99,6 +99,8 @@
                             <th class="py-3 px-6 text-left">Company</th>
                             <th class="py-3 px-6 text-left">Email</th>
                             <th class="py-3 px-6 text-left">Phone</th>
+                            <th class="py-3 px-6 text-left">Date Added</th>
+                            <th class="py-3 px-6 text-left">Last Updated</th>
                         </tr>
                     </thead>
                     <tbody id="customers-body" class="text-gray-600 text-sm font-light"></tbody>
@@ -106,14 +108,14 @@
             </div>
             <div id="customer-modal" class="modal hidden fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center">
                 <div class="modal-content bg-white p-6 rounded-lg w-full max-w-md">
-                    <span class="close text-gray-500 text-2xl font-bold cursor-pointer float-right">&times;</span>
+                    <span class="close text-gray-500 text-2xl font-bold cursor-pointer float-right">×</span>
                     <h3 class="text-xl font-semibold mb-4">Add Customer</h3>
                     <div id="customer-form">
-                        <label class="block text-gray-700 mb-2">Name</label>
+                        <label class="block text-gray-700 mb-2">Name*</label>
                         <input type="text" id="customer-name" class="w-full p-2 mb-4 border rounded" required>
                         <label class="block text-gray-700 mb-2">Company</label>
                         <input type="text" id="customer-company" class="w-full p-2 mb-4 border rounded">
-                        <label class="block text-gray-700 mb-2">Email</label>
+                        <label class="block text-gray-700 mb-2">Email*</label>
                         <input type="email" id="customer-email" class="w-full p-2 mb-4 border rounded" required>
                         <label class="block text-gray-700 mb-2">Phone</label>
                         <input type="text" id="customer-phone" class="w-full p-2 mb-4 border rounded">
@@ -136,6 +138,10 @@
                             <th class="py-3 px-6 text-left">Title</th>
                             <th class="py-3 px-6 text-left">Date</th>
                             <th class="py-3 px-6 text-left">Description</th>
+                            <th class="py-3 px-6 text-left">Organizer</th>
+                            <th class="py-3 px-6 text-left">Location</th>
+                            <th class="py-3 px-6 text-left">Priority</th>
+                            <th class="py-3 px-6 text-left">Status</th>
                             <th class="py-3 px-6 text-left">Actions</th>
                         </tr>
                     </thead>
@@ -144,15 +150,23 @@
             </div>
             <div id="event-modal" class="modal hidden fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center">
                 <div class="modal-content bg-white p-6 rounded-lg w-full max-w-md">
-                    <span class="close text-gray-500 text-2xl font-bold cursor-pointer float-right">&times;</span>
+                    <span class="close text-gray-500 text-2xl font-bold cursor-pointer float-right">×</span>
                     <h3 id="event-modal-title" class="text-xl font-semibold mb-4">Add Event</h3>
                     <div id="event-form">
-                        <label class="block text-gray-700 mb-2">Title</label>
+                        <label class="block text-gray-700 mb-2">Title*</label>
                         <input type="text" id="event-title" class="w-full p-2 mb-4 border rounded" required>
-                        <label class="block text-gray-700 mb-2">Date</label>
+                        <label class="block text-gray-700 mb-2">Date*</label>
                         <input type="date" id="event-date" class="w-full p-2 mb-4 border rounded" required>
                         <label class="block text-gray-700 mb-2">Description</label>
                         <textarea id="event-description" class="w-full p-2 mb-4 border rounded"></textarea>
+                        <label class="block text-gray-700 mb-2">Organizer</label>
+                        <input type="text" id="event-organizer" class="w-full p-2 mb-4 border rounded">
+                        <label class="block text-gray-700 mb-2">Location</label>
+                        <input type="text" id="event-location" class="w-full p-2 mb-4 border rounded">
+                        <label class="block text-gray-700 mb-2">Priority</label>
+                        <input type="text" id="event-priority" class="w-full p-2 mb-4 border rounded">
+                        <label class="block text-gray-700 mb-2">Status</label>
+                        <input type="text" id="event-status" class="w-full p-2 mb-4 border rounded">
                         <button onclick="saveEvent()" class="bg-green-500 text-white px-4 py-2 rounded hover:bg-green-600 w-full">Save</button>
                     </div>
                 </div>
@@ -169,10 +183,32 @@
                 <table class="min-w-full bg-white shadow-md rounded">
                     <thead>
                         <tr class="bg-gray-200 text-gray-600 uppercase text-sm leading-normal">
-                            <th class="py-3 px-6 text-left">Name</th>
+                            <th class="py-3 px-6 text-left">Part Number</th>
+                            <th class="py-3 px-6 text-left">Serial Number</th>
+                            <th class="py-3 px-6 text-left">Part Name</th>
+                            <th class="py-3 px-6 text-left">Description</th>
                             <th class="py-3 px-6 text-left">Category</th>
-                            <th class="py-3 px-6 text-left">Quantity</th>
-                            <th class="py-3 px-6 text-left">Price</th>
+                            <th class="py-3 px-6 text-left">Manufacturer</th>
+                            <th class="py-3 px-6 text-left">Model Compatibility</th>
+                            <th class="py-3 px-6 text-left">Quantity in Stock</th>
+                            <th class="py-3 px-6 text-left">Location</th>
+                            <th class="py-3 px-6 text-left">Stock Status</th>
+                            <th class="py-3 px-6 text-left">Reorder Point</th>
+                            <th class="py-3 px-6 text-left">Supplier Name</th>
+                            <th class="py-3 px-6 text-left">Supplier Part Number</th>
+                            <th class="py-3 px-6 text-left">Supplier Contact</th>
+                            <th class="py-3 px-6 text-left">Supplier Cost</th>
+                            <th class="py-3 px-6 text-left">Latest Lead Time</th>
+                            <th class="py-3 px-6 text-left">Retail Price</th>
+                            <th class="py-3 px-6 text-left">Last Sold Date</th>
+                            <th class="py-3 px-6 text-left">Sales Frequency</th>
+                            <th class="py-3 px-6 text-left">Condition</th>
+                            <th class="py-3 px-6 text-left">Image URL</th>
+                            <th class="py-3 px-6 text-left">Attachment Files</th>
+                            <th class="py-3 px-6 text-left">Date Added</th>
+                            <th class="py-3 px-6 text-left">Last Updated</th>
+                            <th class="py-3 px-6 text-left">Usage Rate</th>
+                            <th class="py-3 px-6 text-left">Inventory Turnover</th>
                             <th class="py-3 px-6 text-left">Actions</th>
                         </tr>
                     </thead>
@@ -181,17 +217,57 @@
             </div>
             <div id="inventory-modal" class="modal hidden fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center">
                 <div class="modal-content bg-white p-6 rounded-lg w-full max-w-md">
-                    <span class="close text-gray-500 text-2xl font-bold cursor-pointer float-right">&times;</span>
+                    <span class="close text-gray-500 text-2xl font-bold cursor-pointer float-right">×</span>
                     <h3 id="inventory-modal-title" class="text-xl font-semibold mb-4">Add Item</h3>
                     <div id="inventory-form">
-                        <label class="block text-gray-700 mb-2">Name</label>
-                        <input type="text" id="inventory-name" class="w-full p-2 mb-4 border rounded" required>
-                        <label class="block text-gray-700 mb-2">Category</label>
-                        <input type="text" id="inventory-category" class="w-full p-2 mb-4 border rounded">
-                        <label class="block text-gray-700 mb-2">Quantity</label>
-                        <input type="number" id="inventory-quantity" class="w-full p-2 mb-4 border rounded" required>
-                        <label class="block text-gray-700 mb-2">Price</label>
-                        <input type="number" id="inventory-price" step="0.01" class="w-full p-2 mb-4 border rounded" required>
+                        <label class="block text-gray-700 mb-2">Part Number*</label>
+                        <input type="text" id="inventory-part-number" class="w-full p-2 mb-4 border rounded" required>
+                        <label class="block text-gray-700 mb-2">Serial Number*</label>
+                        <input type="text" id="inventory-serial-number" class="w-full p-2 mb-4 border rounded" required>
+                        <label class="block text-gray-700 mb-2">Part Name</label>
+                        <input type="text" id="inventory-part-name" class="w-full p-2 mb-4 border rounded">
+                        <label class="block text-gray-700 mb-2">Description</label>
+                        <textarea id="inventory-description" class="w-full p-2 mb-4 border rounded"></textarea>
+                        <label class="block text-gray-700 mb-2">Category*</label>
+                        <input type="text" id="inventory-category" class="w-full p-2 mb-4 border rounded" required>
+                        <label class="block text-gray-700 mb-2">Manufacturer</label>
+                        <input type="text" id="inventory-manufacturer" class="w-full p-2 mb-4 border rounded">
+                        <label class="block text-gray-700 mb-2">Model Compatibility</label>
+                        <input type="text" id="inventory-model-compatibility" class="w-full p-2 mb-4 border rounded">
+                        <label class="block text-gray-700 mb-2">Quantity in Stock*</label>
+                        <input type="number" id="inventory-quantity-in-stock" class="w-full p-2 mb-4 border rounded" required>
+                        <label class="block text-gray-700 mb-2">Location</label>
+                        <input type="text" id="inventory-location" class="w-full p-2 mb-4 border rounded">
+                        <label class="block text-gray-700 mb-2">Stock Status</label>
+                        <input type="text" id="inventory-stock-status" class="w-full p-2 mb-4 border rounded">
+                        <label class="block text-gray-700 mb-2">Reorder Point</label>
+                        <input type="number" id="inventory-reorder-point" class="w-full p-2 mb-4 border rounded">
+                        <label class="block text-gray-700 mb-2">Supplier Name*</label>
+                        <input type="text" id="inventory-supplier-name" class="w-full p-2 mb-4 border rounded" required>
+                        <label class="block text-gray-700 mb-2">Supplier Part Number</label>
+                        <input type="text" id="inventory-supplier-part-number" class="w-full p-2 mb-4 border rounded">
+                        <label class="block text-gray-700 mb-2">Supplier Contact</label>
+                        <input type="text" id="inventory-supplier-contact" class="w-full p-2 mb-4 border rounded">
+                        <label class="block text-gray-700 mb-2">Supplier Cost</label>
+                        <input type="number" id="inventory-supplier-cost" step="0.01" class="w-full p-2 mb-4 border rounded">
+                        <label class="block text-gray-700 mb-2">Latest Lead Time Received</label>
+                        <input type="text" id="inventory-latest-lead-time" class="w-full p-2 mb-4 border rounded">
+                        <label class="block text-gray-700 mb-2">Retail Price</label>
+                        <input type="number" id="inventory-retail-price" step="0.01" class="w-full p-2 mb-4 border rounded">
+                        <label class="block text-gray-700 mb-2">Last Sold Date</label>
+                        <input type="date" id="inventory-last-sold-date" class="w-full p-2 mb-4 border rounded">
+                        <label class="block text-gray-700 mb-2">Sales Frequency</label>
+                        <input type="text" id="inventory-sales-frequency" class="w-full p-2 mb-4 border rounded">
+                        <label class="block text-gray-700 mb-2">Condition</label>
+                        <input type="text" id="inventory-condition" class="w-full p-2 mb-4 border rounded">
+                        <label class="block text-gray-700 mb-2">Image URL</label>
+                        <input type="text" id="inventory-image-url" class="w-full p-2 mb-4 border rounded">
+                        <label class="block text-gray-700 mb-2">Attachment Files</label>
+                        <input type="text" id="inventory-attachment-files" class="w-full p-2 mb-4 border rounded">
+                        <label class="block text-gray-700 mb-2">Usage Rate</label>
+                        <input type="number" id="inventory-usage-rate" step="0.01" class="w-full p-2 mb-4 border rounded">
+                        <label class="block text-gray-700 mb-2">Inventory Turnover</label>
+                        <input type="number" id="inventory-inventory-turnover" step="0.01" class="w-full p-2 mb-4 border rounded">
                         <button onclick="saveInventory()" class="bg-green-500 text-white px-4 py-2 rounded hover:bg-green-600 w-full">Save</button>
                     </div>
                 </div>

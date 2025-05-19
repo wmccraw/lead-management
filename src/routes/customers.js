@@ -23,7 +23,7 @@ router.post('/', async (req, res) => {
         let customer = await pool.query('SELECT id FROM customers WHERE email = $1', [email]);
         if (customer.rows.length === 0) {
             customer = await pool.query(
-                'INSERT INTO customers (name, company, email, phone) VALUES ($1, $2, $3, $4) RETURNING *',
+                'INSERT INTO customers (name, company, email, phone, date_added, last_updated) VALUES ($1, $2, $3, $4, NOW(), NOW()) RETURNING *',
                 [name, company, email, phone]
             );
             res.status(201).json(customer.rows[0]);
