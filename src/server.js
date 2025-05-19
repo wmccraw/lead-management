@@ -1,39 +1,60 @@
 const express = require('express');
 const { Pool } = require('pg');
-const dotenv = require('dotenv');
-const fs = require('fs').promises;
-const leadsRoutes = require('./routes/leads');
-const customersRoutes = require('./routes/customers');
-const calendarRoutes = require('./routes/calendar');
-const inventoryRoutes = require('./routes/inventory');
-
-dotenv.config();
+const leadsRouter = require('./routes/leads');
 const app = express();
 
 app.use(express.json());
 app.use(express.static('public'));
-app.use(express.urlencoded({ extended: true }));
 
 const pool = new Pool({
     connectionString: process.env.DATABASE_URL,
     ssl: { rejectUnauthorized: false }
 });
 
-// Run migration on startup
+// Run migrations on startup
 (async () => {
     try {
-        const sql = await fs.readFile('init.sql', 'utf8');
-        await pool.query(sql);
-        console.log('Database initialized successfully');
+        // Drop tables if they exist
+        await pool.query('DROP TABLE IF EXISTS leads CASCADE');
+        await pool.query('DROP TABLE IF EXISTS customers CASCADE');
+
+        // Create customers table
+        await pool.query(`
+            CREATE TABLE customers (
+                id SERIAL PRIMARY KEY,
+                name VARCHAR(100) NOT NULL,
+                company VARCHAR(100),
+                email VARCHAR(100) UNIQUE NOT NULL,
+                phone VARCHAR(20)
+            )
+        `);
+
+        // Create leads table
+        await pool.query(`
+            CREATE TABLE leads (
+                id SERIAL PRIMARY KEY,
+                customer_id INTEGER REFERENCES customers(id),
+                product_category VARCHAR(50),
+                make VARCHAR(50),
+                model VARCHAR(50),
+                notes TEXT,
+                status VARCHAR(50) DEFAULT 'Pending',
+                quoted_from_vendor BOOLEAN DEFAULT FALSE,
+                created_at TIMESTAMP DEFAULT NOW()
+            )
+        `);
+
+        console.log('Database schema updated successfully');
     } catch (err) {
-        console.error('Database initialization failed:', err);
+        console.error('Error running migrations:', err);
     }
 })();
 
-app.use('/api/leads', leadsRoutes);
-app.use('/api/customers', customersRoutes);
-app.use('/api/calendar', calendarRoutes);
-app.use('/api/inventory', inventoryRoutes);
+// Mount the leads API routes
+app.use('/api/leads', leadsRouter);
 
+// Start the server
 const PORT = process.env.PORT || 3000;
-app.listen(PORT, () => console.log(`Server running on port ${PORT}`));
+app.listen(PORT, () => {
+    console.log(`Server running on port ${PORT}`);
+});

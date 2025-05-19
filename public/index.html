@@ -15,25 +15,7 @@
     </div>
     <div id="leads" class="content">
         <h2>Leads</h2>
-        <form id="lead-form">
-            <input type="text" id="lead-name" placeholder="Customer Name" required>
-            <input type="text" id="lead-company" placeholder="Company">
-            <input type="email" id="lead-email" placeholder="Email" required>
-            <input type="text" id="lead-phone" placeholder="Phone">
-            <input type="text" id="lead-product-category" placeholder="Product Category">
-            <input type="text" id="lead-make" placeholder="Make">
-            <input type="text" id="lead-model" placeholder="Model">
-            <textarea id="lead-notes" placeholder="Notes"></textarea>
-            <select id="lead-status">
-                <option value="New">New</option>
-                <option value="Contacted">Contacted</option>
-                <option value="Qualified">Qualified</option>
-                <option value="Closed">Closed</option>
-            </select>
-            <input type="checkbox" id="quoted-vendor" name="quoted-vendor">
-            <label for="quoted-vendor">Quoted from Vendor?</label>
-            <button type="submit">Add Lead</button>
-        </form>
+        <button id="add-lead-btn">Add Lead</button>
         <table id="leads-table">
             <thead>
                 <tr>
@@ -47,40 +29,70 @@
                     <th>Notes</th>
                     <th>Status</th>
                     <th>Time in System</th>
-                    <th>Quoted?</th>
+                    <th>Quoted from Vendor</th>
                     <th>Actions</th>
                 </tr>
             </thead>
-            <tbody></tbody>
+            <tbody id="leads-body"></tbody>
         </table>
         <div id="lead-modal" class="modal">
             <div class="modal-content">
                 <span class="close">×</span>
-                <h3>Edit Lead</h3>
-                <input type="hidden" id="lead-id">
-                <input type="text" id="edit-lead-name" placeholder="Customer Name" required>
-                <input type="text" id="edit-lead-company" placeholder="Company">
-                <input type="email" id="edit-lead-email" placeholder="Email" required>
-                <input type="text" id="edit-lead-phone" placeholder="Phone">
-                <input type="text" id="edit-lead-product-category" placeholder="Product Category">
-                <input type="text" id="edit-lead-make" placeholder="Make">
-                <input type="text" id="edit-lead-model" placeholder="Model">
-                <textarea id="edit-lead-notes" placeholder="Notes"></textarea>
-                <select id="edit-lead-status">
-                    <option value="New">New</option>
-                    <option value="Contacted">Contacted</option>
-                    <option value="Qualified">Qualified</option>
-                    <option value="Closed">Closed</option>
-                </select>
-                <input type="checkbox" id="edit-quoted-vendor">
-                <label for="edit-quoted-vendor">Quoted from Vendor?</label>
-                <button onclick="saveLead()">Save</button>
+                <h3 id="modal-title">Add Lead</h3>
+                <div id="lead-form">
+                    <div id="customer-fields">
+                        <label>Customer Name</label>
+                        <input type="text" id="name" required>
+                        <label>Company</label>
+                        <input type="text" id="company">
+                        <label>Email</label>
+                        <input type="email" id="email" required>
+                        <label>Phone</label>
+                        <input type="text" id="phone">
+                    </div>
+                    <label>Product Category</label>
+                    <input type="text" id="product-category">
+                    <label>Make</label>
+                    <input type="text" id="make">
+                    <label>Model</label>
+                    <input type="text" id="model">
+                    <label>Notes</label>
+                    <textarea id="notes"></textarea>
+                    <label>Status</label>
+                    <select id="status">
+                        <option value="Pending">Pending</option>
+                        <option value="Quoted">Quoted</option>
+                        <option value="Confirmed">Confirmed</option>
+                        <option value="Lost">Lost</option>
+                    </select>
+                    <button onclick="saveLead()">Save</button>
+                </div>
             </div>
         </div>
     </div>
-    <!-- Other content sections (Customers, Calendar, Inventory) go here -->
+    <div id="customers" class="content">
+        <h2>Customers</h2>
+        <table id="customers-table">
+            <thead>
+                <tr>
+                    <th>Name</th>
+                    <th>Company</th>
+                    <th>Email</th>
+                    <th>Phone</th>
+                </tr>
+            </thead>
+            <tbody id="customers-body"></tbody>
+        </table>
+    </div>
+    <div id="calendar" class="content">
+        <h2>Calendar</h2>
+        <!-- Placeholder for calendar content -->
+    </div>
+    <div id="inventory" class="content">
+        <h2>Inventory</h2>
+        <!-- Placeholder for inventory content -->
+    </div>
     <script src="/js/tabs.js"></script>
     <script src="/js/leads.js"></script>
-    <!-- Other scripts for Customers, Calendar, Inventory go here -->
 </body>
 </html>

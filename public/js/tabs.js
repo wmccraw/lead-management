@@ -1,10 +1,13 @@
-// Centralized tab-switching logic
 function loadTab(tab) {
     document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
     document.querySelectorAll('.content').forEach(c => c.style.display = 'none');
     document.querySelector(`.tab[data-tab="${tab}"]`).classList.add('active');
     document.getElementById(tab).style.display = 'block';
-    if (tab === 'leads') loadLeads();
+    if (tab === 'leads') {
+        loadLeads();
+    } else if (tab === 'customers') {
+        loadCustomers();
+    }
 }
 
 document.addEventListener('DOMContentLoaded', () => {
@@ -16,7 +19,6 @@ document.addEventListener('DOMContentLoaded', () => {
     });
     loadTab('leads');
 
-    // Modal controls
     document.querySelectorAll('.modal .close').forEach(close => {
         close.addEventListener('click', () => {
             close.closest('.modal').style.display = 'none';
