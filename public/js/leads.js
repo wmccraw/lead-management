@@ -1,14 +1,4 @@
-document.addEventListener('DOMContentLoaded', () => {
-    loadLeads();
-    loadCustomers();
-});
 document.getElementById('add-lead-btn').addEventListener('click', () => showLeadModal('add'));
-document.querySelector('.close').addEventListener('click', () => document.getElementById('lead-modal').style.display = 'none');
-window.addEventListener('click', (e) => {
-    if (e.target === document.getElementById('lead-modal')) {
-        document.getElementById('lead-modal').style.display = 'none';
-    }
-});
 
 async function loadLeads() {
     const response = await fetch('/api/leads');
@@ -18,52 +8,25 @@ async function loadLeads() {
     leads.forEach(lead => {
         const timeInSystem = Math.floor((new Date() - new Date(lead.created_at)) / (1000 * 60 * 60 * 24));
         const tr = document.createElement('tr');
+        tr.className = 'border-b border-gray-200 hover:bg-gray-100';
         tr.innerHTML = `
-            <td>${lead.name}</td>
-            <td>${lead.company || ''}</td>
-            <td>${lead.email}</td>
-            <td>${lead.phone || ''}</td>
-            <td>${lead.product_category || ''}</td>
-            <td>${lead.make || ''}</td>
-            <td>${lead.model || ''}</td>
-            <td>${lead.notes || ''}</td>
-            <td>${lead.status}</td>
-            <td>${timeInSystem} days</td>
-            <td><input type="checkbox" ${lead.quoted_from_vendor ? 'checked' : ''} onchange="toggleQuoted(${lead.id}, this.checked)"></td>
-            <td>
-                <button onclick="showLeadModal('edit', ${lead.id})">Edit</button>
-                <button onclick="deleteLead(${lead.id})">Delete</button>
+            <td class="py-3 px-6">${lead.name}</td>
+            <td class="py-3 px-6">${lead.company || ''}</td>
+            <td class="py-3 px-6">${lead.email}</td>
+            <td class="py-3 px-6">${lead.phone || ''}</td>
+            <td class="py-3 px-6">${lead.product_category || ''}</td>
+            <td class="py-3 px-6">${lead.make || ''}</td>
+            <td class="py-3 px-6">${lead.model || ''}</td>
+            <td class="py-3 px-6">${lead.notes || ''}</td>
+            <td class="py-3 px-6">${lead.status}</td>
+            <td class="py-3 px-6">${timeInSystem} days</td>
+            <td class="py-3 px-6">
+                <input type="checkbox" ${lead.quoted_from_vendor ? 'checked' : ''} onchange="toggleQuoted(${lead.id}, this.checked)">
             </td>
-        `;
-        tbody.appendChild(tr);
-    });
-}
-
-async function loadCustomers() {
-    const response = await fetch('/api/leads');
-    const leads = await response.json();
-    const tbody = document.getElementById('customers-body');
-    tbody.innerHTML = '';
-    const customers = [];
-    const emails = new Set();
-    leads.forEach(lead => {
-        if (!emails.has(lead.email)) {
-            emails.add(lead.email);
-            customers.push({
-                name: lead.name,
-                company: lead.company,
-                email: lead.email,
-                phone: lead.phone
-            });
-        }
-    });
-    customers.forEach(customer => {
-        const tr = document.createElement('tr');
-        tr.innerHTML = `
-            <td>${customer.name}</td>
-            <td>${customer.company || ''}</td>
-            <td>${customer.email}</td>
-            <td>${customer.phone || ''}</td>
+            <td class="py-3 px-6">
+                <button onclick="showLeadModal('edit', ${lead.id})" class="bg-blue-500 text-white px-3 py-1 rounded hover:bg-blue-600 mr-2">Edit</button>
+                <button onclick="deleteLead(${lead.id})" class="bg-red-500 text-white px-3 py-1 rounded hover:bg-red-600">Delete</button>
+            </td>
         `;
         tbody.appendChild(tr);
     });
@@ -71,37 +34,37 @@ async function loadCustomers() {
 
 function showLeadModal(mode, id = null) {
     const modal = document.getElementById('lead-modal');
-    const title = document.getElementById('modal-title');
-    const customerFields = document.getElementById('customer-fields');
+    const title = document.getElementById('lead-modal-title');
+    const customerFields = document.getElementById('lead-customer-fields');
     modal.dataset.mode = mode;
     modal.dataset.id = id || '';
 
     if (mode === 'add') {
         title.textContent = 'Add Lead';
         customerFields.style.display = 'block';
-        document.getElementById('name').value = '';
-        document.getElementById('company').value = '';
-        document.getElementById('email').value = '';
-        document.getElementById('phone').value = '';
-        document.getElementById('product-category').value = '';
-        document.getElementById('make').value = '';
-        document.getElementById('model').value = '';
-        document.getElementById('notes').value = '';
-        document.getElementById('status').value = 'Pending';
+        document.getElementById('lead-name').value = '';
+        document.getElementById('lead-company').value = '';
+        document.getElementById('lead-email').value = '';
+        document.getElementById('lead-phone').value = '';
+        document.getElementById('lead-product-category').value = '';
+        document.getElementById('lead-make').value = '';
+        document.getElementById('lead-model').value = '';
+        document.getElementById('lead-notes').value = '';
+        document.getElementById('lead-status').value = 'Pending';
     } else if (mode === 'edit') {
         title.textContent = 'Edit Lead';
         customerFields.style.display = 'none';
         fetch(`/api/leads/${id}`)
             .then(res => res.json())
             .then(lead => {
-                document.getElementById('product-category').value = lead.product_category || '';
-                document.getElementById('make').value = lead.make || '';
-                document.getElementById('model').value = lead.model || '';
-                document.getElementById('notes').value = lead.notes || '';
-                document.getElementById('status').value = lead.status;
+                document.getElementById('lead-product-category').value = lead.product_category || '';
+                document.getElementById('lead-make').value = lead.make || '';
+                document.getElementById('lead-model').value = lead.model || '';
+                document.getElementById('lead-notes').value = lead.notes || '';
+                document.getElementById('lead-status').value = lead.status;
             });
     }
-    modal.style.display = 'block';
+    modal.classList.remove('hidden');
 }
 
 async function saveLead() {
@@ -110,16 +73,16 @@ async function saveLead() {
     const id = modal.dataset.id;
     const data = {};
     if (mode === 'add') {
-        data.name = document.getElementById('name').value;
-        data.company = document.getElementById('company').value;
-        data.email = document.getElementById('email').value;
-        data.phone = document.getElementById('phone').value;
+        data.name = document.getElementById('lead-name').value;
+        data.company = document.getElementById('lead-company').value;
+        data.email = document.getElementById('lead-email').value;
+        data.phone = document.getElementById('lead-phone').value;
     }
-    data.product_category = document.getElementById('product-category').value;
-    data.make = document.getElementById('make').value;
-    data.model = document.getElementById('model').value;
-    data.notes = document.getElementById('notes').value;
-    data.status = document.getElementById('status').value;
+    data.product_category = document.getElementById('lead-product-category').value;
+    data.make = document.getElementById('lead-make').value;
+    data.model = document.getElementById('lead-model').value;
+    data.notes = document.getElementById('lead-notes').value;
+    data.status = document.getElementById('lead-status').value;
 
     const url = mode === 'add' ? '/api/leads' : `/api/leads/${id}`;
     const method = mode === 'add' ? 'POST' : 'PUT';
@@ -128,7 +91,7 @@ async function saveLead() {
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(data)
     });
-    modal.style.display = 'none';
+    modal.classList.add('hidden');
     loadLeads();
     loadCustomers();
 }

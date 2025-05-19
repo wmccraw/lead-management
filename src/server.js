@@ -1,6 +1,9 @@
 const express = require('express');
 const { Pool } = require('pg');
 const leadsRouter = require('./routes/leads');
+const customersRouter = require('./routes/customers');
+const calendarRouter = require('./routes/calendar');
+const inventoryRouter = require('./routes/inventory');
 const app = express();
 
 app.use(express.json());
@@ -17,6 +20,8 @@ const pool = new Pool({
         // Drop tables if they exist
         await pool.query('DROP TABLE IF EXISTS leads CASCADE');
         await pool.query('DROP TABLE IF EXISTS customers CASCADE');
+        await pool.query('DROP TABLE IF EXISTS calendar_events CASCADE');
+        await pool.query('DROP TABLE IF EXISTS inventory CASCADE');
 
         // Create customers table
         await pool.query(`
@@ -44,14 +49,40 @@ const pool = new Pool({
             )
         `);
 
+        // Create calendar_events table
+        await pool.query(`
+            CREATE TABLE calendar_events (
+                id SERIAL PRIMARY KEY,
+                title VARCHAR(100) NOT NULL,
+                event_date DATE NOT NULL,
+                description TEXT,
+                created_at TIMESTAMP DEFAULT NOW()
+            )
+        `);
+
+        // Create inventory table
+        await pool.query(`
+            CREATE TABLE inventory (
+                id SERIAL PRIMARY KEY,
+                name VARCHAR(100) NOT NULL,
+                category VARCHAR(50),
+                quantity INTEGER NOT NULL,
+                price DECIMAL(10, 2) NOT NULL,
+                created_at TIMESTAMP DEFAULT NOW()
+            )
+        `);
+
         console.log('Database schema updated successfully');
     } catch (err) {
         console.error('Error running migrations:', err);
     }
 })();
 
-// Mount the leads API routes
+// Mount API routes
 app.use('/api/leads', leadsRouter);
+app.use('/api/customers', customersRouter);
+app.use('/api/calendar', calendarRouter);
+app.use('/api/inventory', inventoryRouter);
 
 // Start the server
 const PORT = process.env.PORT || 3000;

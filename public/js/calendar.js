@@ -1,77 +1,74 @@
-let loadCalendar;
+document.getElementById('add-event-btn').addEventListener('click', () => showEventModal('add'));
 
-document.addEventListener('DOMContentLoaded', () => {
-    loadCalendar = async () => {
-        const date = document.getElementById('calendar-date').value || new Date().toISOString().split('T')[0];
-        const response = await fetch(`/api/calendar?date=${date}`);
-        const events = await response.json();
-        const tbody = document.querySelector('#calendar-events tbody');
-        tbody.innerHTML = '';
-        events.forEach(event => {
-            const tr = document.createElement('tr');
-            tr.innerHTML = `
-                <td>${event.name}</td>
-                <td>${event.time}</td>
-                <td>
-                    <button onclick="openEventModal(${event.id}, '${event.name}', '${event.time}')">Edit</button>
-                    <button onclick="deleteEvent(${event.id})">Delete</button>
-                </td>
-            `;
-            tbody.appendChild(tr);
-        });
-    };
-
-    const form = document.getElementById('event-form');
-    if (form) {
-        form.addEventListener('submit', async (e) => {
-            e.preventDefault();
-            const event = {
-                name: document.getElementById('event-name').value,
-                time: document.getElementById('event-time').value,
-                date: document.getElementById('calendar-date').value
-            };
-            await fetch('/api/calendar', {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify(event)
-            });
-            form.reset();
-            loadCalendar();
-        });
-    }
-
-    document.getElementById('calendar-date').addEventListener('change', loadCalendar);
-});
-
-function openEventModal(id, name, time) {
-    document.getElementById('event-id').value = id;
-    document.getElementById('edit-event-name').value = name;
-    document.getElementById('edit-event-time').value = time;
-    document.getElementById('event-modal').style.display = 'block';
-}
-
-function saveEvent() {
-    const id = document.getElementById('event-id').value;
-    const event = {
-        id: id,
-        name: document.getElementById('edit-event-name').value,
-        time: document.getElementById('edit-event-time').value,
-        date: document.getElementById('calendar-date').value
-    };
-    fetch(`/api/calendar/${id}`, {
-        method: 'PUT',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(event)
-    }).then(() => {
-        document.getElementById('event-modal').style.display = 'none';
-        loadCalendar();
+async function loadCalendar() {
+    const response = await fetch('/api/calendar');
+    const events = await response.json();
+    const tbody = document.getElementById('calendar-body');
+    tbody.innerHTML = '';
+    events.forEach(event => {
+        const tr = document.createElement('tr');
+        tr.className = 'border-b border-gray-200 hover:bg-gray-100';
+        tr.innerHTML = `
+            <td class="py-3 px-6">${event.title}</td>
+            <td class="py-3 px-6">${event.event_date}</td>
+            <td class="py-3 px-6">${event.description || ''}</td>
+            <td class="py-3 px-6">
+                <button onclick="showEventModal('edit', ${event.id})" class="bg-blue-500 text-white px-3 py-1 rounded hover:bg-blue-600 mr-2">Edit</button>
+                <button onclick="deleteEvent(${event.id})" class="bg-red-500 text-white px-3 py-1 rounded hover:bg-red-600">Delete</button>
+            </td>
+        `;
+        tbody.appendChild(tr);
     });
 }
 
-function deleteEvent(id) {
+function showEventModal(mode, id = null) {
+    const modal = document.getElementById('event-modal');
+    const title = document.getElementById('event-modal-title');
+    modal.dataset.mode = mode;
+    modal.dataset.id = id || '';
+
+    if (mode === 'add') {
+        title.textContent = 'Add Event';
+        document.getElementById('event-title').value = '';
+        document.getElementById('event-date').value = '';
+        document.getElementById('event-description').value = '';
+    } else if (mode === 'edit') {
+        title.textContent = 'Edit Event';
+        fetch(`/api/calendar/${id}`)
+            .then(res => res.json())
+            .then(event => {
+                document.getElementById('event-title').value = event.title;
+                document.getElementById('event-date').value = event.event_date;
+                document.getElementById('event-description').value = event.description || '';
+            });
+    }
+    modal.classList.remove('hidden');
+}
+
+async function saveEvent() {
+    const modal = document.getElementById('event-modal');
+    const mode = modal.dataset.mode;
+    const id = modal.dataset.id;
+    const data = {
+        title: document.getElementById('event-title').value,
+        event_date: document.getElementById('event-date').value,
+        description: document.getElementById('event-description').value
+    };
+
+    const url = mode === 'add' ? '/api/calendar' : `/api/calendar/${id}`;
+    const method = mode === 'add' ? 'POST' : 'PUT';
+    await fetch(url, {
+        method,
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(data)
+    });
+    modal.classList.add('hidden');
+    loadCalendar();
+}
+
+async function deleteEvent(id) {
     if (confirm('Are you sure you want to delete this event?')) {
-        fetch(`/api/calendar/${id}`, {
-            method: 'DELETE'
-        }).then(() => loadCalendar());
+        await fetch(`/api/calendar/${id}`, { method: 'DELETE' });
+        loadCalendar();
     }
 }

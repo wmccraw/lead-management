@@ -18,60 +18,18 @@ router.get('/', async (req, res) => {
 });
 
 router.post('/', async (req, res) => {
-    const { name, email } = req.body;
+    const { name, company, email, phone } = req.body;
     try {
-        const result = await pool.query(
-            'INSERT INTO customers (name, email) VALUES ($1, $2) RETURNING id',
-            [name, email]
-        );
-        res.status(201).json({ id: result.rows[0].id, ...req.body });
-    } catch (err) {
-        console.error(err);
-        res.status(500).send('Server error');
-    }
-});
-
-router.put('/:id', async (req, res) => {
-    const { id } = req.params;
-    const { name, email } = req.body;
-    try {
-        await pool.query(
-            'UPDATE customers SET name = $1, email = $2 WHERE id = $3',
-            [name, email, id]
-        );
-        res.sendStatus(200);
-    } catch (err) {
-        console.error(err);
-        res.status(500).send('Server error');
-    }
-});
-
-router.delete('/:id', async (req, res) => {
-    const { id } = req.params;
-    try {
-        await pool.query('DELETE FROM customers WHERE id = $1', [id]);
-        res.sendStatus(200);
-    } catch (err) {
-        console.error(err);
-        res.status(500).send('Server error');
-    }
-});
-
-router.get('/csv', async (req, res) => {
-    try {
-        const result = await pool.query('SELECT * FROM customers');
-        const headers = ['id', 'name', 'email'];
-        let csv = headers.join(',') + '\n';
-        result.rows.forEach(row => {
-            const values = headers.map(h => {
-                const val = row[h];
-                return val !== null && val !== undefined ? `"${val.toString().replace(/"/g, '""')}"` : '';
-            });
-            csv += values.join(',') + '\n';
-        });
-        res.header('Content-Type', 'text/csv');
-        res.attachment('customers.csv');
-        res.send(csv);
+        let customer = await pool.query('SELECT id FROM customers WHERE email = $1', [email]);
+        if (customer.rows.length === 0) {
+            customer = await pool.query(
+                'INSERT INTO customers (name, company, email, phone) VALUES ($1, $2, $3, $4) RETURNING *',
+                [name, company, email, phone]
+            );
+            res.status(201).json(customer.rows[0]);
+        } else {
+            res.status(200).json(customer.rows[0]);
+        }
     } catch (err) {
         console.error(err);
         res.status(500).send('Server error');

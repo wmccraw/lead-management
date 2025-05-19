@@ -1,13 +1,13 @@
 function loadTab(tab) {
-    document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
-    document.querySelectorAll('.content').forEach(c => c.style.display = 'none');
-    document.querySelector(`.tab[data-tab="${tab}"]`).classList.add('active');
-    document.getElementById(tab).style.display = 'block';
-    if (tab === 'leads') {
-        loadLeads();
-    } else if (tab === 'customers') {
-        loadCustomers();
-    }
+    document.querySelectorAll('.tab').forEach(t => t.classList.remove('border-green-500', 'active-tab'));
+    document.querySelectorAll('.content').forEach(c => c.classList.add('hidden'));
+    const activeTab = document.querySelector(`.tab[data-tab="${tab}"]`);
+    activeTab.classList.add('border-green-500', 'active-tab');
+    document.getElementById(tab).classList.remove('hidden');
+    if (tab === 'leads') loadLeads();
+    if (tab === 'customers') loadCustomers();
+    if (tab === 'calendar') loadCalendar();
+    if (tab === 'inventory') loadInventory();
 }
 
 document.addEventListener('DOMContentLoaded', () => {
@@ -21,12 +21,12 @@ document.addEventListener('DOMContentLoaded', () => {
 
     document.querySelectorAll('.modal .close').forEach(close => {
         close.addEventListener('click', () => {
-            close.closest('.modal').style.display = 'none';
+            close.closest('.modal').classList.add('hidden');
         });
     });
     window.addEventListener('click', (event) => {
         document.querySelectorAll('.modal').forEach(modal => {
-            if (event.target === modal) modal.style.display = 'none';
+            if (event.target === modal) modal.classList.add('hidden');
         });
     });
 });

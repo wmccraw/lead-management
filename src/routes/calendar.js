@@ -8,12 +8,8 @@ const pool = new Pool({
 });
 
 router.get('/', async (req, res) => {
-    const { date } = req.query;
     try {
-        const result = await pool.query(
-            'SELECT * FROM calendar WHERE date = $1',
-            [date || new Date().toISOString().split('T')[0]]
-        );
+        const result = await pool.query('SELECT * FROM calendar_events ORDER BY event_date');
         res.json(result.rows);
     } catch (err) {
         console.error(err);
@@ -22,13 +18,13 @@ router.get('/', async (req, res) => {
 });
 
 router.post('/', async (req, res) => {
-    const { name, time, date } = req.body;
+    const { title, event_date, description } = req.body;
     try {
         const result = await pool.query(
-            'INSERT INTO calendar (name, time, date) VALUES ($1, $2, $3) RETURNING id',
-            [name, time, date]
+            'INSERT INTO calendar_events (title, event_date, description, created_at) VALUES ($1, $2, $3, NOW()) RETURNING *',
+            [title, event_date, description]
         );
-        res.status(201).json({ id: result.rows[0].id, ...req.body });
+        res.status(201).json(result.rows[0]);
     } catch (err) {
         console.error(err);
         res.status(500).send('Server error');
@@ -36,12 +32,11 @@ router.post('/', async (req, res) => {
 });
 
 router.put('/:id', async (req, res) => {
-    const { id } = req.params;
-    const { name, time, date } = req.body;
+    const { title, event_date, description } = req.body;
     try {
         await pool.query(
-            'UPDATE calendar SET name = $1, time = $2, date = $3 WHERE id = $4',
-            [name, time, date, id]
+            'UPDATE calendar_events SET title = $1, event_date = $2, description = $3 WHERE id = $4',
+            [title, event_date, description, req.params.id]
         );
         res.sendStatus(200);
     } catch (err) {
@@ -51,9 +46,8 @@ router.put('/:id', async (req, res) => {
 });
 
 router.delete('/:id', async (req, res) => {
-    const { id } = req.params;
     try {
-        await pool.query('DELETE FROM calendar WHERE id = $1', [id]);
+        await pool.query('DELETE FROM calendar_events WHERE id = $1', [req.params.id]);
         res.sendStatus(200);
     } catch (err) {
         console.error(err);
