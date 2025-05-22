@@ -26,7 +26,7 @@
             transition: background-color 0.3s;
         }
         .calendar-day.out {
-            background-color: #fee2e2; /* Light red for out status */
+            background-color: #fee2e2; /* Light red for absence */
         }
         .calendar-day:hover {
             background-color: #f3f4f6;
@@ -37,7 +37,7 @@
             transition: max-height 0.3s ease-out;
         }
         .expandable-notes.expanded {
-            max-height: 200px; /* Adjust based on content */
+            max-height: 200px;
         }
     </style>
 </head>
@@ -169,14 +169,17 @@
                     <span class="close text-gray-500 text-2xl font-bold cursor-pointer float-right">×</span>
                     <h3 id="day-modal-title" class="text-xl font-semibold mb-4">Add Note or Out Status</h3>
                     <div id="day-form">
-                        <label class="block text-gray-700 mb-2">Notes</label>
+                        <label class="block text-gray-700 mb-2 font-bold">NOTES/PERSON OUT:</label>
                         <textarea id="day-notes" class="w-full p-2 mb-4 border rounded"></textarea>
-                        <label class="block text-gray-700 mb-2">Out Status</label>
-                        <input type="checkbox" id="day-out-status" class="mb-4">
-                        <div id="out-range" class="hidden">
-                            <label class="block text-gray-700 mb-2">Out End Date</label>
-                            <input type="date" id="day-out-end" class="w-full p-2 mb-4 border rounded">
-                        </div>
+                        <label class="block text-gray-700 mb-2">Note Type</label>
+                        <select id="note-type" class="w-full p-2 mb-4 border rounded">
+                            <option value="General">General</option>
+                            <option value="Absence">Absence</option>
+                        </select>
+                        <label class="block text-gray-700 mb-2">Start Date</label>
+                        <input type="date" id="day-start-date" class="w-full p-2 mb-4 border rounded" required>
+                        <label class="block text-gray-700 mb-2">End Date (Optional)</label>
+                        <input type="date" id="day-end-date" class="w-full p-2 mb-4 border rounded">
                         <button onclick="saveDay()" class="bg-green-500 text-white px-4 py-2 rounded hover:bg-green-600 w-full">Save</button>
                         <div id="full-notes" class="expandable-notes mt-4 text-gray-600"></div>
                     </div>
