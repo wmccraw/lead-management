@@ -1,80 +1,137 @@
-document.getElementById('add-event-btn').addEventListener('click', () => showEventModal('add'));
+document.getElementById('add-day-note-btn').addEventListener('click', () => showDayModal());
+
+function getDaysInMonth(year, month) {
+    return new Date(year, month + 1, 0).getDate();
+}
+
+function getFirstDayOfMonth(year, month) {
+    return new Date(year, month, 1).getDay();
+}
+
+function renderCalendar(year, month) {
+    const grid = document.getElementById('calendar-grid');
+    grid.innerHTML = '';
+    const daysInMonth = getDaysInMonth(year, month);
+    const firstDay = getFirstDayOfMonth(year, month);
+    const today = new Date();
+    const currentMonth = today.getMonth();
+    const currentYear = today.getFullYear();
+
+    // Add day names
+    const dayNames = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
+    dayNames.forEach(day => {
+        const dayElement = document.createElement('div');
+        dayElement.className = 'calendar-day font-bold text-center bg-gray-300';
+        dayElement.textContent = day;
+        grid.appendChild(dayElement);
+    });
+
+    // Add empty cells before the first day
+    for (let i = 0; i < firstDay; i++) {
+        const emptyCell = document.createElement('div');
+        emptyCell.className = 'calendar-day';
+        grid.appendChild(emptyCell);
+    }
+
+    // Add days
+    for (let day = 1; day <= daysInMonth; day++) {
+        const date = new Date(year, month, day).toISOString().split('T')[0];
+        const dayElement = document.createElement('div');
+        dayElement.className = 'calendar-day text-center';
+        dayElement.dataset.date = date;
+        if (year === currentYear && month === currentMonth && day === today.getDate()) {
+            dayElement.classList.add('bg-blue-100');
+        }
+        dayElement.innerHTML = `<div class="day-number">${day}</div><div class="day-notes"></div>`;
+        dayElement.addEventListener('click', () => showDayModal(date));
+        grid.appendChild(dayElement);
+    }
+
+    // Fill remaining cells
+    const totalCells = 42; // 6 weeks max
+    while (grid.children.length < totalCells) {
+        const emptyCell = document.createElement('div');
+        emptyCell.className = 'calendar-day';
+        grid.appendChild(emptyCell);
+    }
+}
 
 async function loadCalendar() {
+    const monthInput = document.getElementById('calendar-month');
+    const [year, month] = monthInput.value.split('-');
+    renderCalendar(year, parseInt(month));
     const response = await fetch('/api/calendar');
-    const events = await response.json();
-    const tbody = document.getElementById('calendar-body');
-    tbody.innerHTML = '';
-    events.forEach(event => {
-        const tr = document.createElement('tr');
-        tr.className = 'border-b border-gray-200 hover:bg-gray-100';
-        tr.innerHTML = `
-            <td class="py-3 px-6">${event.title}</td>
-            <td class="py-3 px-6">${event.event_date}</td>
-            <td class="py-3 px-6">${event.description || ''}</td>
-            <td class="py-3 px-6">${event.organizer || ''}</td>
-            <td class="py-3 px-6">${event.location || ''}</td>
-            <td class="py-3 px-6">${event.priority || ''}</td>
-            <td class="py-3 px-6">${event.status || ''}</td>
-            <td class="py-3 px-6">
-                <button onclick="showEventModal('edit', ${event.id})" class="bg-blue-500 text-white px-3 py-1 rounded hover:bg-blue-600 mr-2">Edit</button>
-                <button onclick="deleteEvent(${event.id})" class="bg-red-500 text-white px-3 py-1 rounded hover:bg-red-600">Delete</button>
-            </td>
-        `;
-        tbody.appendChild(tr);
+    const days = await response.json();
+    days.forEach(day => {
+        const dayElement = document.querySelector(`.calendar-day[data-date="${day.date}"]`);
+        if (dayElement) {
+            const notesDiv = dayElement.querySelector('.day-notes');
+            if (day.notes) notesDiv.textContent = day.notes.substring(0, 20) + (day.notes.length > 20 ? '...' : '');
+            if (day.out_status) {
+                dayElement.classList.add('out');
+                if (day.out_start_date && day.out_end_date) {
+                    const start = new Date(day.out_start_date);
+                    const end = new Date(day.out_end_date);
+                    const current = new Date(day.date);
+                    if (current >= start && current <= end) dayElement.classList.add('out');
+                }
+            }
+        }
     });
 }
 
-function showEventModal(mode, id = null) {
-    const modal = document.getElementById('event-modal');
-    const title = document.getElementById('event-modal-title');
-    modal.dataset.mode = mode;
-    modal.dataset.id = id || '';
+function showDayModal(date = null) {
+    const modal = document.getElementById('day-modal');
+    const title = document.getElementById('day-modal-title');
+    const outRange = document.getElementById('out-range');
+    modal.dataset.date = date || '';
 
-    if (mode === 'add') {
-        title.textContent = 'Add Event';
-        document.getElementById('event-title').value = '';
-        document.getElementById('event-date').value = '';
-        document.getElementById('event-description').value = '';
-        document.getElementById('event-organizer').value = '';
-        document.getElementById('event-location').value = '';
-        document.getElementById('event-priority').value = '';
-        document.getElementById('event-status').value = '';
-    } else if (mode === 'edit') {
-        title.textContent = 'Edit Event';
-        fetch(`/api/calendar/${id}`)
+    if (date) {
+        title.textContent = 'Edit Note or Out Status';
+        fetch(`/api/calendar/day/${date}`)
             .then(res => res.json())
-            .then(event => {
-                document.getElementById('event-title').value = event.title;
-                document.getElementById('event-date').value = event.event_date;
-                document.getElementById('event-description').value = event.description || '';
-                document.getElementById('event-organizer').value = event.organizer || '';
-                document.getElementById('event-location').value = event.location || '';
-                document.getElementById('event-priority').value = event.priority || '';
-                document.getElementById('event-status').value = event.status || '';
+            .then(day => {
+                document.getElementById('day-date').value = day.date || '';
+                document.getElementById('day-notes').value = day.notes || '';
+                document.getElementById('day-out-status').checked = day.out_status || false;
+                document.getElementById('day-out-start').value = day.out_start_date || '';
+                document.getElementById('day-out-end').value = day.out_end_date || '';
+                outRange.style.display = day.out_status ? 'block' : 'none';
             });
+    } else {
+        title.textContent = 'Add Note or Out Status';
+        document.getElementById('day-date').value = '';
+        document.getElementById('day-notes').value = '';
+        document.getElementById('day-out-status').checked = false;
+        document.getElementById('day-out-start').value = '';
+        document.getElementById('day-out-end').value = '';
+        outRange.style.display = 'none';
     }
+    document.getElementById('day-out-status').addEventListener('change', function() {
+        outRange.style.display = this.checked ? 'block' : 'none';
+    });
     modal.classList.remove('hidden');
 }
 
-async function saveEvent() {
-    const modal = document.getElementById('event-modal');
-    const mode = modal.dataset.mode;
-    const id = modal.dataset.id;
+async function saveDay() {
+    const modal = document.getElementById('day-modal');
+    const date = document.getElementById('day-date').value;
     const data = {
-        title: document.getElementById('event-title').value,
-        event_date: document.getElementById('event-date').value,
-        description: document.getElementById('event-description').value,
-        organizer: document.getElementById('event-organizer').value,
-        location: document.getElementById('event-location').value,
-        priority: document.getElementById('event-priority').value,
-        status: document.getElementById('event-status').value
+        date,
+        notes: document.getElementById('day-notes').value,
+        out_status: document.getElementById('day-out-status').checked,
+        out_start_date: document.getElementById('day-out-start').value || null,
+        out_end_date: document.getElementById('day-out-end').value || null
     };
 
-    const url = mode === 'add' ? '/api/calendar' : `/api/calendar/${id}`;
-    const method = mode === 'add' ? 'POST' : 'PUT';
+    if (!date) {
+        alert('Please select a date.');
+        return;
+    }
+
+    const url = `/api/calendar/day/${date}`;
     await fetch(url, {
-        method,
+        method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(data)
     });
@@ -82,9 +139,8 @@ async function saveEvent() {
     loadCalendar();
 }
 
-async function deleteEvent(id) {
-    if (confirm('Are you sure you want to delete this event?')) {
-        await fetch(`/api/calendar/${id}`, { method: 'DELETE' });
-        loadCalendar();
-    }
-}
+document.addEventListener('DOMContentLoaded', () => {
+    const today = new Date();
+    document.getElementById('calendar-month').value = `${today.getFullYear()}-${String(today.getMonth() + 1).padStart(2, '0')}`;
+    loadCalendar();
+});

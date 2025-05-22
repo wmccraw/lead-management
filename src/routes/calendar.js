@@ -9,7 +9,7 @@ const pool = new Pool({
 
 router.get('/', async (req, res) => {
     try {
-        const result = await pool.query('SELECT * FROM calendar_events ORDER BY event_date');
+        const result = await pool.query('SELECT * FROM calendar_days ORDER BY date');
         res.json(result.rows);
     } catch (err) {
         console.error(err);
@@ -17,13 +17,13 @@ router.get('/', async (req, res) => {
     }
 });
 
-router.post('/', async (req, res) => {
-    const { title, event_date, description, organizer, location, priority, status } = req.body;
+router.post('/day', async (req, res) => {
+    const { date, notes, out_status, out_start_date, out_end_date } = req.body;
     try {
         const result = await pool.query(
-            'INSERT INTO calendar_events (title, event_date, description, organizer, location, priority, status, created_at) ' +
-            'VALUES ($1, $2, $3, $4, $5, $6, $7, NOW()) RETURNING *',
-            [title, event_date, description, organizer, location, priority, status]
+            'INSERT INTO calendar_days (date, notes, out_status, out_start_date, out_end_date, created_at) ' +
+            'VALUES ($1, $2, $3, $4, $5, NOW()) ON CONFLICT (date) DO UPDATE SET notes = $2, out_status = $3, out_start_date = $4, out_end_date = $5, created_at = NOW() RETURNING *',
+            [date, notes || null, out_status || false, out_start_date || null, out_end_date || null]
         );
         res.status(201).json(result.rows[0]);
     } catch (err) {
@@ -32,12 +32,12 @@ router.post('/', async (req, res) => {
     }
 });
 
-router.put('/:id', async (req, res) => {
-    const { title, event_date, description, organizer, location, priority, status } = req.body;
+router.put('/day/:date', async (req, res) => {
+    const { notes, out_status, out_start_date, out_end_date } = req.body;
     try {
         await pool.query(
-            'UPDATE calendar_events SET title = $1, event_date = $2, description = $3, organizer = $4, location = $5, priority = $6, status = $7 WHERE id = $8',
-            [title, event_date, description, organizer, location, priority, status, req.params.id]
+            'UPDATE calendar_days SET notes = $1, out_status = $2, out_start_date = $3, out_end_date = $4, created_at = NOW() WHERE date = $5',
+            [notes || null, out_status || false, out_start_date || null, out_end_date || null, req.params.date]
         );
         res.sendStatus(200);
     } catch (err) {
@@ -46,9 +46,9 @@ router.put('/:id', async (req, res) => {
     }
 });
 
-router.delete('/:id', async (req, res) => {
+router.delete('/day/:date', async (req, res) => {
     try {
-        await pool.query('DELETE FROM calendar_events WHERE id = $1', [req.params.id]);
+        await pool.query('DELETE FROM calendar_days WHERE date = $1', [req.params.date]);
         res.sendStatus(200);
     } catch (err) {
         console.error(err);

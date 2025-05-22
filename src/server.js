@@ -21,6 +21,7 @@ const pool = new Pool({
         await pool.query('DROP TABLE IF EXISTS leads CASCADE');
         await pool.query('DROP TABLE IF EXISTS customers CASCADE');
         await pool.query('DROP TABLE IF EXISTS calendar_events CASCADE');
+        await pool.query('DROP TABLE IF EXISTS calendar_days CASCADE');
         await pool.query('DROP TABLE IF EXISTS inventory CASCADE');
 
         // Create customers table
@@ -51,17 +52,15 @@ const pool = new Pool({
             )
         `);
 
-        // Create calendar_events table
+        // Create calendar_days table for fridge-style calendar
         await pool.query(`
-            CREATE TABLE calendar_events (
+            CREATE TABLE calendar_days (
                 id SERIAL PRIMARY KEY,
-                title VARCHAR(100) NOT NULL,
-                event_date DATE NOT NULL,
-                description TEXT,
-                organizer VARCHAR(100),
-                location VARCHAR(100),
-                priority VARCHAR(50),
-                status VARCHAR(50),
+                date DATE NOT NULL UNIQUE,
+                notes TEXT,
+                out_status BOOLEAN DEFAULT FALSE,
+                out_start_date DATE,
+                out_end_date DATE,
                 created_at TIMESTAMP DEFAULT NOW()
             )
         `);
