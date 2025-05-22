@@ -10,6 +10,7 @@ function getFirstDayOfMonth(year, month) {
 
 function renderCalendar(year, month) {
     const grid = document.getElementById('calendar-grid');
+    if (!grid) return; // Safeguard against null grid
     grid.innerHTML = '';
     const daysInMonth = getDaysInMonth(year, month);
     const firstDay = getFirstDayOfMonth(year, month);
@@ -58,8 +59,12 @@ function renderCalendar(year, month) {
 
 async function loadCalendar() {
     const monthInput = document.getElementById('calendar-month');
-    const [year, month] = monthInput.value.split('-');
-    renderCalendar(parseInt(year), parseInt(month) - 1); // month is 0-based in JS
+    if (!monthInput.value) {
+        const today = new Date();
+        monthInput.value = `${today.getFullYear()}-${String(today.getMonth() + 1).padStart(2, '0')}`;
+    }
+    const [year, month] = monthInput.value.split('-').map(Number);
+    renderCalendar(year, month - 1); // month is 0-based in JS
     const response = await fetch('/api/calendar');
     const days = await response.json();
     days.forEach(day => {
@@ -105,7 +110,7 @@ function showDayModal(date = null) {
         document.getElementById('day-out-status').checked = false;
         document.getElementById('day-out-start').value = '';
         document.getElementById('day-out-end').value = '';
-        outRange.style.display 'none';
+        outRange.style.display = 'none';
     }
     document.getElementById('day-out-status').addEventListener('change', function() {
         outRange.style.display = this.checked ? 'block' : 'none';
