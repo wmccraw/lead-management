@@ -1,32 +1,23 @@
-function loadTab(tab) {
-    document.querySelectorAll('.tab').forEach(t => t.classList.remove('border-green-500', 'active-tab'));
-    document.querySelectorAll('.content').forEach(c => c.classList.add('hidden'));
-    const activeTab = document.querySelector(`.tab[data-tab="${tab}"]`);
-    activeTab.classList.add('border-green-500', 'active-tab');
-    document.getElementById(tab).classList.remove('hidden');
-    if (tab === 'leads') loadLeads();
-    if (tab === 'customers') loadCustomers();
-    if (tab === 'calendar') loadCalendar();
-    if (tab === 'inventory') loadInventory();
-}
-
 document.addEventListener('DOMContentLoaded', () => {
-    document.querySelectorAll('.tab').forEach(tab => {
-        tab.addEventListener('click', () => {
-            const tabName = tab.getAttribute('data-tab');
-            loadTab(tabName);
-        });
-    });
-    loadTab('leads');
+    const tabs = document.querySelectorAll('.tab');
+    const contents = document.querySelectorAll('.content');
 
-    document.querySelectorAll('.modal .close').forEach(close => {
-        close.addEventListener('click', () => {
-            close.closest('.modal').classList.add('hidden');
+    tabs.forEach(tab => {
+        tab.addEventListener('click', () => {
+            tabs.forEach(t => t.classList.remove('active-tab'));
+            tab.classList.add('active-tab');
+
+            contents.forEach(content => content.classList.add('hidden'));
+            document.getElementById(tab.dataset.tab).classList.remove('hidden');
         });
     });
-    window.addEventListener('click', (event) => {
-        document.querySelectorAll('.modal').forEach(modal => {
-            if (event.target === modal) modal.classList.add('hidden');
-        });
+
+    // Activate the first tab by default
+    tabs[0].click();
+});
+
+document.querySelectorAll('.modal .close').forEach(closeBtn => {
+    closeBtn.addEventListener('click', () => {
+        closeBtn.closest('.modal').classList.add('hidden');
     });
 });

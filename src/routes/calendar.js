@@ -12,48 +12,49 @@ router.get('/', async (req, res) => {
         const result = await pool.query('SELECT * FROM calendar_days ORDER BY date');
         res.json(result.rows);
     } catch (err) {
-        console.error(err);
-        res.status(500).send('Server error');
+        console.error('Error fetching calendar data:', err);
+        res.status(500).json({ error: 'Server error fetching calendar data' });
     }
 });
 
-router.post('/day', async (req, res) => {
-    const { date, notes, note_type, out_status, out_start_date, out_end_date } = req.body;
+router.post('/save', async (req, res) => {
+    const { note_type, notes, start_date, end_date } = req.body;
+
+    if (!note_type || !start_date) {
+        return res.status(400).json({ error: 'note_type and start_date are required' });
+    }
+
     try {
-        const result = await pool.query(
-            'INSERT INTO calendar_days (date, notes, note_type, out_status, out_start_date, out_end_date, created_at) ' +
-            'VALUES ($1, $2, $3, $4, $5, $6, NOW()) ON CONFLICT (date) DO UPDATE SET notes = $2, note_type = $3, out_status = $4, out_start_date = $5, out_end_date = $6, created_at = NOW() RETURNING *',
-            [date, notes || null, note_type || 'General', out_status || false, out_start_date || null, out_end_date || null]
-        );
-        res.status(201).json(result.rows[0]);
+        const out_status = note_type === 'Absence';
+        const dates = (note_type === 'Absence' && end_date && new Date(end_date) >= new Date(start_date)) 
+            ? getDateRange(start_date, end_date) 
+            : [start_date];
+
+        for (const date of dates) {
+            await pool.query(
+                `INSERT INTO calendar_days (date, notes, note_type, out_status, out_start_date, out_end_date, created_at)
+                 VALUES ($1, $2, $3, $4, $5, $6, NOW())
+                 ON CONFLICT (date) DO UPDATE SET
+                 notes = $2, note_type = $3, out_status = $4, out_start_date = $5, out_end_date = $6, created_at = NOW()`,
+                [date, notes || null, note_type, out_status, start_date, end_date || null]
+            );
+        }
+        res.status(201).json({ message: 'Saved successfully' });
     } catch (err) {
-        console.error(err);
-        res.status(500).send('Server error');
+        console.error('Error saving to calendar:', err);
+        res.status(500).json({ error: 'Server error saving data' });
     }
 });
 
-router.put('/day/:date', async (req, res) => {
-    const { notes, note_type, out_status, out_start_date, out_end_date } = req.body;
-    try {
-        await pool.query(
-            'UPDATE calendar_days SET notes = $1, note_type = $2, out_status = $3, out_start_date = $4, out_end_date = $5, created_at = NOW() WHERE date = $6',
-            [notes || null, note_type || 'General', out_status || false, out_start_date || null, out_end_date || null, req.params.date]
-        );
-        res.sendStatus(200);
-    } catch (err) {
-        console.error(err);
-        res.status(500).send('Server error');
+function getDateRange(startDate, endDate) {
+    const dates = [];
+    let currentDate = new Date(startDate);
+    const finalDate = new Date(endDate);
+    while (currentDate <= finalDate) {
+        dates.push(currentDate.toISOString().split('T')[0]);
+        currentDate.setDate(currentDate.getDate() + 1);
     }
-});
-
-router.delete('/day/:date', async (req, res) => {
-    try {
-        await pool.query('DELETE FROM calendar_days WHERE date = $1', [req.params.date]);
-        res.sendStatus(200);
-    } catch (err) {
-        console.error(err);
-        res.status(500).send('Server error');
-    }
-});
+    return dates;
+}
 
 module.exports = router;

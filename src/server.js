@@ -51,13 +51,13 @@ const pool = new Pool({
             )
         `);
 
-        // Create calendar_days table with note_type
+        // Create calendar_days table
         await pool.query(`
             CREATE TABLE calendar_days (
                 id SERIAL PRIMARY KEY,
                 date DATE NOT NULL UNIQUE,
                 notes TEXT,
-                note_type VARCHAR(50) DEFAULT 'General',
+                note_type VARCHAR(50) NOT NULL DEFAULT 'General',
                 out_status BOOLEAN DEFAULT FALSE,
                 out_start_date DATE,
                 out_end_date DATE,

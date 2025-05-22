@@ -1,60 +1,33 @@
 document.getElementById('add-day-note-btn').addEventListener('click', () => showDayModal());
-
-function getDaysInMonth(year, month) {
-    return new Date(year, month + 1, 0).getDate();
-}
-
-function getFirstDayOfMonth(year, month) {
-    return new Date(year, month, 1).getDay();
-}
+document.getElementById('calendar-grid').addEventListener('click', (e) => {
+    if (e.target.classList.contains('calendar-day') || e.target.parentElement.classList.contains('calendar-day')) {
+        const date = e.target.dataset.date || e.target.parentElement.dataset.date;
+        showDayModal(date);
+    }
+});
 
 function renderCalendar(year, month) {
     const grid = document.getElementById('calendar-grid');
-    if (!grid) return;
     grid.innerHTML = '';
-    const daysInMonth = getDaysInMonth(year, month);
-    const firstDay = getFirstDayOfMonth(year, month);
+    const daysInMonth = new Date(year, month + 1, 0).getDate();
+    const firstDay = new Date(year, month, 1).getDay();
     const today = new Date();
     const currentMonth = today.getMonth();
     const currentYear = today.getFullYear();
 
-    // Add day names
-    const dayNames = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
-    dayNames.forEach(day => {
-        const dayElement = document.createElement('div');
-        dayElement.className = 'calendar-day font-bold text-center bg-gray-300';
-        dayElement.textContent = day;
-        grid.appendChild(dayElement);
+    ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'].forEach(day => {
+        grid.innerHTML += `<div class="calendar-day font-bold text-center bg-gray-300">${day}</div>`;
     });
 
-    // Add empty cells before the first day
-    for (let i = 0; i < firstDay; i++) {
-        const emptyCell = document.createElement('div');
-        emptyCell.className = 'calendar-day';
-        grid.appendChild(emptyCell);
-    }
+    for (let i = 0; i < firstDay; i++) grid.innerHTML += '<div class="calendar-day"></div>';
 
-    // Add days
     for (let day = 1; day <= daysInMonth; day++) {
-        const date = new Date(year, month, day).toISOString().split('T')[0];
-        const dayElement = document.createElement('div');
-        dayElement.className = 'calendar-day text-center';
-        dayElement.dataset.date = date;
-        if (year === currentYear && month === currentMonth && day === today.getDate()) {
-            dayElement.classList.add('bg-blue-100');
-        }
-        dayElement.innerHTML = `<div class="day-number">${day}</div><div class="day-notes"></div>`;
-        dayElement.addEventListener('click', () => showDayModal(date));
-        grid.appendChild(dayElement);
+        const date = `${year}-${String(month + 1).padStart(2, '0')}-${String(day).padStart(2, '0')}`;
+        const isToday = year === currentYear && month === currentMonth && day === today.getDate();
+        grid.innerHTML += `<div class="calendar-day ${isToday ? 'bg-blue-100' : ''}" data-date="${date}">${day}<div class="day-notes text-sm"></div></div>`;
     }
 
-    // Fill remaining cells to complete 6 weeks (42 cells)
-    const totalCells = 42;
-    while (grid.children.length < totalCells) {
-        const emptyCell = document.createElement('div');
-        emptyCell.className = 'calendar-day';
-        grid.appendChild(emptyCell);
-    }
+    while (grid.children.length < 42) grid.innerHTML += '<div class="calendar-day"></div>';
 }
 
 async function loadCalendar() {
@@ -65,136 +38,98 @@ async function loadCalendar() {
     }
     const [year, month] = monthInput.value.split('-').map(Number);
     renderCalendar(year, month - 1);
-    const response = await fetch('/api/calendar');
-    const days = await response.json();
+    try {
+        const res = await fetch('/api/calendar');
+        if (!res.ok) throw new Error('Failed to fetch calendar data');
+        const days = await res.json();
+        document.querySelectorAll('.calendar-day .day-notes').forEach(note => note.textContent = '');
+        document.querySelectorAll('.calendar-day').forEach(el => el.classList.remove('out'));
 
-    // Clear previous notes to avoid duplicates
-    document.querySelectorAll('.calendar-day .day-notes').forEach(note => (note.textContent = ''));
-
-    days.forEach(day => {
-        const noteType = day.note_type || 'General';
-        const startDate = new Date(day.out_start_date);
-        const endDate = day.out_end_date ? new Date(day.out_end_date) : startDate;
-        
-        if (noteType === 'General') {
-            const dayElement = document.querySelector(`.calendar-day[data-date="${day.date}"]`);
-            if (dayElement) {
-                const notesDiv = dayElement.querySelector('.day-notes');
-                if (day.notes) {
-                    notesDiv.textContent = day.notes.substring(0, 10) + (day.notes.length > 10 ? '...' : '');
+        days.forEach(day => {
+            const noteType = day.note_type || 'General';
+            const startDate = new Date(day.out_start_date);
+            const endDate = day.out_end_date ? new Date(day.out_end_date) : startDate;
+            
+            if (noteType === 'General') {
+                const dayElement = document.querySelector(`.calendar-day[data-date="${day.date}"]`);
+                if (dayElement) {
+                    const notesDiv = dayElement.querySelector('.day-notes');
+                    if (day.notes) {
+                        notesDiv.textContent = day.notes.substring(0, 10) + (day.notes.length > 10 ? '...' : '');
+                    }
+                }
+            } else if (noteType === 'Absence') {
+                for (let d = new Date(startDate); d <= endDate; d.setDate(d.getDate() + 1)) {
+                    const rangeDate = d.toISOString().split('T')[0];
+                    const rangeElement = document.querySelector(`.calendar-day[data-date="${rangeDate}"]`);
+                    if (rangeElement) {
+                        rangeElement.classList.add('out');
+                        const notesDiv = rangeElement.querySelector('.day-notes');
+                        notesDiv.textContent = day.notes ? day.notes.substring(0, 10) + (day.notes.length > 10 ? '...' : '') : 'Out';
+                    }
                 }
             }
-        } else if (noteType === 'Absence') {
-            for (let d = new Date(startDate); d <= endDate; d.setDate(d.getDate() + 1)) {
-                const rangeDate = d.toISOString().split('T')[0];
-                const rangeElement = document.querySelector(`.calendar-day[data-date="${rangeDate}"]`);
-                if (rangeElement) {
-                    rangeElement.classList.add('out');
-                    const notesDiv = rangeElement.querySelector('.day-notes');
-                    notesDiv.textContent = day.notes ? day.notes.substring(0, 10) + (day.notes.length > 10 ? '...' : '') : 'Out';
-                }
-            }
-        }
-    });
+        });
+    } catch (err) {
+        console.error('Load error:', err);
+        alert(`Load failed: ${err.message}`);
+    }
 }
 
 function showDayModal(date = null) {
     const modal = document.getElementById('day-modal');
-    const title = document.getElementById('day-modal-title');
-    const fullNotes = document.getElementById('full-notes');
-    modal.dataset.date = date || '';
+    const noteType = document.getElementById('note-type');
+    const endDate = document.getElementById('day-end-date');
+    const startDate = document.getElementById('day-start-date');
+    const notes = document.getElementById('day-notes');
 
-    if (date) {
-        title.textContent = 'Edit Note or Out Status';
-        fetch(`/api/calendar/day/${date}`)
-            .then(res => res.json())
-            .then(day => {
-                document.getElementById('day-notes').value = day.notes || '';
-                document.getElementById('note-type').value = day.note_type || 'General';
-                document.getElementById('day-start-date').value = day.out_start_date || date;
-                document.getElementById('day-end-date').value = day.out_end_date || '';
-                fullNotes.innerHTML = day.notes ? `<p>${day.notes}</p>` : '';
-                fullNotes.classList.toggle('expanded', !!day.notes);
-            })
-            .catch(() => {
-                // If no data exists for this date, set defaults
-                document.getElementById('day-notes').value = '';
-                document.getElementById('note-type').value = 'General';
-                document.getElementById('day-start-date').value = date;
-                document.getElementById('day-end-date').value = '';
-                fullNotes.innerHTML = '';
-                fullNotes.classList.remove('expanded');
-            });
-    } else {
-        title.textContent = 'Add Note or Out Status';
-        const today = new Date().toISOString().split('T')[0];
-        document.getElementById('day-notes').value = '';
-        document.getElementById('note-type').value = 'General';
-        document.getElementById('day-start-date').value = today;
-        document.getElementById('day-end-date').value = '';
-        fullNotes.innerHTML = '';
-        fullNotes.classList.remove('expanded');
-    }
+    startDate.value = date || new Date().toISOString().split('T')[0];
+    notes.value = '';
+    noteType.value = 'General';
+    endDate.value = '';
+    endDate.disabled = true;
+
+    noteType.onchange = () => {
+        endDate.disabled = noteType.value === 'General';
+        if (noteType.value === 'General') endDate.value = '';
+    };
+
     modal.classList.remove('hidden');
 }
 
 async function saveDay() {
-    const modal = document.getElementById('day-modal');
-    const startDate = document.getElementById('day-start-date').value;
     const noteType = document.getElementById('note-type').value;
+    const notes = document.getElementById('day-notes').value.trim();
+    const startDate = document.getElementById('day-start-date').value;
+    const endDate = noteType === 'Absence' ? document.getElementById('day-end-date').value : null;
 
     if (!startDate) {
-        alert('Please select a start date.');
+        alert('Start date is required.');
         return;
     }
 
-    const data = {
-        date: startDate,
-        notes: document.getElementById('day-notes').value || null,
-        note_type: noteType,
-        out_status: noteType === 'Absence',
-        out_start_date: startDate,
-        out_end_date: document.getElementById('day-end-date').value || null
-    };
-
-    if (noteType === 'Absence' && data.out_end_date && new Date(data.out_end_date) < new Date(startDate)) {
+    if (noteType === 'Absence' && endDate && new Date(endDate) < new Date(startDate)) {
         alert('End date cannot be before start date.');
         return;
     }
 
+    const data = { note_type: noteType, notes, start_date: startDate, end_date: endDate };
+
     try {
-        const url = `/api/calendar/day/${startDate}`;
-        const response = await fetch(url, {
+        const res = await fetch('/api/calendar/save', {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify(data)
         });
-
-        if (!response.ok) {
-            throw new Error('Failed to save note');
+        if (!res.ok) {
+            const error = await res.json();
+            throw new Error(error.error || 'Save failed');
         }
-
-        // If it's an absence, save entries for each day in the range
-        if (noteType === 'Absence' && data.out_end_date) {
-            const start = new Date(startDate);
-            const end = new Date(data.out_end_date);
-            for (let d = new Date(start); d <= end; d.setDate(d.getDate() + 1)) {
-                const rangeDate = d.toISOString().split('T')[0];
-                if (rangeDate !== startDate) {
-                    await fetch(`/api/calendar/day/${rangeDate}`, {
-                        method: 'POST',
-                        headers: { 'Content-Type': 'application/json' },
-                        body: JSON.stringify({ ...data, date: rangeDate })
-                    });
-                }
-            }
-        }
-
-        modal.classList.add('hidden');
+        document.getElementById('day-modal').classList.add('hidden');
         loadCalendar();
-    } catch (error) {
-        alert('Error saving note. Please try again.');
-        console.error(error);
+    } catch (err) {
+        console.error('Save error:', err);
+        alert(`Save failed: ${err.message}. Check console for details.`);
     }
 }
 
