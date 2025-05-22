@@ -47,8 +47,8 @@ function renderCalendar(year, month) {
         grid.appendChild(dayElement);
     }
 
-    // Fill remaining cells
-    const totalCells = 42; // 6 weeks max
+    // Fill remaining cells to complete 6 weeks (42 cells)
+    const totalCells = 42;
     while (grid.children.length < totalCells) {
         const emptyCell = document.createElement('div');
         emptyCell.className = 'calendar-day';
@@ -59,7 +59,7 @@ function renderCalendar(year, month) {
 async function loadCalendar() {
     const monthInput = document.getElementById('calendar-month');
     const [year, month] = monthInput.value.split('-');
-    renderCalendar(year, parseInt(month));
+    renderCalendar(parseInt(year), parseInt(month) - 1); // month is 0-based in JS
     const response = await fetch('/api/calendar');
     const days = await response.json();
     days.forEach(day => {
@@ -105,7 +105,7 @@ function showDayModal(date = null) {
         document.getElementById('day-out-status').checked = false;
         document.getElementById('day-out-start').value = '';
         document.getElementById('day-out-end').value = '';
-        outRange.style.display = 'none';
+        outRange.style.display 'none';
     }
     document.getElementById('day-out-status').addEventListener('change', function() {
         outRange.style.display = this.checked ? 'block' : 'none';
