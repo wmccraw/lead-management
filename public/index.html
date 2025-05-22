@@ -26,10 +26,18 @@
             transition: background-color 0.3s;
         }
         .calendar-day.out {
-            background-color: #fecaca;
+            background-color: #fee2e2; /* Light red for out status */
         }
         .calendar-day:hover {
             background-color: #f3f4f6;
+        }
+        .expandable-notes {
+            max-height: 0;
+            overflow: hidden;
+            transition: max-height 0.3s ease-out;
+        }
+        .expandable-notes.expanded {
+            max-height: 200px; /* Adjust based on content */
         }
     </style>
 </head>
@@ -161,19 +169,16 @@
                     <span class="close text-gray-500 text-2xl font-bold cursor-pointer float-right">×</span>
                     <h3 id="day-modal-title" class="text-xl font-semibold mb-4">Add Note or Out Status</h3>
                     <div id="day-form">
-                        <label class="block text-gray-700 mb-2">Date*</label>
-                        <input type="date" id="day-date" class="w-full p-2 mb-4 border rounded" required>
                         <label class="block text-gray-700 mb-2">Notes</label>
                         <textarea id="day-notes" class="w-full p-2 mb-4 border rounded"></textarea>
                         <label class="block text-gray-700 mb-2">Out Status</label>
                         <input type="checkbox" id="day-out-status" class="mb-4">
                         <div id="out-range" class="hidden">
-                            <label class="block text-gray-700 mb-2">Out Start Date</label>
-                            <input type="date" id="day-out-start" class="w-full p-2 mb-4 border rounded">
                             <label class="block text-gray-700 mb-2">Out End Date</label>
                             <input type="date" id="day-out-end" class="w-full p-2 mb-4 border rounded">
                         </div>
                         <button onclick="saveDay()" class="bg-green-500 text-white px-4 py-2 rounded hover:bg-green-600 w-full">Save</button>
+                        <div id="full-notes" class="expandable-notes mt-4 text-gray-600"></div>
                     </div>
                 </div>
             </div>

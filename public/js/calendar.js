@@ -10,7 +10,7 @@ function getFirstDayOfMonth(year, month) {
 
 function renderCalendar(year, month) {
     const grid = document.getElementById('calendar-grid');
-    if (!grid) return; // Safeguard against null grid
+    if (!grid) return;
     grid.innerHTML = '';
     const daysInMonth = getDaysInMonth(year, month);
     const firstDay = getFirstDayOfMonth(year, month);
@@ -64,21 +64,26 @@ async function loadCalendar() {
         monthInput.value = `${today.getFullYear()}-${String(today.getMonth() + 1).padStart(2, '0')}`;
     }
     const [year, month] = monthInput.value.split('-').map(Number);
-    renderCalendar(year, month - 1); // month is 0-based in JS
+    renderCalendar(year, month - 1);
     const response = await fetch('/api/calendar');
     const days = await response.json();
     days.forEach(day => {
         const dayElement = document.querySelector(`.calendar-day[data-date="${day.date}"]`);
         if (dayElement) {
             const notesDiv = dayElement.querySelector('.day-notes');
-            if (day.notes) notesDiv.textContent = day.notes.substring(0, 20) + (day.notes.length > 20 ? '...' : '');
-            if (day.out_status) {
-                dayElement.classList.add('out');
-                if (day.out_start_date && day.out_end_date) {
-                    const start = new Date(day.out_start_date);
-                    const end = new Date(day.out_end_date);
-                    const current = new Date(day.date);
-                    if (current >= start && current <= end) dayElement.classList.add('out');
+            if (day.notes) {
+                notesDiv.textContent = day.notes.substring(0, 10) + (day.notes.length > 10 ? '...' : '');
+            }
+            if (day.out_status && day.out_end_date) {
+                const start = new Date(day.date);
+                const end = new Date(day.out_end_date);
+                for (let d = new Date(start); d <= end; d.setDate(d.getDate() + 1)) {
+                    const rangeDate = d.toISOString().split('T')[0];
+                    const rangeElement = document.querySelector(`.calendar-day[data-date="${rangeDate}"]`);
+                    if (rangeElement) {
+                        rangeElement.classList.add('out');
+                        rangeElement.querySelector('.day-notes').textContent = day.notes || 'Out';
+                    }
                 }
             }
         }
@@ -89,6 +94,7 @@ function showDayModal(date = null) {
     const modal = document.getElementById('day-modal');
     const title = document.getElementById('day-modal-title');
     const outRange = document.getElementById('out-range');
+    const fullNotes = document.getElementById('full-notes');
     modal.dataset.date = date || '';
 
     if (date) {
@@ -96,21 +102,21 @@ function showDayModal(date = null) {
         fetch(`/api/calendar/day/${date}`)
             .then(res => res.json())
             .then(day => {
-                document.getElementById('day-date').value = day.date || '';
                 document.getElementById('day-notes').value = day.notes || '';
                 document.getElementById('day-out-status').checked = day.out_status || false;
-                document.getElementById('day-out-start').value = day.out_start_date || '';
                 document.getElementById('day-out-end').value = day.out_end_date || '';
                 outRange.style.display = day.out_status ? 'block' : 'none';
+                fullNotes.innerHTML = day.notes ? `<p>${day.notes}</p>` : '';
+                fullNotes.classList.toggle('expanded', !!day.notes);
             });
     } else {
         title.textContent = 'Add Note or Out Status';
-        document.getElementById('day-date').value = '';
         document.getElementById('day-notes').value = '';
         document.getElementById('day-out-status').checked = false;
-        document.getElementById('day-out-start').value = '';
         document.getElementById('day-out-end').value = '';
         outRange.style.display = 'none';
+        fullNotes.innerHTML = '';
+        fullNotes.classList.remove('expanded');
     }
     document.getElementById('day-out-status').addEventListener('change', function() {
         outRange.style.display = this.checked ? 'block' : 'none';
@@ -120,32 +126,48 @@ function showDayModal(date = null) {
 
 async function saveDay() {
     const modal = document.getElementById('day-modal');
-    const date = document.getElementById('day-date').value;
+    const date = modal.dataset.date;
+    if (!date) {
+        alert('Please click a day to set a note or out status.');
+        return;
+    }
+
     const data = {
         date,
-        notes: document.getElementById('day-notes').value,
+        notes: document.getElementById('day-notes').value || null,
         out_status: document.getElementById('day-out-status').checked,
-        out_start_date: document.getElementById('day-out-start').value || null,
+        out_start_date: date, // Use clicked date as start
         out_end_date: document.getElementById('day-out-end').value || null
     };
 
-    if (!date) {
-        alert('Please select a date.');
+    if (data.out_status && !data.out_end_date) {
+        alert('Please select an end date for the out status.');
         return;
     }
 
     const url = `/api/calendar/day/${date}`;
-    await fetch(url, {
+    const response = await fetch(url, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(data)
     });
-    modal.classList.add('hidden');
-    loadCalendar();
+    if (response.ok) {
+        modal.classList.add('hidden');
+        loadCalendar();
+    } else {
+        alert('Failed to save. Please try again.');
+    }
 }
 
 document.addEventListener('DOMContentLoaded', () => {
     const today = new Date();
     document.getElementById('calendar-month').value = `${today.getFullYear()}-${String(today.getMonth() + 1).padStart(2, '0')}`;
     loadCalendar();
+
+    document.getElementById('day-modal').addEventListener('click', (e) => {
+        if (e.target.tagName === 'P' && e.target.parentElement.id === 'full-notes') {
+            const fullNotes = document.getElementById('full-notes');
+            fullNotes.classList.toggle('expanded');
+        }
+    });
 });
