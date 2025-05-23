@@ -80,8 +80,8 @@ app.post('/api/calendar/save', async (req, res) => {
     const { date } = req.body;
     try {
         const result = await pool.query(
-            'INSERT INTO calendar (date) VALUES ($1) RETURNING *',
-            [date || null]
+            'INSERT INTO calendar (date, name) VALUES ($1, $2) RETURNING *',
+            [date || null, 'Default']
         );
         res.status(200).json({ success: true, data: result.rows[0] });
     } catch (err) {
