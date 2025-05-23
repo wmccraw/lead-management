@@ -44,10 +44,11 @@
             right: 0;
             height: 20px;
             font-size: 12px;
-            color: white;
+            color: black; /* Changed to black */
             text-align: center;
             line-height: 20px;
             opacity: 0.8;
+            z-index: 1;
         }
         .absence-banner.wilson {
             background-color: #ffcccb; /* Light pink */
@@ -60,6 +61,14 @@
         }
         .absence-banner.julia {
             background-color: #fffacd; /* Light yellow */
+        }
+        .absence-banners {
+            position: relative;
+            margin-top: 20px; /* Offset for the first banner */
+        }
+        .absence-banners .absence-banner {
+            position: relative;
+            margin-top: -20px; /* Stack banners */
         }
     </style>
 </head>

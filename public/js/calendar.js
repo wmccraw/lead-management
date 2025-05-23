@@ -24,7 +24,7 @@ function renderCalendar(year, month) {
     for (let day = 1; day <= daysInMonth; day++) {
         const date = `${year}-${String(month + 1).padStart(2, '0')}-${String(day).padStart(2, '0')}`;
         const isToday = year === currentYear && month === currentMonth && day === today.getDate();
-        grid.innerHTML += `<div class="calendar-day ${isToday ? 'bg-blue-100' : ''}" data-date="${date}">${day}<div class="day-notes text-sm"></div></div>`;
+        grid.innerHTML += `<div class="calendar-day ${isToday ? 'bg-blue-100' : ''}" data-date="${date}">${day}<div class="day-notes text-sm"></div><div class="absence-banners"></div></div>`;
     }
 
     while (grid.children.length < 42) grid.innerHTML += '<div class="calendar-day"></div>';
@@ -63,10 +63,25 @@ async function loadCalendar() {
                     const rangeDate = d.toISOString().split('T')[0];
                     const rangeElement = document.querySelector(`.calendar-day[data-date="${rangeDate}"]`);
                     if (rangeElement) {
-                        const banner = document.createElement('div');
-                        banner.classList.add('absence-banner', day.absentee.toLowerCase());
-                        banner.textContent = `${day.absentee} Out`;
-                        rangeElement.appendChild(banner);
+                        const bannersDiv = rangeElement.querySelector('.absence-banners');
+                        const existingBanners = Array.from(bannersDiv.getElementsByClassName('absence-banner')).map(b => ({
+                            absentee: b.classList[1],
+                            start: new Date(day.out_start_date)
+                        }));
+                        const newBanner = {
+                            absentee: day.absentee.toLowerCase(),
+                            start: startDate,
+                            element: document.createElement('div')
+                        };
+                        newBanner.element.classList.add('absence-banner', newBanner.absentee);
+                        newBanner.element.textContent = `${day.absentee} Out`;
+
+                        // Sort banners by earliest start date
+                        existingBanners.push(newBanner);
+                        existingBanners.sort((a, b) => a.start - b.start);
+                        bannersDiv.innerHTML = '';
+                        existingBanners.forEach(b => bannersDiv.appendChild(b.element || b));
+
                         const notesDiv = rangeElement.querySelector('.day-notes');
                         if (day.notes) {
                             notesDiv.textContent = day.notes.substring(0, 10) + (day.notes.length > 10 ? '...' : '');
