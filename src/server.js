@@ -11,13 +11,18 @@ const pool = new Pool({
 app.use(express.json());
 app.use(express.static(path.join(__dirname, '../public')));
 
+// Test endpoint to check server status
+app.get('/api/health', (req, res) => {
+    res.status(200).json({ status: 'Server is running' });
+});
+
 app.get('/api/leads', async (req, res) => {
     try {
         const result = await pool.query('SELECT * FROM leads');
         res.json(result.rows);
     } catch (err) {
         console.error('Leads fetch error:', err.stack);
-        res.status(500).json({ error: 'Database error' });
+        res.status(500).json({ error: 'Database error: Failed to fetch leads' });
     }
 });
 
@@ -38,7 +43,7 @@ app.post('/api/leads/save', async (req, res) => {
         res.status(200).json({ success: true });
     } catch (err) {
         console.error('Leads save error:', err.stack);
-        res.status(500).json({ error: 'Database error' });
+        res.status(500).json({ error: 'Database error: Failed to save lead' });
     }
 });
 
@@ -48,7 +53,7 @@ app.get('/api/customers', async (req, res) => {
         res.json(result.rows);
     } catch (err) {
         console.error('Customers fetch error:', err.stack);
-        res.status(500).json({ error: 'Database error' });
+        res.status(500).json({ error: 'Database error: Failed to fetch customers' });
     }
 });
 
@@ -62,32 +67,32 @@ app.post('/api/customers/save', async (req, res) => {
         res.status(200).json({ success: true });
     } catch (err) {
         console.error('Customers save error:', err.stack);
-        res.status(500).json({ error: 'Database error' });
+        res.status(500).json({ error: 'Database error: Failed to save customer' });
     }
 });
 
 app.get('/api/calendar', async (req, res) => {
     try {
-        const result = await pool.query('SELECT * FROM calendar');
+        const result = await pool.query('SELECT id, date, name, time FROM calendar');
         res.json(result.rows);
     } catch (err) {
         console.error('Calendar fetch error:', err.stack);
-        res.status(500).json({ error: 'Database error' });
+        res.status(500).json({ error: 'Database error: Failed to fetch calendar data' });
     }
 });
 
 app.post('/api/calendar/save', async (req, res) => {
-    const { date } = req.body;
-    const defaultTime = new Date().toLocaleTimeString('en-US', { hour12: false }); // e.g., "12:29:00"
+    const { date, name } = req.body;
+    const defaultTime = new Date().toLocaleTimeString('en-US', { hour12: false }); // e.g., "12:44:00"
     try {
         const result = await pool.query(
             'INSERT INTO calendar (date, name, time) VALUES ($1, $2, $3) RETURNING *',
-            [date || null, 'Default', defaultTime]
+            [date || null, name || 'Default', defaultTime]
         );
         res.status(200).json({ success: true, data: result.rows[0] });
     } catch (err) {
         console.error('Calendar save error:', err.stack);
-        res.status(500).json({ error: 'Database error: ' + err.message });
+        res.status(500).json({ error: 'Database error: Failed to save calendar entry' });
     }
 });
 
@@ -101,7 +106,7 @@ app.delete('/api/calendar/delete/:id', async (req, res) => {
         res.status(200).json({ success: true });
     } catch (err) {
         console.error('Calendar delete error:', err.stack);
-        res.status(500).json({ error: 'Database error: ' + err.message });
+        res.status(500).json({ error: 'Database error: Failed to delete calendar entry' });
     }
 });
 
@@ -111,7 +116,7 @@ app.get('/api/inventory', async (req, res) => {
         res.json(result.rows);
     } catch (err) {
         console.error('Inventory fetch error:', err.stack);
-        res.status(500).json({ error: 'Database error' });
+        res.status(500).json({ error: 'Database error: Failed to fetch inventory' });
     }
 });
 
@@ -138,7 +143,7 @@ app.post('/api/inventory/save', async (req, res) => {
         res.status(200).json({ success: true });
     } catch (err) {
         console.error('Inventory save error:', err.stack);
-        res.status(500).json({ error: 'Database error' });
+        res.status(500).json({ error: 'Database error: Failed to save inventory' });
     }
 });
 

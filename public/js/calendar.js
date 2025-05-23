@@ -37,8 +37,16 @@ async function loadCalendar() {
         calendarGrid.appendChild(day);
     }
 
-    const response = await fetch('/api/calendar');
-    const calendarData = await response.json();
+    let calendarData = [];
+    try {
+        const response = await fetch('/api/calendar');
+        if (!response.ok) throw new Error(`HTTP error! status: ${response.status}`);
+        calendarData = await response.json();
+    } catch (err) {
+        console.error('Failed to load calendar data:', err);
+        alert('Failed to load calendar data. Please try again.');
+        return;
+    }
 
     for (let day = 1; day <= daysInMonth; day++) {
         const formattedDay = `${year}-${monthNum.padStart(2, '0')}-${String(day).padStart(2, '0')}`;
@@ -51,7 +59,7 @@ async function loadCalendar() {
         if (dayData) {
             const marker = document.createElement('div');
             marker.className = 'text-xs mt-1';
-            const person = dayData.name !== 'Default' ? dayData.name : 'Wilson'; // Simulate absentee
+            const person = dayData.name !== 'Default' ? dayData.name : 'Wilson';
             const colors = {
                 'Wilson': 'bg-blue-500',
                 'Carter': 'bg-red-500',
@@ -107,33 +115,42 @@ async function saveDay() {
     const date = document.getElementById('day-start-date').value;
     const name = document.getElementById('absentee').style.display === 'block' ? document.getElementById('absentee').value : 'Default';
 
-    const response = await fetch('/api/calendar/save', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ date, name })
-    });
-
-    const result = await response.json();
-    if (result.error) {
-        alert(`Save error: ${result.error}`);
-    } else {
-        document.getElementById('day-modal').classList.add('hidden');
-        loadCalendar();
+    try {
+        const response = await fetch('/api/calendar/save', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ date, name })
+        });
+        const result = await response.json();
+        if (result.error) {
+            alert(`Save error: ${result.error}`);
+        } else {
+            document.getElementById('day-modal').classList.add('hidden');
+            loadCalendar();
+        }
+    } catch (err) {
+        console.error('Failed to save calendar entry:', err);
+        alert('Failed to save calendar entry. Please try again.');
     }
 }
 
 async function deleteDay() {
     const dayId = document.getElementById('day-id').value;
     if (confirm('Are you sure you want to delete this entry?')) {
-        const response = await fetch(`/api/calendar/delete/${dayId}`, {
-            method: 'DELETE'
-        });
-        const result = await response.json();
-        if (result.error) {
-            alert(`Delete error: ${result.error}`);
-        } else {
-            document.getElementById('day-modal').classList.add('hidden');
-            loadCalendar();
+        try {
+            const response = await fetch(`/api/calendar/delete/${dayId}`, {
+                method: 'DELETE'
+            });
+            const result = await response.json();
+            if (result.error) {
+                alert(`Delete error: ${result.error}`);
+            } else {
+                document.getElementById('day-modal').classList.add('hidden');
+                loadCalendar();
+            }
+        } catch (err) {
+            console.error('Failed to delete calendar entry:', err);
+            alert('Failed to delete calendar entry. Please try again.');
         }
     }
 }
