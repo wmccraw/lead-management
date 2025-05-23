@@ -82,18 +82,18 @@ app.post('/api/calendar/save', async (req, res) => {
         if (id) {
             await pool.query(
                 'UPDATE calendar SET note_type=$1, notes=$2, start_date=$3, end_date=$4, absentee=$5 WHERE id=$6',
-                [note_type, notes, start_date, end_date, absentee, id]
+                [note_type || '', notes || '', start_date || null, end_date || null, absentee || '', id]
             );
         } else {
             await pool.query(
                 'INSERT INTO calendar (note_type, notes, start_date, end_date, absentee, created_date) VALUES ($1, $2, $3, $4, $5, $3) RETURNING *',
-                [note_type, notes, start_date, end_date, absentee]
+                [note_type || '', notes || '', start_date || null, end_date || null, absentee || '']
             );
         }
         res.status(200).json({ success: true });
     } catch (err) {
         console.error('Calendar save error:', err.stack);
-        res.status(500).json({ error: 'Database error' });
+        res.status(500).json({ error: 'Database error: ' + err.message });
     }
 });
 
@@ -107,7 +107,7 @@ app.delete('/api/calendar/delete/:id', async (req, res) => {
         res.status(200).json({ success: true });
     } catch (err) {
         console.error('Calendar delete error:', err.stack);
-        res.status(500).json({ error: 'Database error' });
+        res.status(500).json({ error: 'Database error: ' + err.message });
     }
 });
 
