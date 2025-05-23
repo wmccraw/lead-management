@@ -57,9 +57,9 @@ async function loadCalendar() {
                 banner.className = `absence-banner ${dayData.absentee.toLowerCase()}`;
                 banner.textContent = `${dayData.absentee} Out`;
                 dayDiv.appendChild(banner);
-                notesDiv.textContent = `${dayData.notes || ''} (${dayData.start_date} to ${dayData.end_date})`;
+                notesDiv.textContent = `${dayData.notes || ''}`;
             } else {
-                notesDiv.textContent = dayData.notes;
+                notesDiv.textContent = dayData.notes || '';
             }
             notesDiv.className += ' expandable-notes';
             dayDiv.appendChild(notesDiv);
@@ -72,7 +72,7 @@ async function loadCalendar() {
                 document.getElementById('absentee').style.display = dayData.absentee ? 'block' : 'none';
                 document.getElementById('absentee').value = dayData.absentee || 'Wilson';
                 document.getElementById('day-start-date').value = dayData.date || '';
-                document.getElementById('day-end-date').value = dayData.end_date || '';
+                document.getElementById('day-end-date').value = '';
                 document.getElementById('delete-day-btn').style.display = 'block';
                 document.getElementById('day-modal-title').textContent = 'Edit Note or Out Status';
                 document.getElementById('full-notes').innerHTML = `<p>${dayData.notes || ''}</p>`;
@@ -105,12 +105,14 @@ async function loadCalendar() {
 }
 
 async function saveDay() {
-    const notes = document.getElementById('day-notes').value;
     const date = document.getElementById('day-start-date').value;
+    const notes = document.getElementById('day-notes').value;
+    const absentee = document.getElementById('absentee').style.display === 'block' ? document.getElementById('absentee').value : null;
+
     const response = await fetch('/api/calendar/save', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ notes, date })
+        body: JSON.stringify({ date, notes, absentee })
     });
 
     const result = await response.json();

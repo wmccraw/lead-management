@@ -1,5 +1,6 @@
 DROP TABLE IF EXISTS leads;
 DROP TABLE IF EXISTS customers;
+DROP TABLE IF EXISTS calendar;
 
 CREATE TABLE customers (
     id SERIAL PRIMARY KEY,
@@ -19,4 +20,11 @@ CREATE TABLE leads (
     status VARCHAR(50) DEFAULT 'Pending',
     quoted_from_vendor BOOLEAN DEFAULT FALSE,
     created_at TIMESTAMP DEFAULT NOW()
+);
+
+CREATE TABLE calendar (
+    id SERIAL PRIMARY KEY,
+    date DATE NOT NULL,
+    notes TEXT,
+    absentee VARCHAR(50)
 );

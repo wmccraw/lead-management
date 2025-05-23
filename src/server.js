@@ -8,6 +8,26 @@ const pool = new Pool({
     ssl: { rejectUnauthorized: false }
 });
 
+// Initialize database with calendar table
+async function initializeDatabase() {
+    const createTableQuery = `
+        CREATE TABLE IF NOT EXISTS calendar (
+            id SERIAL PRIMARY KEY,
+            date DATE NOT NULL,
+            notes TEXT,
+            absentee VARCHAR(50)
+        );
+    `;
+    try {
+        await pool.query(createTableQuery);
+        console.log('Calendar table is ready.');
+    } catch (err) {
+        console.error('Error creating calendar table:', err.stack);
+    }
+}
+
+initializeDatabase();
+
 app.use(express.json());
 app.use(express.static(path.join(__dirname, '../public')));
 
@@ -77,13 +97,13 @@ app.get('/api/calendar', async (req, res) => {
 });
 
 app.post('/api/calendar/save', async (req, res) => {
-    const { notes, date } = req.body;
+    const { date, notes, absentee } = req.body;
     try {
-        await pool.query(
-            'INSERT INTO calendar (notes, date) VALUES ($1, $2) RETURNING *',
-            [notes || '', date || null]
+        const result = await pool.query(
+            'INSERT INTO calendar (date, notes, absentee) VALUES ($1, $2, $3) RETURNING *',
+            [date || null, notes || '', absentee || null]
         );
-        res.status(200).json({ success: true });
+        res.status(200).json({ success: true, data: result.rows[0] });
     } catch (err) {
         console.error('Calendar save error:', err.stack);
         res.status(500).json({ error: 'Database error: ' + err.message });
