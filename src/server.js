@@ -81,12 +81,12 @@ app.post('/api/calendar/save', async (req, res) => {
     try {
         if (id) {
             await pool.query(
-                'UPDATE calendar SET note_type=$1, notes=$2, out_start_date=$3, out_end_date=$4, absentee=$5 WHERE id=$6',
+                'UPDATE calendar SET note_type=$1, notes=$2, start_date=$3, end_date=$4, absentee=$5 WHERE id=$6',
                 [note_type, notes, start_date, end_date, absentee, id]
             );
         } else {
             await pool.query(
-                'INSERT INTO calendar (note_type, notes, out_start_date, out_end_date, absentee, date) VALUES ($1, $2, $3, $4, $5, $3) RETURNING *',
+                'INSERT INTO calendar (note_type, notes, start_date, end_date, absentee, created_date) VALUES ($1, $2, $3, $4, $5, $3) RETURNING *',
                 [note_type, notes, start_date, end_date, absentee]
             );
         }
