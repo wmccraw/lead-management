@@ -50,28 +50,26 @@ async function loadCalendar() {
 
         const dayData = calendarData.find(d => d.date === dayDiv.dataset.date);
         if (dayData) {
-            const notesDiv = document.createElement('div');
-            notesDiv.className = 'text-xs mt-1';
-            if (dayData.absentee) {
-                const banner = document.createElement('div');
-                banner.className = `absence-banner ${dayData.absentee.toLowerCase()}`;
-                banner.textContent = `${dayData.absentee} Out`;
-                dayDiv.appendChild(banner);
+            const marker = document.createElement('div');
+            marker.className = 'text-xs mt-1';
+            if (dayData.name === 'Default') {
+                const color = dayData.time.includes('12') ? 'bg-blue-500' : 'bg-green-500'; // Simple color coding by time
+                marker.className += ` ${color} text-white px-1 rounded`;
+                marker.textContent = 'Event';
             }
-            notesDiv.className += ' expandable-notes';
-            dayDiv.appendChild(notesDiv);
+            marker.className += ' expandable-notes';
+            dayDiv.appendChild(marker);
 
             dayDiv.addEventListener('click', () => {
                 document.getElementById('day-modal').classList.remove('hidden');
                 document.getElementById('day-id').value = dayData.id;
                 document.getElementById('day-notes').value = '';
-                document.getElementById('absentee-label').style.display = 'block';
-                document.getElementById('absentee').style.display = 'block';
-                document.getElementById('absentee').value = dayData.absentee || 'Wilson';
+                document.getElementById('absentee-label').style.display = 'none';
+                document.getElementById('absentee').style.display = 'none';
                 document.getElementById('day-start-date').value = dayData.date || '';
                 document.getElementById('day-end-date').value = '';
                 document.getElementById('delete-day-btn').style.display = 'block';
-                document.getElementById('day-modal-title').textContent = 'Edit Note or Out Status';
+                document.getElementById('day-modal-title').textContent = 'Edit Event';
                 document.getElementById('full-notes').innerHTML = '';
                 document.getElementById('full-notes').classList.remove('expanded');
             });
