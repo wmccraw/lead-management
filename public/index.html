@@ -4,7 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Lead Management System</title>
-    <link href="/css/tailwind.css" rel="stylesheet">
+    <script src="https://cdn.tailwindcss.com"></script>
     <style>
         .modal-content {
             max-height: 80vh;
@@ -50,32 +50,14 @@
             opacity: 0.8;
             z-index: 1;
         }
-        .absence-banner.wilson {
-            background-color: #ffcccb; /* Light pink */
-        }
-        .absence-banner.carter {
-            background-color: #ffdab9; /* Light orange */
-        }
-        .absence-banner.william {
-            background-color: #fee2e2; /* Light red */
-        }
-        .absence-banner.julia {
-            background-color: #fffacd; /* Light yellow */
-        }
-        .absence-banners {
-            position: relative;
-            margin-top: 20px; /* Offset for the first banner */
-        }
-        .absence-banners .absence-banner {
-            position: relative;
-            margin-top: -20px; /* Stack banners */
-        }
-        .modal {
-            z-index: 1000; /* Ensure modal is above banners */
-        }
-        .modal-content {
-            z-index: 1001; /* Ensure modal content is above backdrop */
-        }
+        .absence-banner.wilson { background-color: #ffcccb; }
+        .absence-banner.carter { background-color: #ffdab9; }
+        .absence-banner.william { background-color: #fee2e2; }
+        .absence-banner.julia { background-color: #fffacd; }
+        .absence-banners { position: relative; margin-top: 20px; }
+        .absence-banners .absence-banner { position: relative; margin-top: -20px; }
+        .modal { z-index: 1000; }
+        .modal-content { z-index: 1001; }
     </style>
 </head>
 <body class="bg-gray-100 font-sans">
@@ -88,7 +70,6 @@
             <div class="tab px-4 py-2 cursor-pointer text-gray-600 hover:text-gray-800 border-b-2 border-transparent hover:border-green-500" data-tab="inventory">Inventory</div>
         </div>
 
-        <!-- Leads Tab -->
         <div id="leads" class="content mt-4">
             <div class="flex justify-between items-center mb-4">
                 <h2 class="text-2xl font-semibold text-gray-700">Leads</h2>
@@ -108,7 +89,7 @@
                             <th class="py-3 px-6 text-left">Notes</th>
                             <th class="py-3 px-6 text-left">Status</th>
                             <th class="py-3 px-6 text-left">Time in System</th>
-                            <th class="py-3 px-6 text-left">Quoted from Vendor</th>
+                            <th class="py-3 px-6 text-left">Quoted from Vendor?</th>
                             <th class="py-3 px-6 text-left">Actions</th>
                         </tr>
                     </thead>
@@ -117,19 +98,17 @@
             </div>
             <div id="lead-modal" class="modal hidden fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center">
                 <div class="modal-content bg-white p-6 rounded-lg w-full max-w-md">
-                    <span class="close text-gray-500 text-2xl font-bold cursor-pointer float-right">×</span>
+                    <span class="close text-gray-500 text-2xl font-bold cursor-pointer float-right">&times;</span>
                     <h3 id="lead-modal-title" class="text-xl font-semibold mb-4">Add Lead</h3>
                     <div id="lead-form">
-                        <div id="lead-customer-fields">
-                            <label class="block text-gray-700 mb-2">Customer Name*</label>
-                            <input type="text" id="lead-name" class="w-full p-2 mb-4 border rounded" required>
-                            <label class="block text-gray-700 mb-2">Company</label>
-                            <input type="text" id="lead-company" class="w-full p-2 mb-4 border rounded">
-                            <label class="block text-gray-700 mb-2">Email*</label>
-                            <input type="email" id="lead-email" class="w-full p-2 mb-4 border rounded" required>
-                            <label class="block text-gray-700 mb-2">Phone</label>
-                            <input type="text" id="lead-phone" class="w-full p-2 mb-4 border rounded">
-                        </div>
+                        <label class="block text-gray-700 mb-2">Name*</label>
+                        <input type="text" id="lead-name" class="w-full p-2 mb-4 border rounded" required>
+                        <label class="block text-gray-700 mb-2">Company</label>
+                        <input type="text" id="lead-company" class="w-full p-2 mb-4 border rounded">
+                        <label class="block text-gray-700 mb-2">Email*</label>
+                        <input type="email" id="lead-email" class="w-full p-2 mb-4 border rounded" required>
+                        <label class="block text-gray-700 mb-2">Phone</label>
+                        <input type="text" id="lead-phone" class="w-full p-2 mb-4 border rounded">
                         <label class="block text-gray-700 mb-2">Product Category</label>
                         <input type="text" id="lead-product-category" class="w-full p-2 mb-4 border rounded">
                         <label class="block text-gray-700 mb-2">Make</label>
@@ -151,7 +130,6 @@
             </div>
         </div>
 
-        <!-- Customers Tab -->
         <div id="customers" class="content mt-4 hidden">
             <div class="flex justify-between items-center mb-4">
                 <h2 class="text-2xl font-semibold text-gray-700">Customers</h2>
@@ -174,7 +152,7 @@
             </div>
             <div id="customer-modal" class="modal hidden fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center">
                 <div class="modal-content bg-white p-6 rounded-lg w-full max-w-md">
-                    <span class="close text-gray-500 text-2xl font-bold cursor-pointer float-right">×</span>
+                    <span class="close text-gray-500 text-2xl font-bold cursor-pointer float-right">&times;</span>
                     <h3 class="text-xl font-semibold mb-4">Add Customer</h3>
                     <div id="customer-form">
                         <label class="block text-gray-700 mb-2">Name*</label>
@@ -191,7 +169,6 @@
             </div>
         </div>
 
-        <!-- Calendar Tab -->
         <div id="calendar" class="content mt-4 hidden">
             <div class="flex justify-between items-center mb-4">
                 <h2 class="text-2xl font-semibold text-gray-700">Calendar</h2>
@@ -203,7 +180,7 @@
             <div id="calendar-grid" class="calendar-grid"></div>
             <div id="day-modal" class="modal hidden fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center">
                 <div class="modal-content bg-white p-6 rounded-lg w-full max-w-md">
-                    <span class="close text-gray-500 text-2xl font-bold cursor-pointer float-right" onclick="document.getElementById('day-modal').classList.add('hidden')">×</span>
+                    <span class="close text-gray-500 text-2xl font-bold cursor-pointer float-right" onclick="document.getElementById('day-modal').classList.add('hidden')">&times;</span>
                     <h3 id="day-modal-title" class="text-xl font-semibold mb-4">Add/Edit Note or Out Status</h3>
                     <div id="day-form">
                         <input type="hidden" id="day-id">
@@ -233,7 +210,6 @@
             </div>
         </div>
 
-        <!-- Inventory Tab -->
         <div id="inventory" class="content mt-4 hidden">
             <div class="flex justify-between items-center mb-4">
                 <h2 class="text-2xl font-semibold text-gray-700">Inventory</h2>
@@ -277,7 +253,7 @@
             </div>
             <div id="inventory-modal" class="modal hidden fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center">
                 <div class="modal-content bg-white p-6 rounded-lg w-full max-w-md">
-                    <span class="close text-gray-500 text-2xl font-bold cursor-pointer float-right">×</span>
+                    <span class="close text-gray-500 text-2xl font-bold cursor-pointer float-right">&times;</span>
                     <h3 id="inventory-modal-title" class="text-xl font-semibold mb-4">Add Item</h3>
                     <div id="inventory-form">
                         <label class="block text-gray-700 mb-2">Part Number*</label>

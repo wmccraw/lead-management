@@ -34,18 +34,15 @@ async function loadCalendar() {
     const prevMonth = new Date(year, monthNum - 1, 0);
     const daysInPrevMonth = prevMonth.getDate();
 
-    // Add empty cells for days before the 1st
     for (let i = 0; i < startDay; i++) {
         const day = document.createElement('div');
         day.className = 'calendar-day opacity-50';
         calendarGrid.appendChild(day);
     }
 
-    // Fetch calendar data
-    const response = await fetch(`/api/calendar?month=${month}`);
+    const response = await fetch('/api/calendar');
     const calendarData = await response.json();
 
-    // Add days of the current month
     for (let day = 1; day <= daysInMonth; day++) {
         const dayDiv = document.createElement('div');
         dayDiv.className = 'calendar-day relative';
@@ -102,7 +99,6 @@ async function loadCalendar() {
         calendarGrid.appendChild(dayDiv);
     }
 
-    // Add empty cells for days after the last day
     const totalCells = startDay + daysInMonth;
     for (let i = totalCells; i < 42; i++) {
         const day = document.createElement('div');

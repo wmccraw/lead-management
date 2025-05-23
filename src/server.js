@@ -17,7 +17,7 @@ app.get('/api/leads', async (req, res) => {
         res.json(result.rows);
     } catch (err) {
         console.error('Leads fetch error:', err.stack);
-        res.status(500).json({ error: 'Database error: ' + err.message });
+        res.status(500).json({ error: 'Database error' });
     }
 });
 
@@ -38,7 +38,7 @@ app.post('/api/leads/save', async (req, res) => {
         res.status(200).json({ success: true });
     } catch (err) {
         console.error('Leads save error:', err.stack);
-        res.status(500).json({ error: 'Database error: ' + err.message });
+        res.status(500).json({ error: 'Database error' });
     }
 });
 
@@ -48,7 +48,7 @@ app.get('/api/customers', async (req, res) => {
         res.json(result.rows);
     } catch (err) {
         console.error('Customers fetch error:', err.stack);
-        res.status(500).json({ error: 'Database error: ' + err.message });
+        res.status(500).json({ error: 'Database error' });
     }
 });
 
@@ -62,7 +62,7 @@ app.post('/api/customers/save', async (req, res) => {
         res.status(200).json({ success: true });
     } catch (err) {
         console.error('Customers save error:', err.stack);
-        res.status(500).json({ error: 'Database error: ' + err.message });
+        res.status(500).json({ error: 'Database error' });
     }
 });
 
@@ -72,7 +72,7 @@ app.get('/api/calendar', async (req, res) => {
         res.json(result.rows);
     } catch (err) {
         console.error('Calendar fetch error:', err.stack);
-        res.status(500).json({ error: 'Database error: ' + err.message });
+        res.status(500).json({ error: 'Database error' });
     }
 });
 
@@ -93,7 +93,7 @@ app.post('/api/calendar/save', async (req, res) => {
         res.status(200).json({ success: true });
     } catch (err) {
         console.error('Calendar save error:', err.stack);
-        res.status(500).json({ error: 'Database error: ' + err.message });
+        res.status(500).json({ error: 'Database error' });
     }
 });
 
@@ -107,7 +107,7 @@ app.delete('/api/calendar/delete/:id', async (req, res) => {
         res.status(200).json({ success: true });
     } catch (err) {
         console.error('Calendar delete error:', err.stack);
-        res.status(500).json({ error: 'Database error: ' + err.message });
+        res.status(500).json({ error: 'Database error' });
     }
 });
 
@@ -117,7 +117,7 @@ app.get('/api/inventory', async (req, res) => {
         res.json(result.rows);
     } catch (err) {
         console.error('Inventory fetch error:', err.stack);
-        res.status(500).json({ error: 'Database error: ' + err.message });
+        res.status(500).json({ error: 'Database error' });
     }
 });
 
@@ -144,7 +144,7 @@ app.post('/api/inventory/save', async (req, res) => {
         res.status(200).json({ success: true });
     } catch (err) {
         console.error('Inventory save error:', err.stack);
-        res.status(500).json({ error: 'Database error: ' + err.message });
+        res.status(500).json({ error: 'Database error' });
     }
 });
 
