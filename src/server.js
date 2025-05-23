@@ -78,10 +78,11 @@ app.get('/api/calendar', async (req, res) => {
 
 app.post('/api/calendar/save', async (req, res) => {
     const { date } = req.body;
+    const defaultTime = new Date().toLocaleTimeString('en-US', { hour12: false }); // e.g., "12:29:00"
     try {
         const result = await pool.query(
-            'INSERT INTO calendar (date, name) VALUES ($1, $2) RETURNING *',
-            [date || null, 'Default']
+            'INSERT INTO calendar (date, name, time) VALUES ($1, $2, $3) RETURNING *',
+            [date || null, 'Default', defaultTime]
         );
         res.status(200).json({ success: true, data: result.rows[0] });
     } catch (err) {
