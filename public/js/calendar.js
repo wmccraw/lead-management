@@ -5,7 +5,6 @@ document.addEventListener('DOMContentLoaded', () => {
         document.getElementById('day-modal').classList.remove('hidden');
         document.getElementById('day-id').value = '';
         document.getElementById('day-notes').value = '';
-        document.getElementById('note-type').value = 'General';
         document.getElementById('absentee-label').style.display = 'none';
         document.getElementById('absentee').style.display = 'none';
         document.getElementById('day-start-date').value = '';
@@ -53,12 +52,12 @@ async function loadCalendar() {
         if (dayData) {
             const notesDiv = document.createElement('div');
             notesDiv.className = 'text-xs mt-1';
-            if (dayData.note_type === 'Absence') {
+            if (dayData.absentee) {
                 const banner = document.createElement('div');
                 banner.className = `absence-banner ${dayData.absentee.toLowerCase()}`;
                 banner.textContent = `${dayData.absentee} Out`;
                 dayDiv.appendChild(banner);
-                notesDiv.textContent = `${dayData.notes || ''} (${dayData.out_start_date} to ${dayData.out_end_date})`;
+                notesDiv.textContent = `${dayData.notes || ''} (${dayData.start_date} to ${dayData.end_date})`;
             } else {
                 notesDiv.textContent = dayData.notes;
             }
@@ -69,12 +68,11 @@ async function loadCalendar() {
                 document.getElementById('day-modal').classList.remove('hidden');
                 document.getElementById('day-id').value = dayData.id;
                 document.getElementById('day-notes').value = dayData.notes || '';
-                document.getElementById('note-type').value = dayData.note_type;
-                document.getElementById('absentee-label').style.display = dayData.note_type === 'Absence' ? 'block' : 'none';
-                document.getElementById('absentee').style.display = dayData.note_type === 'Absence' ? 'block' : 'none';
+                document.getElementById('absentee-label').style.display = dayData.absentee ? 'block' : 'none';
+                document.getElementById('absentee').style.display = dayData.absentee ? 'block' : 'none';
                 document.getElementById('absentee').value = dayData.absentee || 'Wilson';
-                document.getElementById('day-start-date').value = dayData.out_start_date || '';
-                document.getElementById('day-end-date').value = dayData.out_end_date || '';
+                document.getElementById('day-start-date').value = dayData.start_date || '';
+                document.getElementById('day-end-date').value = dayData.end_date || '';
                 document.getElementById('delete-day-btn').style.display = 'block';
                 document.getElementById('day-modal-title').textContent = 'Edit Note or Out Status';
                 document.getElementById('full-notes').innerHTML = `<p>${dayData.notes || ''}</p>`;
@@ -85,7 +83,6 @@ async function loadCalendar() {
                 document.getElementById('day-modal').classList.remove('hidden');
                 document.getElementById('day-id').value = '';
                 document.getElementById('day-notes').value = '';
-                document.getElementById('note-type').value = 'General';
                 document.getElementById('absentee-label').style.display = 'none';
                 document.getElementById('absentee').style.display = 'none';
                 document.getElementById('day-start-date').value = `${year}-${monthNum.padStart(2, '0')}-${String(day).padStart(2, '0')}`;
@@ -109,16 +106,15 @@ async function loadCalendar() {
 
 async function saveDay() {
     const dayId = document.getElementById('day-id').value;
-    const noteType = document.getElementById('note-type').value;
     const notes = document.getElementById('day-notes').value;
     const startDate = document.getElementById('day-start-date').value;
-    const endDate = noteType === 'Absence' ? document.getElementById('day-end-date').value : null;
-    const absentee = noteType === 'Absence' ? document.getElementById('absentee').value : null;
+    const endDate = document.getElementById('day-end-date').value;
+    const absentee = document.getElementById('absentee').style.display === 'block' ? document.getElementById('absentee').value : null;
 
     const response = await fetch('/api/calendar/save', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ id: dayId || undefined, note_type: noteType, notes, start_date: startDate, end_date: endDate, absentee })
+        body: JSON.stringify({ id: dayId || undefined, notes, start_date: startDate, end_date: endDate, absentee })
     });
 
     const result = await response.json();
