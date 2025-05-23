@@ -18,10 +18,14 @@ router.get('/', async (req, res) => {
 });
 
 router.post('/save', async (req, res) => {
-    const { note_type, notes, start_date, end_date } = req.body;
+    const { note_type, notes, start_date, end_date, absentee } = req.body;
 
     if (!note_type || !start_date) {
         return res.status(400).json({ error: 'note_type and start_date are required' });
+    }
+
+    if (note_type === 'Absence' && !absentee) {
+        return res.status(400).json({ error: 'absentee is required for Absence type' });
     }
 
     try {
@@ -32,11 +36,11 @@ router.post('/save', async (req, res) => {
 
         for (const date of dates) {
             await pool.query(
-                `INSERT INTO calendar_days (date, notes, note_type, out_status, out_start_date, out_end_date, created_at)
-                 VALUES ($1, $2, $3, $4, $5, $6, NOW())
+                `INSERT INTO calendar_days (date, notes, note_type, absentee, out_status, out_start_date, out_end_date, created_at)
+                 VALUES ($1, $2, $3, $4, $5, $6, $7, NOW())
                  ON CONFLICT (date) DO UPDATE SET
-                 notes = $2, note_type = $3, out_status = $4, out_start_date = $5, out_end_date = $6, created_at = NOW()`,
-                [date, notes || null, note_type, out_status, start_date, end_date || null]
+                 notes = $2, note_type = $3, absentee = $4, out_status = $5, out_start_date = $6, out_end_date = $7, created_at = NOW()`,
+                [date, notes || null, note_type, note_type === 'Absence' ? absentee : null, out_status, start_date, end_date || null]
             );
         }
         res.status(201).json({ message: 'Saved successfully' });

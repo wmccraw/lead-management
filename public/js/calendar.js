@@ -43,13 +43,13 @@ async function loadCalendar() {
         if (!res.ok) throw new Error('Failed to fetch calendar data');
         const days = await res.json();
         document.querySelectorAll('.calendar-day .day-notes').forEach(note => note.textContent = '');
-        document.querySelectorAll('.calendar-day').forEach(el => el.classList.remove('out'));
+        document.querySelectorAll('.absence-banner').forEach(banner => banner.remove());
 
         days.forEach(day => {
             const noteType = day.note_type || 'General';
             const startDate = new Date(day.out_start_date);
             const endDate = day.out_end_date ? new Date(day.out_end_date) : startDate;
-            
+
             if (noteType === 'General') {
                 const dayElement = document.querySelector(`.calendar-day[data-date="${day.date}"]`);
                 if (dayElement) {
@@ -58,14 +58,19 @@ async function loadCalendar() {
                         notesDiv.textContent = day.notes.substring(0, 10) + (day.notes.length > 10 ? '...' : '');
                     }
                 }
-            } else if (noteType === 'Absence') {
+            } else if (noteType === 'Absence' && day.absentee) {
                 for (let d = new Date(startDate); d <= endDate; d.setDate(d.getDate() + 1)) {
                     const rangeDate = d.toISOString().split('T')[0];
                     const rangeElement = document.querySelector(`.calendar-day[data-date="${rangeDate}"]`);
                     if (rangeElement) {
-                        rangeElement.classList.add('out');
+                        const banner = document.createElement('div');
+                        banner.classList.add('absence-banner', day.absentee.toLowerCase());
+                        banner.textContent = `${day.absentee} Out`;
+                        rangeElement.appendChild(banner);
                         const notesDiv = rangeElement.querySelector('.day-notes');
-                        notesDiv.textContent = day.notes ? day.notes.substring(0, 10) + (day.notes.length > 10 ? '...' : '') : 'Out';
+                        if (day.notes) {
+                            notesDiv.textContent = day.notes.substring(0, 10) + (day.notes.length > 10 ? '...' : '');
+                        }
                     }
                 }
             }
@@ -82,16 +87,23 @@ function showDayModal(date = null) {
     const endDate = document.getElementById('day-end-date');
     const startDate = document.getElementById('day-start-date');
     const notes = document.getElementById('day-notes');
+    const absentee = document.getElementById('absentee');
+    const absenteeLabel = document.getElementById('absentee-label');
 
     startDate.value = date || new Date().toISOString().split('T')[0];
     notes.value = '';
     noteType.value = 'General';
     endDate.value = '';
-    endDate.disabled = true;
+    absentee.value = 'Wilson';
+    absentee.style.display = 'none';
+    absenteeLabel.style.display = 'none';
 
     noteType.onchange = () => {
-        endDate.disabled = noteType.value === 'General';
-        if (noteType.value === 'General') endDate.value = '';
+        const isAbsence = noteType.value === 'Absence';
+        endDate.disabled = !isAbsence;
+        absentee.style.display = isAbsence ? 'block' : 'none';
+        absenteeLabel.style.display = isAbsence ? 'block' : 'none';
+        if (!isAbsence) endDate.value = '';
     };
 
     modal.classList.remove('hidden');
@@ -101,19 +113,32 @@ async function saveDay() {
     const noteType = document.getElementById('note-type').value;
     const notes = document.getElementById('day-notes').value.trim();
     const startDate = document.getElementById('day-start-date').value;
-    const endDate = noteType === 'Absence' ? document.getElementById('day-end-date').value : null;
+    const endDate = document.getElementById('day-end-date').value;
+    const absentee = document.getElementById('absentee').value;
 
     if (!startDate) {
         alert('Start date is required.');
         return;
     }
 
-    if (noteType === 'Absence' && endDate && new Date(endDate) < new Date(startDate)) {
-        alert('End date cannot be before start date.');
-        return;
+    if (noteType === 'Absence') {
+        if (!endDate) {
+            alert('End date is required for Absence.');
+            return;
+        }
+        if (new Date(endDate) < new Date(startDate)) {
+            alert('End date cannot be before start date.');
+            return;
+        }
     }
 
-    const data = { note_type: noteType, notes, start_date: startDate, end_date: endDate };
+    const data = {
+        note_type: noteType,
+        notes,
+        start_date: startDate,
+        end_date: noteType === 'Absence' ? endDate : null,
+        absentee: noteType === 'Absence' ? absentee : null
+    };
 
     try {
         const res = await fetch('/api/calendar/save', {

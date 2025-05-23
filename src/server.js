@@ -58,6 +58,7 @@ const pool = new Pool({
                 date DATE NOT NULL UNIQUE,
                 notes TEXT,
                 note_type VARCHAR(50) NOT NULL DEFAULT 'General',
+                absentee VARCHAR(50),
                 out_status BOOLEAN DEFAULT FALSE,
                 out_start_date DATE,
                 out_end_date DATE,

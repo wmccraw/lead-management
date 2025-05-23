@@ -24,9 +24,7 @@
             cursor: pointer;
             border: 1px solid #d1d5db;
             transition: background-color 0.3s;
-        }
-        .calendar-day.out {
-            background-color: #fee2e2; /* Light red for absence */
+            position: relative;
         }
         .calendar-day:hover {
             background-color: #f3f4f6;
@@ -38,6 +36,30 @@
         }
         .expandable-notes.expanded {
             max-height: 200px;
+        }
+        .absence-banner {
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 20px;
+            font-size: 12px;
+            color: white;
+            text-align: center;
+            line-height: 20px;
+            opacity: 0.8;
+        }
+        .absence-banner.wilson {
+            background-color: #ffcccb; /* Light pink */
+        }
+        .absence-banner.carter {
+            background-color: #ffdab9; /* Light orange */
+        }
+        .absence-banner.william {
+            background-color: #fee2e2; /* Light red */
+        }
+        .absence-banner.julia {
+            background-color: #fffacd; /* Light yellow */
         }
     </style>
 </head>
@@ -176,9 +198,16 @@
                             <option value="General">General</option>
                             <option value="Absence">Absence</option>
                         </select>
+                        <label class="block text-gray-700 mb-2" id="absentee-label" style="display: none;">Select Absentee</label>
+                        <select id="absentee" class="w-full p-2 mb-4 border rounded" style="display: none;">
+                            <option value="Wilson">Wilson</option>
+                            <option value="Carter">Carter</option>
+                            <option value="William">William</option>
+                            <option value="Julia">Julia</option>
+                        </select>
                         <label class="block text-gray-700 mb-2">Start Date</label>
                         <input type="date" id="day-start-date" class="w-full p-2 mb-4 border rounded" required>
-                        <label class="block text-gray-700 mb-2">End Date (Optional for Absence)</label>
+                        <label class="block text-gray-700 mb-2">End Date</label>
                         <input type="date" id="day-end-date" class="w-full p-2 mb-4 border rounded">
                         <button onclick="saveDay()" class="bg-green-500 text-white px-4 py-2 rounded hover:bg-green-600 w-full">Save</button>
                         <div id="full-notes" class="expandable-notes mt-4 text-gray-600"></div>
