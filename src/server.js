@@ -1,118 +1,153 @@
 const express = require('express');
+const path = require('path');
 const { Pool } = require('pg');
-const leadsRouter = require('./routes/leads');
-const customersRouter = require('./routes/customers');
-const calendarRouter = require('./routes/calendar');
-const inventoryRouter = require('./routes/inventory');
 const app = express();
-
-app.use(express.json());
-app.use(express.static('public'));
 
 const pool = new Pool({
     connectionString: process.env.DATABASE_URL,
     ssl: { rejectUnauthorized: false }
 });
 
-// Run migrations on startup
-(async () => {
+app.use(express.json());
+app.use(express.static(path.join(__dirname, 'public')));
+
+app.get('/api/leads', async (req, res) => {
     try {
-        // Drop tables if they exist
-        await pool.query('DROP TABLE IF EXISTS leads CASCADE');
-        await pool.query('DROP TABLE IF EXISTS customers CASCADE');
-        await pool.query('DROP TABLE IF EXISTS calendar_days CASCADE');
-        await pool.query('DROP TABLE IF EXISTS inventory CASCADE');
-
-        // Create customers table
-        await pool.query(`
-            CREATE TABLE customers (
-                id SERIAL PRIMARY KEY,
-                name VARCHAR(100) NOT NULL,
-                company VARCHAR(100),
-                email VARCHAR(100) UNIQUE NOT NULL,
-                phone VARCHAR(20),
-                date_added TIMESTAMP DEFAULT NOW(),
-                last_updated TIMESTAMP DEFAULT NOW()
-            )
-        `);
-
-        // Create leads table
-        await pool.query(`
-            CREATE TABLE leads (
-                id SERIAL PRIMARY KEY,
-                customer_id INTEGER REFERENCES customers(id),
-                product_category VARCHAR(50),
-                make VARCHAR(50),
-                model VARCHAR(50),
-                notes TEXT,
-                status VARCHAR(50) DEFAULT 'Pending',
-                quoted_from_vendor BOOLEAN DEFAULT FALSE,
-                created_at TIMESTAMP DEFAULT NOW()
-            )
-        `);
-
-        // Create calendar_days table
-        await pool.query(`
-            CREATE TABLE calendar_days (
-                id SERIAL PRIMARY KEY,
-                date DATE NOT NULL UNIQUE,
-                notes TEXT,
-                note_type VARCHAR(50) NOT NULL DEFAULT 'General',
-                absentee VARCHAR(50),
-                out_status BOOLEAN DEFAULT FALSE,
-                out_start_date DATE,
-                out_end_date DATE,
-                created_at TIMESTAMP DEFAULT NOW()
-            )
-        `);
-
-        // Create inventory table
-        await pool.query(`
-            CREATE TABLE inventory (
-                id SERIAL PRIMARY KEY,
-                part_number VARCHAR(50) NOT NULL,
-                serial_number VARCHAR(50) NOT NULL,
-                part_name VARCHAR(100),
-                description TEXT,
-                category VARCHAR(50) NOT NULL,
-                manufacturer VARCHAR(100),
-                model_compatibility TEXT,
-                quantity_in_stock INTEGER NOT NULL,
-                location VARCHAR(100),
-                stock_status VARCHAR(50),
-                reorder_point INTEGER,
-                supplier_name VARCHAR(100) NOT NULL,
-                supplier_part_number VARCHAR(50),
-                supplier_contact VARCHAR(100),
-                supplier_cost DECIMAL(10, 2),
-                latest_lead_time_received VARCHAR(50),
-                retail_price DECIMAL(10, 2),
-                last_sold_date DATE,
-                sales_frequency VARCHAR(50),
-                condition VARCHAR(50),
-                image_url TEXT,
-                attachment_files TEXT,
-                date_added TIMESTAMP DEFAULT NOW(),
-                last_updated TIMESTAMP DEFAULT NOW(),
-                usage_rate DECIMAL(10, 2),
-                inventory_turnover DECIMAL(10, 2),
-                created_at TIMESTAMP DEFAULT NOW()
-            )
-        `);
-
-        console.log('Database schema updated successfully');
+        const result = await pool.query('SELECT * FROM leads');
+        res.json(result.rows);
     } catch (err) {
-        console.error('Error running migrations:', err);
+        console.error(err.stack);
+        res.status(500).json({ error: 'Database error' });
     }
-})();
+});
 
-// Mount API routes
-app.use('/api/leads', leadsRouter);
-app.use('/api/customers', customersRouter);
-app.use('/api/calendar', calendarRouter);
-app.use('/api/inventory', inventoryRouter);
+app.post('/api/leads/save', async (req, res) => {
+    const { id, name, company, email, phone, product_category, make, model, notes, status } = req.body;
+    try {
+        if (id) {
+            await pool.query(
+                'UPDATE leads SET name=$1, company=$2, email=$3, phone=$4, product_category=$5, make=$6, model=$7, notes=$8, status=$9, updated_at=NOW() WHERE id=$10',
+                [name, company, email, phone, product_category, make, model, notes, status, id]
+            );
+        } else {
+            await pool.query(
+                'INSERT INTO leads (name, company, email, phone, product_category, make, model, notes, status) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9) RETURNING *',
+                [name, company, email, phone, product_category, make, model, notes, status]
+            );
+        }
+        res.status(200).json({ success: true });
+    } catch (err) {
+        console.error(err.stack);
+        res.status(500).json({ error: 'Database error' });
+    }
+});
 
-// Start the server
+app.get('/api/customers', async (req, res) => {
+    try {
+        const result = await pool.query('SELECT * FROM customers');
+        res.json(result.rows);
+    } catch (err) {
+        console.error(err.stack);
+        res.status(500).json({ error: 'Database error' });
+    }
+});
+
+app.post('/api/customers/save', async (req, res) => {
+    const { name, company, email, phone } = req.body;
+    try {
+        await pool.query(
+            'INSERT INTO customers (name, company, email, phone) VALUES ($1, $2, $3, $4) RETURNING *',
+            [name, company, email, phone]
+        );
+        res.status(200).json({ success: true });
+    } catch (err) {
+        console.error(err.stack);
+        res.status(500).json({ error: 'Database error' });
+    }
+});
+
+app.get('/api/calendar', async (req, res) => {
+    try {
+        const result = await pool.query('SELECT * FROM calendar');
+        res.json(result.rows);
+    } catch (err) {
+        console.error(err.stack);
+        res.status(500).json({ error: 'Database error' });
+    }
+});
+
+app.post('/api/calendar/save', async (req, res) => {
+    const { id, note_type, notes, start_date, end_date, absentee } = req.body;
+    try {
+        if (id) {
+            await pool.query(
+                'UPDATE calendar SET note_type=$1, notes=$2, out_start_date=$3, out_end_date=$4, absentee=$5 WHERE id=$6',
+                [note_type, notes, start_date, end_date, absentee, id]
+            );
+        } else {
+            await pool.query(
+                'INSERT INTO calendar (note_type, notes, out_start_date, out_end_date, absentee, date) VALUES ($1, $2, $3, $4, $5, $3) RETURNING *',
+                [note_type, notes, start_date, end_date, absentee]
+            );
+        }
+        res.status(200).json({ success: true });
+    } catch (err) {
+        console.error(err.stack);
+        res.status(500).json({ error: 'Database error' });
+    }
+});
+
+app.delete('/api/calendar/delete/:id', async (req, res) => {
+    const { id } = req.params;
+    try {
+        const result = await pool.query('DELETE FROM calendar WHERE id=$1', [id]);
+        if (result.rowCount === 0) {
+            return res.status(404).json({ error: 'Entry not found' });
+        }
+        res.status(200).json({ success: true });
+    } catch (err) {
+        console.error(err.stack);
+        res.status(500).json({ error: 'Database error' });
+    }
+});
+
+app.get('/api/inventory', async (req, res) => {
+    try {
+        const result = await pool.query('SELECT * FROM inventory');
+        res.json(result.rows);
+    } catch (err) {
+        console.error(err.stack);
+        res.status(500).json({ error: 'Database error' });
+    }
+});
+
+app.post('/api/inventory/save', async (req, res) => {
+    const {
+        id, part_number, serial_number, part_name, description, category, manufacturer,
+        model_compatibility, quantity_in_stock, location, stock_status, reorder_point,
+        supplier_name, supplier_part_number, supplier_contact, supplier_cost,
+        latest_lead_time, retail_price, last_sold_date, sales_frequency, condition,
+        image_url, attachment_files, usage_rate, inventory_turnover
+    } = req.body;
+    try {
+        if (id) {
+            await pool.query(
+                'UPDATE inventory SET part_number=$1, serial_number=$2, part_name=$3, description=$4, category=$5, manufacturer=$6, model_compatibility=$7, quantity_in_stock=$8, location=$9, stock_status=$10, reorder_point=$11, supplier_name=$12, supplier_part_number=$13, supplier_contact=$14, supplier_cost=$15, latest_lead_time=$16, retail_price=$17, last_sold_date=$18, sales_frequency=$19, condition=$20, image_url=$21, attachment_files=$22, usage_rate=$23, inventory_turnover=$24, updated_at=NOW() WHERE id=$25',
+                [part_number, serial_number, part_name, description, category, manufacturer, model_compatibility, quantity_in_stock, location, stock_status, reorder_point, supplier_name, supplier_part_number, supplier_contact, supplier_cost, latest_lead_time, retail_price, last_sold_date, sales_frequency, condition, image_url, attachment_files, usage_rate, inventory_turnover, id]
+            );
+        } else {
+            await pool.query(
+                'INSERT INTO inventory (part_number, serial_number, part_name, description, category, manufacturer, model_compatibility, quantity_in_stock, location, stock_status, reorder_point, supplier_name, supplier_part_number, supplier_contact, supplier_cost, latest_lead_time, retail_price, last_sold_date, sales_frequency, condition, image_url, attachment_files, usage_rate, inventory_turnover) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16, $17, $18, $19, $20, $21, $22, $23, $24) RETURNING *',
+                [part_number, serial_number, part_name, description, category, manufacturer, model_compatibility, quantity_in_stock, location, stock_status, reorder_point, supplier_name, supplier_part_number, supplier_contact, supplier_cost, latest_lead_time, retail_price, last_sold_date, sales_frequency, condition, image_url, attachment_files, usage_rate, inventory_turnover]
+            );
+        }
+        res.status(200).json({ success: true });
+    } catch (err) {
+        console.error(err.stack);
+        res.status(500).json({ error: 'Database error' });
+    }
+});
+
 const PORT = process.env.PORT || 3000;
 app.listen(PORT, () => {
     console.log(`Server running on port ${PORT}`);

@@ -1,7 +1,8 @@
 document.getElementById('add-day-note-btn').addEventListener('click', () => showDayModal());
 document.getElementById('calendar-grid').addEventListener('click', (e) => {
-    if (e.target.classList.contains('calendar-day') || e.target.parentElement.classList.contains('calendar-day')) {
-        const date = e.target.dataset.date || e.target.parentElement.dataset.date;
+    const target = e.target.classList.contains('calendar-day') ? e.target : e.target.parentElement.classList.contains('calendar-day') ? e.target.parentElement : null;
+    if (target) {
+        const date = target.dataset.date;
         showDayModal(date);
     }
 });
@@ -45,6 +46,8 @@ async function loadCalendar() {
         document.querySelectorAll('.calendar-day .day-notes').forEach(note => note.textContent = '');
         document.querySelectorAll('.absence-banner').forEach(banner => banner.remove());
 
+        const dayEntries = {};
+
         days.forEach(day => {
             const noteType = day.note_type || 'General';
             const startDate = new Date(day.out_start_date);
@@ -57,6 +60,8 @@ async function loadCalendar() {
                     if (day.notes) {
                         notesDiv.textContent = day.notes.substring(0, 10) + (day.notes.length > 10 ? '...' : '');
                     }
+                    if (!dayEntries[day.date]) dayEntries[day.date] = [];
+                    dayEntries[day.date].push({ ...day, note_type: 'General' });
                 }
             } else if (noteType === 'Absence' && day.absentee) {
                 for (let d = new Date(startDate); d <= endDate; d.setDate(d.getDate() + 1)) {
@@ -64,30 +69,44 @@ async function loadCalendar() {
                     const rangeElement = document.querySelector(`.calendar-day[data-date="${rangeDate}"]`);
                     if (rangeElement) {
                         const bannersDiv = rangeElement.querySelector('.absence-banners');
-                        const existingBanners = Array.from(bannersDiv.getElementsByClassName('absence-banner')).map(b => ({
-                            absentee: b.classList[1],
-                            start: new Date(day.out_start_date)
+                        const existingBanners = Array.from(bannersDiv.getElementsByClassName('absence-banner')).map(banner => ({
+                            absentee: banner.classList[1],
+                            start: new Date(day.out_start_date),
+                            element: banner
                         }));
+
+                        const newBannerElement = document.createElement('div');
+                        newBannerElement.classList.add('absence-banner', day.absentee.toLowerCase());
+                        newBannerElement.textContent = `${day.absentee} Out`;
+
                         const newBanner = {
                             absentee: day.absentee.toLowerCase(),
                             start: startDate,
-                            element: document.createElement('div')
+                            element: newBannerElement,
+                            id: day.id
                         };
-                        newBanner.element.classList.add('absence-banner', newBanner.absentee);
-                        newBanner.element.textContent = `${day.absentee} Out`;
 
-                        // Sort banners by earliest start date
                         existingBanners.push(newBanner);
                         existingBanners.sort((a, b) => a.start - b.start);
                         bannersDiv.innerHTML = '';
-                        existingBanners.forEach(b => bannersDiv.appendChild(b.element || b));
+                        existingBanners.forEach(b => bannersDiv.appendChild(b.element));
 
                         const notesDiv = rangeElement.querySelector('.day-notes');
-                        if (day.notes) {
+                        if (day.notes && !notesDiv.textContent) {
                             notesDiv.textContent = day.notes.substring(0, 10) + (day.notes.length > 10 ? '...' : '');
                         }
+
+                        if (!dayEntries[rangeDate]) dayEntries[rangeDate] = [];
+                        dayEntries[rangeDate].push({ ...day, note_type: 'Absence' });
                     }
                 }
+            }
+        });
+
+        Object.keys(dayEntries).forEach(date => {
+            const dayElement = document.querySelector(`.calendar-day[data-date="${date}"]`);
+            if (dayElement) {
+                dayElement.dataset.entries = JSON.stringify(dayEntries[date]);
             }
         });
     } catch (err) {
@@ -96,7 +115,7 @@ async function loadCalendar() {
     }
 }
 
-function showDayModal(date = null) {
+function showDayModal(date = null, entry = null) {
     const modal = document.getElementById('day-modal');
     const noteType = document.getElementById('note-type');
     const endDate = document.getElementById('day-end-date');
@@ -104,14 +123,31 @@ function showDayModal(date = null) {
     const notes = document.getElementById('day-notes');
     const absentee = document.getElementById('absentee');
     const absenteeLabel = document.getElementById('absentee-label');
+    const dayId = document.getElementById('day-id');
+    const deleteBtn = document.getElementById('delete-day-btn');
 
-    startDate.value = date || new Date().toISOString().split('T')[0];
-    notes.value = '';
-    noteType.value = 'General';
-    endDate.value = '';
-    absentee.value = 'Wilson';
-    absentee.style.display = 'none';
-    absenteeLabel.style.display = 'none';
+    if (entry) {
+        dayId.value = entry.id || '';
+        notes.value = entry.notes || '';
+        noteType.value = entry.note_type || 'General';
+        startDate.value = entry.out_start_date || date || new Date().toISOString().split('T')[0];
+        endDate.value = entry.out_end_date || '';
+        absentee.value = entry.absentee || 'Wilson';
+        deleteBtn.style.display = 'block';
+    } else {
+        dayId.value = '';
+        startDate.value = date || new Date().toISOString().split('T')[0];
+        notes.value = '';
+        noteType.value = 'General';
+        endDate.value = '';
+        absentee.value = 'Wilson';
+        deleteBtn.style.display = 'none';
+    }
+
+    const isAbsence = noteType.value === 'Absence';
+    endDate.disabled = !isAbsence;
+    absentee.style.display = isAbsence ? 'block' : 'none';
+    absenteeLabel.style.display = isAbsence ? 'block' : 'none';
 
     noteType.onchange = () => {
         const isAbsence = noteType.value === 'Absence';
@@ -125,6 +161,7 @@ function showDayModal(date = null) {
 }
 
 async function saveDay() {
+    const dayId = document.getElementById('day-id').value;
     const noteType = document.getElementById('note-type').value;
     const notes = document.getElementById('day-notes').value.trim();
     const startDate = document.getElementById('day-start-date').value;
@@ -148,6 +185,7 @@ async function saveDay() {
     }
 
     const data = {
+        id: dayId || undefined,
         note_type: noteType,
         notes,
         start_date: startDate,
@@ -173,6 +211,32 @@ async function saveDay() {
     }
 }
 
+async function deleteDay() {
+    const dayId = document.getElementById('day-id').value;
+    if (!dayId) {
+        alert('No entry to delete.');
+        return;
+    }
+
+    if (!confirm('Are you sure you want to delete this entry?')) return;
+
+    try {
+        const res = await fetch(`/api/calendar/delete/${dayId}`, {
+            method: 'DELETE',
+            headers: { 'Content-Type': 'application/json' }
+        });
+        if (!res.ok) {
+            const error = await res.json();
+            throw new Error(error.error || 'Delete failed');
+        }
+        document.getElementById('day-modal').classList.add('hidden');
+        loadCalendar();
+    } catch (err) {
+        console.error('Delete error:', err);
+        alert(`Delete failed: ${err.message}. Check console for details.`);
+    }
+}
+
 document.addEventListener('DOMContentLoaded', () => {
     const today = new Date();
     document.getElementById('calendar-month').value = `${today.getFullYear()}-${String(today.getMonth() + 1).padStart(2, '0')}`;
@@ -182,6 +246,21 @@ document.addEventListener('DOMContentLoaded', () => {
         if (e.target.tagName === 'P' && e.target.parentElement.id === 'full-notes') {
             const fullNotes = document.getElementById('full-notes');
             fullNotes.classList.toggle('expanded');
+        }
+    });
+
+    document.getElementById('calendar-grid').addEventListener('click', (e) => {
+        if (e.target.classList.contains('absence-banner')) {
+            const date = e.target.parentElement.parentElement.dataset.date;
+            const entries = JSON.parse(e.target.parentElement.parentElement.dataset.entries || '[]');
+            const absentee = e.target.classList[1].charAt(0).toUpperCase() + e.target.classList[1].slice(1);
+            const entry = entries.find(e => e.note_type === 'Absence' && e.absentee.toLowerCase() === absentee.toLowerCase());
+            if (entry) showDayModal(date, entry);
+        } else if (e.target.classList.contains('day-notes') && e.target.textContent) {
+            const date = e.target.parentElement.dataset.date;
+            const entries = JSON.parse(e.target.parentElement.dataset.entries || '[]');
+            const entry = entries.find(e => e.note_type === 'General');
+            if (entry) showDayModal(date, entry);
         }
     });
 });
