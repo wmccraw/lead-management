@@ -14,7 +14,6 @@ async function initializeDatabase() {
         CREATE TABLE IF NOT EXISTS calendar (
             id SERIAL PRIMARY KEY,
             date DATE NOT NULL,
-            notes TEXT,
             absentee VARCHAR(50)
         );
     `;
@@ -97,11 +96,11 @@ app.get('/api/calendar', async (req, res) => {
 });
 
 app.post('/api/calendar/save', async (req, res) => {
-    const { date, notes, absentee } = req.body;
+    const { date, absentee } = req.body;
     try {
         const result = await pool.query(
-            'INSERT INTO calendar (date, notes, absentee) VALUES ($1, $2, $3) RETURNING *',
-            [date || null, notes || '', absentee || null]
+            'INSERT INTO calendar (date, absentee) VALUES ($1, $2) RETURNING *',
+            [date || null, absentee || null]
         );
         res.status(200).json({ success: true, data: result.rows[0] });
     } catch (err) {
