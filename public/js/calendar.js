@@ -10,7 +10,7 @@ document.addEventListener('DOMContentLoaded', () => {
         document.getElementById('day-start-date').value = '';
         document.getElementById('day-end-date').value = '';
         document.getElementById('delete-day-btn').style.display = 'none';
-        document.getElementById('day-modal-title').textContent = 'Add Note or Out Status';
+        document.getElementById('day-modal-title').textContent = 'Add Event';
     });
 
     document.getElementById('note-type').addEventListener('change', (e) => {
@@ -30,8 +30,6 @@ async function loadCalendar() {
 
     const daysInMonth = lastDay.getDate();
     const startDay = firstDay.getDay();
-    const prevMonth = new Date(year, monthNum - 1, 0);
-    const daysInPrevMonth = prevMonth.getDate();
 
     for (let i = 0; i < startDay; i++) {
         const day = document.createElement('div');
@@ -43,29 +41,35 @@ async function loadCalendar() {
     const calendarData = await response.json();
 
     for (let day = 1; day <= daysInMonth; day++) {
+        const formattedDay = `${year}-${monthNum.padStart(2, '0')}-${String(day).padStart(2, '0')}`;
         const dayDiv = document.createElement('div');
         dayDiv.className = 'calendar-day relative';
         dayDiv.textContent = day;
-        dayDiv.dataset.date = `${year}-${monthNum.padStart(2, '0')}-${String(day).padStart(2, '0')}`;
+        dayDiv.dataset.date = formattedDay;
 
-        const dayData = calendarData.find(d => d.date === dayDiv.dataset.date);
+        const dayData = calendarData.find(d => d.date === formattedDay);
         if (dayData) {
             const marker = document.createElement('div');
             marker.className = 'text-xs mt-1';
-            if (dayData.name === 'Default') {
-                const color = dayData.time.includes('12') ? 'bg-blue-500' : 'bg-green-500'; // Simple color coding by time
-                marker.className += ` ${color} text-white px-1 rounded`;
-                marker.textContent = 'Event';
-            }
-            marker.className += ' expandable-notes';
+            const person = dayData.name !== 'Default' ? dayData.name : 'Wilson'; // Simulate absentee
+            const colors = {
+                'Wilson': 'bg-blue-500',
+                'Carter': 'bg-red-500',
+                'William': 'bg-green-500',
+                'Julia': 'bg-purple-500'
+            };
+            const color = colors[person] || 'bg-gray-500';
+            marker.className += ` ${color} text-white px-1 rounded`;
+            marker.textContent = `${person} Out`;
             dayDiv.appendChild(marker);
 
             dayDiv.addEventListener('click', () => {
                 document.getElementById('day-modal').classList.remove('hidden');
                 document.getElementById('day-id').value = dayData.id;
                 document.getElementById('day-notes').value = '';
-                document.getElementById('absentee-label').style.display = 'none';
-                document.getElementById('absentee').style.display = 'none';
+                document.getElementById('absentee-label').style.display = 'block';
+                document.getElementById('absentee').style.display = 'block';
+                document.getElementById('absentee').value = person;
                 document.getElementById('day-start-date').value = dayData.date || '';
                 document.getElementById('day-end-date').value = '';
                 document.getElementById('delete-day-btn').style.display = 'block';
@@ -80,10 +84,10 @@ async function loadCalendar() {
                 document.getElementById('day-notes').value = '';
                 document.getElementById('absentee-label').style.display = 'none';
                 document.getElementById('absentee').style.display = 'none';
-                document.getElementById('day-start-date').value = `${year}-${monthNum.padStart(2, '0')}-${String(day).padStart(2, '0')}`;
+                document.getElementById('day-start-date').value = formattedDay;
                 document.getElementById('day-end-date').value = '';
                 document.getElementById('delete-day-btn').style.display = 'none';
-                document.getElementById('day-modal-title').textContent = 'Add Note or Out Status';
+                document.getElementById('day-modal-title').textContent = 'Add Event';
                 document.getElementById('full-notes').innerHTML = '';
                 document.getElementById('full-notes').classList.remove('expanded');
             });
@@ -101,11 +105,12 @@ async function loadCalendar() {
 
 async function saveDay() {
     const date = document.getElementById('day-start-date').value;
+    const name = document.getElementById('absentee').style.display === 'block' ? document.getElementById('absentee').value : 'Default';
 
     const response = await fetch('/api/calendar/save', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ date })
+        body: JSON.stringify({ date, name })
     });
 
     const result = await response.json();
