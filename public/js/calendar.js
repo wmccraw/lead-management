@@ -64,9 +64,9 @@ async function loadCalendar() {
             dayDiv.addEventListener('click', () => {
                 document.getElementById('day-modal').classList.remove('hidden');
                 document.getElementById('day-id').value = dayData.id;
-                document.getElementById('day-notes').value = ''; // No notes column anymore
-                document.getElementById('absentee-label').style.display = dayData.absentee ? 'block' : 'none';
-                document.getElementById('absentee').style.display = dayData.absentee ? 'block' : 'none';
+                document.getElementById('day-notes').value = '';
+                document.getElementById('absentee-label').style.display = 'block';
+                document.getElementById('absentee').style.display = 'block';
                 document.getElementById('absentee').value = dayData.absentee || 'Wilson';
                 document.getElementById('day-start-date').value = dayData.date || '';
                 document.getElementById('day-end-date').value = '';
@@ -103,12 +103,11 @@ async function loadCalendar() {
 
 async function saveDay() {
     const date = document.getElementById('day-start-date').value;
-    const absentee = document.getElementById('absentee').style.display === 'block' ? document.getElementById('absentee').value : null;
 
     const response = await fetch('/api/calendar/save', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ date, absentee })
+        body: JSON.stringify({ date })
     });
 
     const result = await response.json();
