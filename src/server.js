@@ -77,19 +77,12 @@ app.get('/api/calendar', async (req, res) => {
 });
 
 app.post('/api/calendar/save', async (req, res) => {
-    const { id, note_type, notes, start_date, end_date, absentee } = req.body;
+    const { notes, date } = req.body;
     try {
-        if (id) {
-            await pool.query(
-                'UPDATE calendar SET note_type=$1, notes=$2, start_date=$3, end_date=$4, absentee=$5 WHERE id=$6',
-                [note_type || '', notes || '', start_date || null, end_date || null, absentee || '', id]
-            );
-        } else {
-            await pool.query(
-                'INSERT INTO calendar (note_type, notes, start_date, end_date, absentee, created_date) VALUES ($1, $2, $3, $4, $5, $3) RETURNING *',
-                [note_type || '', notes || '', start_date || null, end_date || null, absentee || '']
-            );
-        }
+        await pool.query(
+            'INSERT INTO calendar (notes, date) VALUES ($1, $2) RETURNING *',
+            [notes || '', date || null]
+        );
         res.status(200).json({ success: true });
     } catch (err) {
         console.error('Calendar save error:', err.stack);
