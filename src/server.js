@@ -83,14 +83,15 @@ app.get('/api/calendar', async (req, res) => {
 app.post('/api/calendar/save', async (req, res) => {
     const { date, name, time } = req.body;
     try {
+        console.log('Saving calendar entry:', { date, name, time }); // Debug log
         const result = await pool.query(
-            'INSERT INTO calendar (date, name, time) VALUES ($1, $2, $3) RETURNING *',
+            'INSERT INTO calendar (date, name, time) VALUES ($1, $2, $3::TEXT) RETURNING *',
             [date || null, name || 'Default', time || '']
         );
         res.status(200).json({ success: true, data: result.rows[0] });
     } catch (err) {
         console.error('Calendar save error:', err.stack);
-        res.status(500).json({ error: 'Database error: Failed to save calendar entry' + (err.message ? ` - ${err.message}` : '') });
+        res.status(500).json({ error: 'Database error: Failed to save calendar entry - ' + err.message });
     }
 });
 
