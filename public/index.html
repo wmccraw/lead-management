@@ -3,123 +3,138 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Lead Management</title>
+    <title>Lead Management Dashboard</title>
     <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet">
     <style>
-        .calendar-day {
-            border: 1px solid #ddd;
-            padding: 10px;
-            text-align: center;
-            height: 100px;
-            overflow: auto;
-        }
+        .calendar-day { border: 1px solid #ddd; padding: 10px; text-align: center; height: 100px; overflow: auto; }
+        .tab-button.active { background-color: #10B981; }
+        .tab-content { display: none; }
+        .tab-content.active { display: block; }
+        .expanded { max-height: 200px; overflow-y: auto; border: 1px solid #ddd; padding: 5px; }
     </style>
 </head>
-<body class="bg-gray-100">
-    <div class="container mx-auto p-4">
-        <h1 class="text-2xl font-bold mb-4">Lead Management</h1>
+<body class="bg-gray-100 font-sans">
+    <div class="container mx-auto p-6">
+        <h1 class="text-3xl font-bold mb-6 text-gray-800">Lead Management Dashboard</h1>
 
         <!-- Tabs -->
-        <div class="mb-4">
-            <button onclick="showTab('leads')" class="tab-button bg-blue-500 text-white px-4 py-2 rounded mr-2">Leads</button>
-            <button onclick="showTab('customers')" class="tab-button bg-blue-500 text-white px-4 py-2 rounded mr-2">Customers</button>
-            <button onclick="showTab('calendar')" class="tab-button bg-blue-500 text-white px-4 py-2 rounded mr-2">Calendar</button>
-            <button onclick="showTab('inventory')" class="tab-button bg-blue-500 text-white px-4 py-2 rounded">Inventory</button>
+        <div class="mb-6 border-b border-gray-200">
+            <nav class="flex space-x-4">
+                <button onclick="showTab('leads')" class="tab-button px-4 py-2 text-sm font-medium text-white bg-gray-500 rounded-t-lg hover:bg-green-600 focus:outline-none focus:bg-green-600">Leads</button>
+                <button onclick="showTab('customers')" class="tab-button px-4 py-2 text-sm font-medium text-white bg-gray-500 rounded-t-lg hover:bg-green-600 focus:outline-none focus:bg-green-600">Customers</button>
+                <button onclick="showTab('calendar')" class="tab-button px-4 py-2 text-sm font-medium text-white bg-gray-500 rounded-t-lg hover:bg-green-600 focus:outline-none focus:bg-green-600">Calendar</button>
+                <button onclick="showTab('inventory')" class="tab-button px-4 py-2 text-sm font-medium text-white bg-gray-500 rounded-t-lg hover:bg-green-600 focus:outline-none focus:bg-green-600">Inventory</button>
+            </nav>
         </div>
 
         <!-- Leads Section -->
         <div id="leads" class="tab-content">
-            <button onclick="document.getElementById('lead-modal').classList.remove('hidden')" class="bg-blue-500 text-white px-4 py-2 rounded mb-4">Add Lead</button>
-            <table class="w-full border-collapse border">
-                <thead>
-                    <tr class="bg-gray-200">
-                        <th class="border p-2">Name</th>
-                        <th class="border p-2">Company</th>
-                        <th class="border p-2">Email</th>
-                        <th class="border p-2">Phone</th>
-                        <th class="border p-2">Product Category</th>
-                        <th class="border p-2">Make</th>
-                        <th class="border p-2">Model</th>
-                        <th class="border p-2">Notes</th>
-                        <th class="border p-2">Status</th>
-                        <th class="border p-2">Actions</th>
-                    </tr>
-                </thead>
-                <tbody id="leads-table"></tbody>
-            </table>
+            <button onclick="document.getElementById('lead-modal').classList.remove('hidden')" class="bg-green-500 text-white px-4 py-2 rounded mb-4 hover:bg-green-600">Add Lead</button>
+            <div class="overflow-x-auto">
+                <table class="w-full border-collapse border border-gray-300">
+                    <thead>
+                        <tr class="bg-gray-200">
+                            <th class="border p-3 text-left">Name</th>
+                            <th class="border p-3 text-left">Company</th>
+                            <th class="border p-3 text-left">Email</th>
+                            <th class="border p-3 text-left">Phone</th>
+                            <th class="border p-3 text-left">Product Category</th>
+                            <th class="border p-3 text-left">Make</th>
+                            <th class="border p-3 text-left">Model</th>
+                            <th class="border p-3 text-left">Notes</th>
+                            <th class="border p-3 text-left">Status</th>
+                            <th class="border p-3 text-left">Quoted from Vendor?</th>
+                            <th class="border p-3 text-left">Time in System</th>
+                            <th class="border p-3 text-left">Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody id="leads-table"></tbody>
+                </table>
+            </div>
 
             <!-- Lead Modal -->
             <div id="lead-modal" class="fixed inset-0 bg-gray-600 bg-opacity-50 flex items-center justify-center hidden">
-                <div class="bg-white p-6 rounded shadow-lg w-1/2">
+                <div class="bg-white p-6 rounded-lg shadow-lg w-1/2">
                     <h2 class="text-lg font-bold mb-4">Add/Edit Lead</h2>
                     <input type="hidden" id="lead-id">
-                    <label class="block mb-2">Name:</label>
+                    <label class="block mb-2 font-medium">Name:</label>
                     <input type="text" id="lead-name" class="w-full p-2 border rounded mb-4">
-                    <label class="block mb-2">Company:</label>
+                    <label class="block mb-2 font-medium">Company:</label>
                     <input type="text" id="lead-company" class="w-full p-2 border rounded mb-4">
-                    <label class="block mb-2">Email:</label>
+                    <label class="block mb-2 font-medium">Email:</label>
                     <input type="email" id="lead-email" class="w-full p-2 border rounded mb-4">
-                    <label class="block mb-2">Phone:</label>
+                    <label class="block mb-2 font-medium">Phone:</label>
                     <input type="text" id="lead-phone" class="w-full p-2 border rounded mb-4">
-                    <label class="block mb-2">Product Category:</label>
+                    <label class="block mb-2 font-medium">Product Category:</label>
                     <input type="text" id="lead-product-category" class="w-full p-2 border rounded mb-4">
-                    <label class="block mb-2">Make:</label>
+                    <label class="block mb-2 font-medium">Make:</label>
                     <input type="text" id="lead-make" class="w-full p-2 border rounded mb-4">
-                    <label class="block mb-2">Model:</label>
+                    <label class="block mb-2 font-medium">Model:</label>
                     <input type="text" id="lead-model" class="w-full p-2 border rounded mb-4">
-                    <label class="block mb-2">Notes:</label>
+                    <label class="block mb-2 font-medium">Notes:</label>
                     <textarea id="lead-notes" class="w-full p-2 border rounded mb-4"></textarea>
-                    <label class="block mb-2">Status:</label>
+                    <label class="block mb-2 font-medium">Status:</label>
                     <select id="lead-status" class="w-full p-2 border rounded mb-4">
                         <option value="New">New</option>
                         <option value="Contacted">Contacted</option>
                         <option value="Qualified">Qualified</option>
                         <option value="Lost">Lost</option>
+                        <option value="Quoted">Quoted</option>
+                        <option value="Pending">Pending</option>
                     </select>
-                    <button onclick="saveLead()" class="bg-green-500 text-white px-4 py-2 rounded mr-2">Save</button>
-                    <button onclick="document.getElementById('lead-modal').classList.add('hidden')" class="bg-gray-500 text-white px-4 py-2 rounded">Close</button>
+                    <label class="block mb-2 font-medium">Quoted from Vendor?</label>
+                    <input type="checkbox" id="lead-quoted-from-vendor" class="mb-4">
+                    <div class="flex space-x-2">
+                        <button onclick="saveLead()" class="bg-green-500 text-white px-4 py-2 rounded hover:bg-green-600">Save</button>
+                        <button onclick="document.getElementById('lead-modal').classList.add('hidden')" class="bg-gray-500 text-white px-4 py-2 rounded hover:bg-gray-600">Close</button>
+                    </div>
                 </div>
             </div>
         </div>
 
         <!-- Customers Section -->
         <div id="customers" class="tab-content hidden">
-            <button onclick="document.getElementById('customer-modal').classList.remove('hidden')" class="bg-blue-500 text-white px-4 py-2 rounded mb-4">Add Customer</button>
-            <table class="w-full border-collapse border">
-                <thead>
-                    <tr class="bg-gray-200">
-                        <th class="border p-2">Name</th>
-                        <th class="border p-2">Company</th>
-                        <th class="border p-2">Email</th>
-                        <th class="border p-2">Phone</th>
-                    </tr>
-                </thead>
-                <tbody id="customers-table"></tbody>
-            </table>
+            <button onclick="document.getElementById('customer-modal').classList.remove('hidden')" class="bg-green-500 text-white px-4 py-2 rounded mb-4 hover:bg-green-600">Add Customer</button>
+            <div class="overflow-x-auto">
+                <table class="w-full border-collapse border border-gray-300">
+                    <thead>
+                        <tr class="bg-gray-200">
+                            <th class="border p-3 text-left">Name</th>
+                            <th class="border p-3 text-left">Company</th>
+                            <th class="border p-3 text-left">Email</th>
+                            <th class="border p-3 text-left">Phone</th>
+                            <th class="border p-3 text-left">Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody id="customers-table"></tbody>
+                </table>
+            </div>
 
             <!-- Customer Modal -->
             <div id="customer-modal" class="fixed inset-0 bg-gray-600 bg-opacity-50 flex items-center justify-center hidden">
-                <div class="bg-white p-6 rounded shadow-lg w-96">
+                <div class="bg-white p-6 rounded-lg shadow-lg w-96">
                     <h2 class="text-lg font-bold mb-4">Add Customer</h2>
-                    <label class="block mb-2">Name:</label>
+                    <label class="block mb-2 font-medium">Name:</label>
                     <input type="text" id="customer-name" class="w-full p-2 border rounded mb-4">
-                    <label class="block mb-2">Company:</label>
+                    <label class="block mb-2 font-medium">Company:</label>
                     <input type="text" id="customer-company" class="w-full p-2 border rounded mb-4">
-                    <label class="block mb-2">Email:</label>
+                    <label class="block mb-2 font-medium">Email:</label>
                     <input type="email" id="customer-email" class="w-full p-2 border rounded mb-4">
-                    <label class="block mb-2">Phone:</label>
+                    <label class="block mb-2 font-medium">Phone:</label>
                     <input type="text" id="customer-phone" class="w-full p-2 border rounded mb-4">
-                    <button onclick="saveCustomer()" class="bg-green-500 text-white px-4 py-2 rounded mr-2">Save</button>
-                    <button onclick="document.getElementById('customer-modal').classList.add('hidden')" class="bg-gray-500 text-white px-4 py-2 rounded">Close</button>
+                    <div class="flex space-x-2">
+                        <button onclick="saveCustomer()" class="bg-green-500 text-white px-4 py-2 rounded hover:bg-green-600">Save</button>
+                        <button onclick="document.getElementById('customer-modal').classList.add('hidden')" class="bg-gray-500 text-white px-4 py-2 rounded hover:bg-gray-600">Close</button>
+                    </div>
                 </div>
             </div>
         </div>
 
         <!-- Calendar Section -->
         <div id="calendar" class="tab-content hidden">
-            <div class="mb-4">
-                <button id="add-day-note-btn" class="bg-blue-500 text-white px-4 py-2 rounded">Add Note/Out</button>
-                <select id="calendar-month" class="ml-2 p-2 border rounded" onchange="loadCalendar()">
+            <div class="mb-4 flex items-center">
+                <button id="add-day-note-btn" class="bg-green-500 text-white px-4 py-2 rounded hover:bg-green-600">Add Note/Out</button>
+                <select id="calendar-month" class="ml-4 p-2 border rounded" onchange="loadCalendar()">
                     <option value="2025-01">January 2025</option>
                     <option value="2025-02">February 2025</option>
                     <option value="2025-03">March 2025</option>
@@ -138,140 +153,146 @@
 
             <!-- Day Modal -->
             <div id="day-modal" class="fixed inset-0 bg-gray-600 bg-opacity-50 flex items-center justify-center hidden">
-                <div class="bg-white p-6 rounded shadow-lg w-96">
-                    <h2 id="day-modal-title" class="text-lg font-bold mb-4"></h2>
+                <div class="bg-white p-6 rounded-lg shadow-lg w-96">
+                    <h2 id="day-modal-title" class="text-lg font-bold mb-4">Add Note</h2>
                     <input type="hidden" id="day-id">
                     <input type="hidden" id="note-type">
-                    <label class="block mb-2">Start Date:</label>
+                    <label class="block mb-2 font-medium">Start Date:</label>
                     <input type="date" id="day-start-date" class="w-full p-2 border rounded mb-4">
-                    <label id="day-end-date-label" class="block mb-2 hidden">End Date:</label>
+                    <label id="day-end-date-label" class="block mb-2 font-medium hidden">End Date:</label>
                     <input type="date" id="day-end-date" class="w-full p-2 border rounded mb-4 hidden">
-                    <label id="absentee-label" class="block mb-2 hidden">Absentee:</label>
+                    <label id="absentee-label" class="block mb-2 font-medium hidden">Absentee:</label>
                     <select id="absentee" class="w-full p-2 border rounded mb-4 hidden">
                         <option value="Wilson">Wilson</option>
                         <option value="Carter">Carter</option>
                         <option value="William">William</option>
                         <option value="Julia">Julia</option>
                     </select>
-                    <label id="notes-label" class="block mb-2">Notes:</label>
+                    <label id="notes-label" class="block mb-2 font-medium">Notes:</label>
                     <textarea id="day-notes" class="w-full p-2 border rounded mb-4"></textarea>
                     <div id="full-notes" class="mb-4"></div>
-                    <button onclick="saveDay()" class="bg-green-500 text-white px-4 py-2 rounded mr-2">Save</button>
-                    <button id="delete-day-btn" onclick="deleteDay()" class="bg-red-500 text-white px-4 py-2 rounded hidden">Delete</button>
-                    <button onclick="document.getElementById('day-modal').classList.add('hidden')" class="bg-gray-500 text-white px-4 py-2 rounded">Close</button>
+                    <div class="flex space-x-2">
+                        <button onclick="saveDay()" class="bg-green-500 text-white px-4 py-2 rounded hover:bg-green-600">Save</button>
+                        <button id="delete-day-btn" onclick="deleteDay()" class="bg-red-500 text-white px-4 py-2 rounded hidden hover:bg-red-600">Delete</button>
+                        <button onclick="document.getElementById('day-modal').classList.add('hidden')" class="bg-gray-500 text-white px-4 py-2 rounded hover:bg-gray-600">Close</button>
+                    </div>
                 </div>
             </div>
 
             <!-- Type Selection Modal -->
             <div id="type-modal" class="fixed inset-0 bg-gray-600 bg-opacity-50 flex items-center justify-center hidden">
-                <div class="bg-white p-6 rounded shadow-lg">
+                <div class="bg-white p-6 rounded-lg shadow-lg">
                     <h2 class="text-lg font-bold mb-4">Select Entry Type</h2>
-                    <button id="type-general-btn" class="bg-blue-500 text-white px-4 py-2 rounded mr-2">General Notes</button>
-                    <button id="type-absence-btn" class="bg-green-500 text-white px-4 py-2 rounded mr-2">Absence</button>
-                    <button id="type-modal-close" class="bg-gray-500 text-white px-4 py-2 rounded">Cancel</button>
+                    <button id="type-general-btn" class="bg-blue-500 text-white px-4 py-2 rounded mr-2 hover:bg-blue-600">General Notes</button>
+                    <button id="type-absence-btn" class="bg-green-500 text-white px-4 py-2 rounded mr-2 hover:bg-green-600">Absence</button>
+                    <button id="type-modal-close" class="bg-gray-500 text-white px-4 py-2 rounded hover:bg-gray-600">Cancel</button>
                 </div>
             </div>
         </div>
 
         <!-- Inventory Section -->
         <div id="inventory" class="tab-content hidden">
-            <button onclick="document.getElementById('inventory-modal').classList.remove('hidden')" class="bg-blue-500 text-white px-4 py-2 rounded mb-4">Add Inventory Item</button>
-            <table class="w-full border-collapse border">
-                <thead>
-                    <tr class="bg-gray-200">
-                        <th class="border p-2">Part Number</th>
-                        <th class="border p-2">Serial Number</th>
-                        <th class="border p-2">Part Name</th>
-                        <th class="border p-2">Description</th>
-                        <th class="border p-2">Category</th>
-                        <th class="border p-2">Manufacturer</th>
-                        <th class="border p-2">Model Compatibility</th>
-                        <th class="border p-2">Quantity in Stock</th>
-                        <th class="border p-2">Location</th>
-                        <th class="border p-2">Stock Status</th>
-                        <th class="border p-2">Reorder Point</th>
-                        <th class="border p-2">Supplier Name</th>
-                        <th class="border p-2">Supplier Part Number</th>
-                        <th class="border p-2">Supplier Contact</th>
-                        <th class="border p-2">Supplier Cost</th>
-                        <th class="border p-2">Latest Lead Time</th>
-                        <th class="border p-2">Retail Price</th>
-                        <th class="border p-2">Last Sold Date</th>
-                        <th class="border p-2">Sales Frequency</th>
-                        <th class="border p-2">Condition</th>
-                        <th class="border p-2">Image URL</th>
-                        <th class="border p-2">Attachment Files</th>
-                        <th class="border p-2">Usage Rate</th>
-                        <th class="border p-2">Inventory Turnover</th>
-                        <th class="border p-2">Actions</th>
-                    </tr>
-                </thead>
-                <tbody id="inventory-table"></tbody>
-            </table>
+            <button onclick="document.getElementById('inventory-modal').classList.remove('hidden')" class="bg-green-500 text-white px-4 py-2 rounded mb-4 hover:bg-green-600">Add Inventory Item</button>
+            <div class="overflow-x-auto">
+                <table class="w-full border-collapse border border-gray-300">
+                    <thead>
+                        <tr class="bg-gray-200">
+                            <th class="border p-3 text-left">Part Number</th>
+                            <th class="border p-3 text-left">Serial Number</th>
+                            <th class="border p-3 text-left">Part Name</th>
+                            <th class="border p-3 text-left">Description</th>
+                            <th class="border p-3 text-left">Category</th>
+                            <th class="border p-3 text-left">Manufacturer</th>
+                            <th class="border p-3 text-left">Model Compatibility</th>
+                            <th class="border p-3 text-left">Quantity in Stock</th>
+                            <th class="border p-3 text-left">Location</th>
+                            <th class="border p-3 text-left">Stock Status</th>
+                            <th class="border p-3 text-left">Reorder Point</th>
+                            <th class="border p-3 text-left">Supplier Name</th>
+                            <th class="border p-3 text-left">Supplier Part Number</th>
+                            <th class="border p-3 text-left">Supplier Contact</th>
+                            <th class="border p-3 text-left">Supplier Cost</th>
+                            <th class="border p-3 text-left">Latest Lead Time</th>
+                            <th class="border p-3 text-left">Retail Price</th>
+                            <th class="border p-3 text-left">Last Sold Date</th>
+                            <th class="border p-3 text-left">Sales Frequency</th>
+                            <th class="border p-3 text-left">Condition</th>
+                            <th class="border p-3 text-left">Image URL</th>
+                            <th class="border p-3 text-left">Attachment Files</th>
+                            <th class="border p-3 text-left">Usage Rate</th>
+                            <th class="border p-3 text-left">Inventory Turnover</th>
+                            <th class="border p-3 text-left">Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody id="inventory-table"></tbody>
+                </table>
+            </div>
 
             <!-- Inventory Modal -->
             <div id="inventory-modal" class="fixed inset-0 bg-gray-600 bg-opacity-50 flex items-center justify-center hidden">
-                <div class="bg-white p-6 rounded shadow-lg w-3/4 overflow-y-auto max-h-screen">
+                <div class="bg-white p-6 rounded-lg shadow-lg w-3/4 overflow-y-auto max-h-screen">
                     <h2 class="text-lg font-bold mb-4">Add/Edit Inventory Item</h2>
                     <input type="hidden" id="inventory-id">
-                    <label class="block mb-2">Part Number:</label>
+                    <label class="block mb-2 font-medium">Part Number:</label>
                     <input type="text" id="inventory-part-number" class="w-full p-2 border rounded mb-4">
-                    <label class="block mb-2">Serial Number:</label>
+                    <label class="block mb-2 font-medium">Serial Number:</label>
                     <input type="text" id="inventory-serial-number" class="w-full p-2 border rounded mb-4">
-                    <label class="block mb-2">Part Name:</label>
+                    <label class="block mb-2 font-medium">Part Name:</label>
                     <input type="text" id="inventory-part-name" class="w-full p-2 border rounded mb-4">
-                    <label class="block mb-2">Description:</label>
+                    <label class="block mb-2 font-medium">Description:</label>
                     <textarea id="inventory-description" class="w-full p-2 border rounded mb-4"></textarea>
-                    <label class="block mb-2">Category:</label>
+                    <label class="block mb-2 font-medium">Category:</label>
                     <input type="text" id="inventory-category" class="w-full p-2 border rounded mb-4">
-                    <label class="block mb-2">Manufacturer:</label>
+                    <label class="block mb-2 font-medium">Manufacturer:</label>
                     <input type="text" id="inventory-manufacturer" class="w-full p-2 border rounded mb-4">
-                    <label class="block mb-2">Model Compatibility:</label>
+                    <label class="block mb-2 font-medium">Model Compatibility:</label>
                     <input type="text" id="inventory-model-compatibility" class="w-full p-2 border rounded mb-4">
-                    <label class="block mb-2">Quantity in Stock:</label>
+                    <label class="block mb-2 font-medium">Quantity in Stock:</label>
                     <input type="number" id="inventory-quantity-in-stock" class="w-full p-2 border rounded mb-4">
-                    <label class="block mb-2">Location:</label>
+                    <label class="block mb-2 font-medium">Location:</label>
                     <input type="text" id="inventory-location" class="w-full p-2 border rounded mb-4">
-                    <label class="block mb-2">Stock Status:</label>
+                    <label class="block mb-2 font-medium">Stock Status:</label>
                     <select id="inventory-stock-status" class="w-full p-2 border rounded mb-4">
                         <option value="In Stock">In Stock</option>
                         <option value="Out of Stock">Out of Stock</option>
                         <option value="Low Stock">Low Stock</option>
                     </select>
-                    <label class="block mb-2">Reorder Point:</label>
+                    <label class="block mb-2 font-medium">Reorder Point:</label>
                     <input type="number" id="inventory-reorder-point" class="w-full p-2 border rounded mb-4">
-                    <label class="block mb-2">Supplier Name:</label>
+                    <label class="block mb-2 font-medium">Supplier Name:</label>
                     <input type="text" id="inventory-supplier-name" class="w-full p-2 border rounded mb-4">
-                    <label class="block mb-2">Supplier Part Number:</label>
+                    <label class="block mb-2 font-medium">Supplier Part Number:</label>
                     <input type="text" id="inventory-supplier-part-number" class="w-full p-2 border rounded mb-4">
-                    <label class="block mb-2">Supplier Contact:</label>
+                    <label class="block mb-2 font-medium">Supplier Contact:</label>
                     <input type="text" id="inventory-supplier-contact" class="w-full p-2 border rounded mb-4">
-                    <label class="block mb-2">Supplier Cost:</label>
+                    <label class="block mb-2 font-medium">Supplier Cost:</label>
                     <input type="number" step="0.01" id="inventory-supplier-cost" class="w-full p-2 border rounded mb-4">
-                    <label class="block mb-2">Latest Lead Time (days):</label>
+                    <label class="block mb-2 font-medium">Latest Lead Time (days):</label>
                     <input type="number" id="inventory-latest-lead-time" class="w-full p-2 border rounded mb-4">
-                    <label class="block mb-2">Retail Price:</label>
+                    <label class="block mb-2 font-medium">Retail Price:</label>
                     <input type="number" step="0.01" id="inventory-retail-price" class="w-full p-2 border rounded mb-4">
-                    <label class="block mb-2">Last Sold Date:</label>
+                    <label class="block mb-2 font-medium">Last Sold Date:</label>
                     <input type="date" id="inventory-last-sold-date" class="w-full p-2 border rounded mb-4">
-                    <label class="block mb-2">Sales Frequency:</label>
+                    <label class="block mb-2 font-medium">Sales Frequency:</label>
                     <input type="number" id="inventory-sales-frequency" class="w-full p-2 border rounded mb-4">
-                    <label class="block mb-2">Condition:</label>
+                    <label class="block mb-2 font-medium">Condition:</label>
                     <select id="inventory-condition" class="w-full p-2 border rounded mb-4">
                         <option value="New">New</option>
                         <option value="Used">Used</option>
                         <option value="Refurbished">Refurbished</option>
                     </select>
-                    <label class="block mb-2">Image URL:</label>
+                    <label class="block mb-2 font-medium">Image URL:</label>
                     <input type="text" id="inventory-image-url" class="w-full p-2 border rounded mb-4">
-                    <label class="block mb-2">Attachment Files:</label>
+                    <label class="block mb-2 font-medium">Attachment Files:</label>
                     <textarea id="inventory-attachment-files" class="w-full p-2 border rounded mb-4"></textarea>
-                    <label class="block mb-2">Usage Rate:</label>
+                    <label class="block mb-2 font-medium">Usage Rate:</label>
                     <input type="number" step="0.01" id="inventory-usage-rate" class="w-full p-2 border rounded mb-4">
-                    <label class="block mb-2">Inventory Turnover:</label>
+                    <label class="block mb-2 font-medium">Inventory Turnover:</label>
                     <input type="number" step="0.01" id="inventory-inventory-turnover" class="w-full p-2 border rounded mb-4">
-                    <button onclick="saveInventory()" class="bg-green-500 text-white px-4 py-2 rounded mr-2">Save</button>
-                    <button onclick="document.getElementById('inventory-modal').classList.add('hidden')" class="bg-gray-500 text-white px-4 py-2 rounded">Close</button>
+                    <div class="flex space-x-2">
+                        <button onclick="saveInventory()" class="bg-green-500 text-white px-4 py-2 rounded hover:bg-green-600">Save</button>
+                        <button onclick="document.getElementById('inventory-modal').classList.add('hidden')" class="bg-gray-500 text-white px-4 py-2 rounded hover:bg-gray-600">Close</button>
+                    </div>
                 </div>
             </div>
         </div>
@@ -282,5 +303,10 @@
     <script src="js/customers.js"></script>
     <script src="js/calendar.js"></script>
     <script src="js/inventory.js"></script>
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            showTab('leads');
+        });
+    </script>
 </body>
 </html>

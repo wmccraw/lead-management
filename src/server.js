@@ -26,17 +26,17 @@ app.get('/api/leads', async (req, res) => {
 });
 
 app.post('/api/leads/save', async (req, res) => {
-    const { id, name, company, email, phone, product_category, make, model, notes, status } = req.body;
+    const { id, name, company, email, phone, product_category, make, model, notes, status, quoted_from_vendor } = req.body;
     try {
         if (id) {
             await pool.query(
-                'UPDATE leads SET name=$1, company=$2, email=$3, phone=$4, product_category=$5, make=$6, model=$7, notes=$8, status=$9, updated_at=NOW() WHERE id=$10',
-                [name, company, email, phone, product_category, make, model, notes, status, id]
+                'UPDATE leads SET name=$1, company=$2, email=$3, phone=$4, product_category=$5, make=$6, model=$7, notes=$8, status=$9, quoted_from_vendor=$10, updated_at=NOW() WHERE id=$11',
+                [name, company, email, phone, product_category, make, model, notes, status, quoted_from_vendor, id]
             );
         } else {
             await pool.query(
-                'INSERT INTO leads (name, company, email, phone, product_category, make, model, notes, status) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9) RETURNING *',
-                [name, company, email, phone, product_category, make, model, notes, status]
+                'INSERT INTO leads (name, company, email, phone, product_category, make, model, notes, status, quoted_from_vendor) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10) RETURNING *',
+                [name, company, email, phone, product_category, make, model, notes, status, quoted_from_vendor]
             );
         }
         res.status(200).json({ success: true });

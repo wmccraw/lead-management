@@ -9,6 +9,7 @@ CREATE TABLE IF NOT EXISTS leads (
     model VARCHAR(255),
     notes TEXT,
     status VARCHAR(50),
+    quoted_from_vendor BOOLEAN DEFAULT FALSE,
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 );
