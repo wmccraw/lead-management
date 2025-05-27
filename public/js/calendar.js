@@ -2,7 +2,29 @@ document.addEventListener('DOMContentLoaded', () => {
     loadCalendar();
 
     document.getElementById('add-day-note-btn').addEventListener('click', () => {
+        const typeModal = document.getElementById('type-modal');
+        if (typeModal) {
+            typeModal.classList.remove('hidden');
+        }
+    });
+
+    document.getElementById('type-general-btn')?.addEventListener('click', () => {
+        openMainModal('General');
+    });
+
+    document.getElementById('type-absence-btn')?.addEventListener('click', () => {
+        openMainModal('Absence');
+    });
+
+    document.getElementById('type-modal-close')?.addEventListener('click', () => {
+        const typeModal = document.getElementById('type-modal');
+        if (typeModal) typeModal.classList.add('hidden');
+    });
+
+    function openMainModal(type) {
+        const typeModal = document.getElementById('type-modal');
         const modal = document.getElementById('day-modal');
+        if (typeModal) typeModal.classList.add('hidden');
         if (modal) {
             modal.classList.remove('hidden');
             document.getElementById('day-id').value = '';
@@ -17,17 +39,17 @@ document.addEventListener('DOMContentLoaded', () => {
 
             if (notesInput && absenteeLabel && absentee && startDate && endDate && deleteBtn && modalTitle && noteType) {
                 notesInput.value = '';
-                absenteeLabel.style.display = 'none';
-                absentee.style.display = 'none';
+                absenteeLabel.style.display = type === 'Absence' ? 'block' : 'none';
+                absentee.style.display = type === 'Absence' ? 'block' : 'none';
                 startDate.value = '';
                 endDate.value = '';
                 deleteBtn.style.display = 'none';
-                modalTitle.textContent = 'Add Event';
-                noteType.value = 'General';
+                modalTitle.textContent = `Add ${type}`;
+                noteType.value = type;
                 toggleNoteType();
             }
         }
-    });
+    }
 
     const noteTypeSelect = document.getElementById('note-type');
     if (noteTypeSelect) {
@@ -140,7 +162,7 @@ async function loadCalendar() {
             } else {
                 const preview = document.createElement('div');
                 preview.className = 'text-xs mt-1 bg-yellow-500 text-white px-1 rounded cursor-pointer';
-                preview.textContent = dayData.time ? dayData.time.substring(0, 5) : 'Note';
+                preview.textContent = dayData.time ? dayData.time.substring(0, 10) + (dayData.time.length > 10 ? '...' : '') : 'Note';
                 dayDiv.appendChild(preview);
 
                 preview.addEventListener('click', () => {
@@ -178,32 +200,9 @@ async function loadCalendar() {
 
         if (dayEntries.length === 0) {
             dayDiv.addEventListener('click', () => {
-                const modal = document.getElementById('day-modal');
-                if (modal) {
-                    modal.classList.remove('hidden');
-                    document.getElementById('day-id').value = '';
-                    const dayNotes = document.getElementById('day-notes');
-                    const absenteeLabel = document.getElementById('absentee-label');
-                    const absentee = document.getElementById('absentee');
-                    const startDate = document.getElementById('day-start-date');
-                    const endDate = document.getElementById('day-end-date');
-                    const deleteBtn = document.getElementById('delete-day-btn');
-                    const modalTitle = document.getElementById('day-modal-title');
-                    const noteType = document.getElementById('note-type');
-
-                    if (dayNotes && absenteeLabel && absentee && startDate && endDate && deleteBtn && modalTitle && noteType) {
-                        dayNotes.value = '';
-                        absenteeLabel.style.display = 'none';
-                        absentee.style.display = 'none';
-                        startDate.value = formattedDay;
-                        endDate.value = '';
-                        deleteBtn.style.display = 'none';
-                        modalTitle.textContent = 'Add Event';
-                        noteType.value = 'General';
-                        toggleNoteType();
-                        document.getElementById('full-notes').innerHTML = '';
-                        document.getElementById('full-notes').classList.remove('expanded');
-                    }
+                const typeModal = document.getElementById('type-modal');
+                if (typeModal) {
+                    typeModal.classList.remove('hidden');
                 }
             });
         }
@@ -230,6 +229,11 @@ async function saveDay() {
         return;
     }
 
+    if (noteType === 'Absence' && !endDate) {
+        alert('Please select an end date for absences.');
+        return;
+    }
+
     try {
         if (noteType === 'Absence' && endDate) {
             const start = new Date(startDate);
@@ -242,7 +246,7 @@ async function saveDay() {
                     body: JSON.stringify({
                         date: dateStr,
                         name,
-                        time: notes || new Date().toLocaleTimeString('en-US', { hour12: false })
+                        time: new Date().toLocaleTimeString('en-US', { hour12: false })
                     })
                 });
                 const result = await response.json();
@@ -258,7 +262,7 @@ async function saveDay() {
                 body: JSON.stringify({
                     date: startDate,
                     name,
-                    time: notes || new Date().toLocaleTimeString('en-US', { hour12: false })
+                    time: notes || ''
                 })
             });
             const result = await response.json();
