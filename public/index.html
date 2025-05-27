@@ -5,6 +5,15 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Lead Management</title>
     <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet">
+    <style>
+        .calendar-day {
+            border: 1px solid #ddd;
+            padding: 10px;
+            text-align: center;
+            height: 100px;
+            overflow: auto;
+        }
+    </style>
 </head>
 <body class="bg-gray-100">
     <div class="container mx-auto p-4">
@@ -110,9 +119,19 @@
         <div id="calendar" class="tab-content hidden">
             <div class="mb-4">
                 <button id="add-day-note-btn" class="bg-blue-500 text-white px-4 py-2 rounded">Add Note/Out</button>
-                <select id="calendar-month" class="ml-2 p-2 border rounded">
-                    <option value="2025-05">May 2025</option>
-                    <!-- Add more months as needed -->
+                <select id="calendar-month" class="ml-2 p-2 border rounded" onchange="loadCalendar()">
+                    <option value="2025-01">January 2025</option>
+                    <option value="2025-02">February 2025</option>
+                    <option value="2025-03">March 2025</option>
+                    <option value="2025-04">April 2025</option>
+                    <option value="2025-05" selected>May 2025</option>
+                    <option value="2025-06">June 2025</option>
+                    <option value="2025-07">July 2025</option>
+                    <option value="2025-08">August 2025</option>
+                    <option value="2025-09">September 2025</option>
+                    <option value="2025-10">October 2025</option>
+                    <option value="2025-11">November 2025</option>
+                    <option value="2025-12">December 2025</option>
                 </select>
             </div>
             <div id="calendar-grid" class="grid grid-cols-7 gap-2"></div>
@@ -122,23 +141,20 @@
                 <div class="bg-white p-6 rounded shadow-lg w-96">
                     <h2 id="day-modal-title" class="text-lg font-bold mb-4"></h2>
                     <input type="hidden" id="day-id">
+                    <input type="hidden" id="note-type">
                     <label class="block mb-2">Start Date:</label>
                     <input type="date" id="day-start-date" class="w-full p-2 border rounded mb-4">
-                    <label id="day-end-date-label" class="block mb-2">End Date:</label>
-                    <input type="date" id="day-end-date" class="w-full p-2 border rounded mb-4">
-                    <label id="absentee-label" class="block mb-2">Absentee:</label>
+                    <label id="day-end-date-label" class="block mb-2 hidden">End Date:</label>
+                    <input type="date" id="day-end-date" class="w-full p-2 border rounded mb-4 hidden">
+                    <label id="absentee-label" class="block mb-2 hidden">Absentee:</label>
                     <select id="absentee" class="w-full p-2 border rounded mb-4 hidden">
                         <option value="Wilson">Wilson</option>
                         <option value="Carter">Carter</option>
                         <option value="William">William</option>
                         <option value="Julia">Julia</option>
                     </select>
-                    <label class="block mb-2">Notes:</label>
-                    <textarea id="day-notes" class="w-full p-2 border rounded mb-4 hidden"></textarea>
-                    <select id="note-type" class="w-full p-2 border rounded mb-4">
-                        <option value="General">General</option>
-                        <option value="Absence">Absence</option>
-                    </select>
+                    <label id="notes-label" class="block mb-2">Notes:</label>
+                    <textarea id="day-notes" class="w-full p-2 border rounded mb-4"></textarea>
                     <div id="full-notes" class="mb-4"></div>
                     <button onclick="saveDay()" class="bg-green-500 text-white px-4 py-2 rounded mr-2">Save</button>
                     <button id="delete-day-btn" onclick="deleteDay()" class="bg-red-500 text-white px-4 py-2 rounded hidden">Delete</button>
@@ -152,7 +168,7 @@
                     <h2 class="text-lg font-bold mb-4">Select Entry Type</h2>
                     <button id="type-general-btn" class="bg-blue-500 text-white px-4 py-2 rounded mr-2">General Notes</button>
                     <button id="type-absence-btn" class="bg-green-500 text-white px-4 py-2 rounded mr-2">Absence</button>
-                    <button id="type-modal-close" class="bg-red-500 text-white px-4 py-2 rounded">Cancel</button>
+                    <button id="type-modal-close" class="bg-gray-500 text-white px-4 py-2 rounded">Cancel</button>
                 </div>
             </div>
         </div>
@@ -261,10 +277,10 @@
         </div>
     </div>
 
+    <script src="js/tabs.js"></script>
     <script src="js/leads.js"></script>
     <script src="js/customers.js"></script>
     <script src="js/calendar.js"></script>
     <script src="js/inventory.js"></script>
-    <script src="js/tabs.js"></script>
 </body>
 </html>
