@@ -1,23 +1,10 @@
-document.addEventListener('DOMContentLoaded', () => {
-    const tabs = document.querySelectorAll('.tab');
-    const contents = document.querySelectorAll('.content');
-
-    tabs.forEach(tab => {
-        tab.addEventListener('click', () => {
-            tabs.forEach(t => t.classList.remove('active-tab'));
-            tab.classList.add('active-tab');
-
-            contents.forEach(content => content.classList.add('hidden'));
-            document.getElementById(tab.dataset.tab).classList.remove('hidden');
-        });
+function showTab(tabId) {
+    document.querySelectorAll('.tab-content').forEach(content => {
+        content.classList.remove('active');
     });
-
-    // Activate the first tab by default
-    tabs[0].click();
-});
-
-document.querySelectorAll('.modal .close').forEach(closeBtn => {
-    closeBtn.addEventListener('click', () => {
-        closeBtn.closest('.modal').classList.add('hidden');
+    document.querySelectorAll('.tab-button').forEach(button => {
+        button.classList.remove('active');
     });
-});
+    document.getElementById(tabId).classList.add('active');
+    document.querySelector(`button[onclick="showTab('${tabId}')"]`).classList.add('active');
+}
