@@ -11,7 +11,6 @@ const pool = new Pool({
 app.use(express.json());
 app.use(express.static(path.join(__dirname, '../public')));
 
-// Test endpoint to check server status
 app.get('/api/health', (req, res) => {
     res.status(200).json({ status: 'Server is running' });
 });
@@ -82,8 +81,8 @@ app.get('/api/calendar', async (req, res) => {
 });
 
 app.post('/api/calendar/save', async (req, res) => {
-    const { date, name } = req.body;
-    const defaultTime = new Date().toLocaleTimeString('en-US', { hour12: false }); // e.g., "12:44:00"
+    const { date, name, time } = req.body;
+    const defaultTime = time || new Date().toLocaleTimeString('en-US', { hour12: false });
     try {
         const result = await pool.query(
             'INSERT INTO calendar (date, name, time) VALUES ($1, $2, $3) RETURNING *',
