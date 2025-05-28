@@ -1,4 +1,7 @@
-document.getElementById('add-customer-btn').addEventListener('click', () => showCustomerModal());
+document.addEventListener('DOMContentLoaded', () => {
+    document.getElementById('add-customer-btn')?.addEventListener('click', () => showCustomerModal());
+    loadCustomers();
+});
 
 async function loadCustomers() {
     try {
@@ -94,5 +97,3 @@ async function deleteCustomer(id) {
         }
     }
 }
-
-document.addEventListener('DOMContentLoaded', loadCustomers);
