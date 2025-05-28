@@ -46,7 +46,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 deleteBtn.style.display = 'none';
                 modalTitle.textContent = `Add ${type}`;
                 noteType.value = type;
-                toggleNoteType(); // Call toggleNoteType here
+                toggleNoteType();
             }
         }
     }

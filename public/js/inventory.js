@@ -1,7 +1,4 @@
-document.addEventListener('DOMContentLoaded', () => {
-    document.getElementById('add-inventory-btn')?.addEventListener('click', () => showInventoryModal());
-    loadInventory();
-});
+document.getElementById('add-inventory-btn').addEventListener('click', () => showInventoryModal());
 
 async function loadInventory() {
     try {
@@ -160,3 +157,5 @@ async function deleteInventory(id) {
         }
     }
 }
+
+document.addEventListener('DOMContentLoaded', loadInventory);

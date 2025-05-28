@@ -1,7 +1,4 @@
-document.addEventListener('DOMContentLoaded', () => {
-    document.getElementById('add-lead-btn')?.addEventListener('click', () => showLeadModal());
-    loadLeads();
-});
+document.getElementById('add-lead-btn').addEventListener('click', () => showLeadModal());
 
 async function loadLeads() {
     try {
@@ -115,3 +112,5 @@ async function deleteLead(id) {
         }
     }
 }
+
+document.addEventListener('DOMContentLoaded', loadLeads);
