@@ -246,7 +246,7 @@ async function saveDay() {
                     body: JSON.stringify({
                         date: dateStr,
                         name,
-                        time: new Date().toLocaleTimeString('en-US', { hour12: false })
+                        time: new Date().toLocaleTimeString('en-US', { hour12: false }) // Use current time for absences
                     })
                 });
                 const result = await response.json();
@@ -262,7 +262,7 @@ async function saveDay() {
                 body: JSON.stringify({
                     date: startDate,
                     name,
-                    time: notes || ''
+                    time: '00:00:00' // Default time for general notes
                 })
             });
             const result = await response.json();

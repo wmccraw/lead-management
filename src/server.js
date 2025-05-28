@@ -84,9 +84,10 @@ app.post('/api/calendar/save', async (req, res) => {
     const { date, name, time } = req.body;
     try {
         console.log('Saving calendar entry:', { date, name, time }); // Debug log
+        const parsedTime = time.match(/^(\d{2}:\d{2}:\d{2})$/) ? time : '00:00:00'; // Ensure valid TIME format
         const result = await pool.query(
-            'INSERT INTO calendar (date, name, time) VALUES ($1, $2, $3::TEXT) RETURNING *',
-            [date || null, name || 'Default', time || '']
+            'INSERT INTO calendar (date, name, time) VALUES ($1, $2, $3) RETURNING *',
+            [date || null, name || 'Default', parsedTime]
         );
         res.status(200).json({ success: true, data: result.rows[0] });
     } catch (err) {
