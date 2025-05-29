@@ -91,37 +91,37 @@ document.addEventListener('DOMContentLoaded', () => {
             calendarGrid.appendChild(empty);
         }
 
-        // Prepare a map for absences spanning multiple days
-        const absenceMap = {};
-        calendarData.forEach(entry => {
-            if (entry.note_type === 'Absence' && entry.out_start_date && entry.out_end_date) {
-                const range = getDateRange(entry.out_start_date, entry.out_end_date);
-                range.forEach(date => {
-                    absenceMap[date] = absenceMap[date] || [];
-                    absenceMap[date].push(entry);
-                });
-            }
-        });
-
         // Build calendar grid
         for (let day = 1; day <= daysInMonth; day++) {
             const dateStr = `${year}-${month.padStart(2, '0')}-${String(day).padStart(2, '0')}`;
-            const entry = calendarData.find(e => e.date === dateStr && e.note_type !== 'Absence');
-            const absences = absenceMap[dateStr] || [];
+
+            // All absences covering this day
+            const absences = calendarData.filter(e =>
+                e.note_type === 'Absence' &&
+                e.out_start_date &&
+                e.out_end_date &&
+                new Date(e.out_start_date) <= new Date(dateStr) &&
+                new Date(e.out_end_date) >= new Date(dateStr)
+            );
+
+            // All notes for this day (not absences)
+            const notes = calendarData.filter(e =>
+                e.date === dateStr && e.note_type !== 'Absence'
+            );
 
             const div = document.createElement('div');
-            div.className = 'calendar-day bg-white rounded shadow cursor-pointer relative flex flex-col justify-between';
+            div.className = 'calendar-day bg-white rounded shadow relative flex flex-col justify-between';
+            div.style.position = 'relative';
 
             // Day number
             div.innerHTML = `<div class="font-bold">${day}</div>`;
 
-            // Absence bars (can be multiple)
+            // Absence bars (one per absentee covering this day)
             absences.forEach(absence => {
                 const color = absenteeColors[absence.absentee] || 'bg-gray-400';
                 const textColor = absenteeTextColors[absence.absentee] || 'text-gray-900';
                 const bar = document.createElement('div');
-                bar.className = `mt-1 mb-1 rounded text-xs px-1 py-0.5 ${color} ${textColor} font-semibold whitespace-nowrap overflow-hidden`;
-                bar.style.cursor = 'pointer';
+                bar.className = `mt-1 mb-1 rounded text-xs px-1 py-0.5 ${color} ${textColor} font-semibold whitespace-nowrap overflow-hidden cursor-pointer`;
                 bar.textContent = `${absence.absentee} out`;
                 bar.onclick = (e) => {
                     e.stopPropagation();
@@ -130,33 +130,27 @@ document.addEventListener('DOMContentLoaded', () => {
                 div.appendChild(bar);
             });
 
-            // General note preview
-            if (entry && entry.notes) {
+            // General note previews (all notes for this day)
+            notes.forEach(note => {
                 const preview = document.createElement('div');
                 preview.className = 'mt-1 text-xs bg-gray-100 rounded px-1 py-0.5 cursor-pointer truncate';
-                preview.textContent = entry.notes.length > 40 ? entry.notes.slice(0, 40) + '...' : entry.notes;
+                preview.textContent = note.notes && note.notes.length > 40 ? note.notes.slice(0, 40) + '...' : note.notes;
                 preview.onclick = (e) => {
                     e.stopPropagation();
-                    openDayModal(dateStr, entry);
+                    openDayModal(note.date, note);
                 };
                 div.appendChild(preview);
-            }
+            });
 
-            // Click on empty space opens modal/type selector
-            div.onclick = () => {
-                if (entry) {
-                    openDayModal(dateStr, entry);
-                } else if (absences.length === 1) {
-                    // If only one absence, open that
-                    openDayModal(absences[0].date, absences[0]);
-                } else if (absences.length > 1) {
-                    // If multiple absences, show the first (or you could make a selector)
-                    openDayModal(absences[0].date, absences[0]);
-                } else {
+            // Click on blank part opens type selector
+            div.onclick = (e) => {
+                // Only open if not clicking a note/absence bar
+                if (e.target === div || e.target.classList.contains('font-bold')) {
                     pendingCalendarDate = dateStr;
                     typeModal.classList.remove('hidden');
                 }
             };
+
             calendarGrid.appendChild(div);
         }
     }
