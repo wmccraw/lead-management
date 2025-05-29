@@ -5,7 +5,7 @@ const pool = require('../db'); // Use shared pool
 // Get all calendar entries
 router.get('/', async (req, res) => {
     try {
-        const result = await pool.query('SELECT * FROM calendar_days ORDER BY date');
+        const result = await pool.query('SELECT * FROM calendar_days ORDER BY date, id');
         res.json(result.rows);
     } catch (err) {
         console.error('Error fetching calendar data:', err);
@@ -26,18 +26,23 @@ router.post('/save', async (req, res) => {
     }
 
     try {
-        const out_status = note_type === 'Absence';
-        const dates = (note_type === 'Absence' && end_date && new Date(end_date) >= new Date(start_date)) 
-            ? getDateRange(start_date, end_date) 
-            : [start_date];
-
-        for (const date of dates) {
+        if (note_type === 'Absence') {
+            // Only save one row for the absence (start_date to end_date)
             await pool.query(
                 `INSERT INTO calendar_days (date, notes, note_type, absentee, out_status, out_start_date, out_end_date, created_at)
                  VALUES ($1, $2, $3, $4, $5, $6, $7, NOW())
-                 ON CONFLICT (date) DO UPDATE SET
-                 notes = $2, note_type = $3, absentee = $4, out_status = $5, out_start_date = $6, out_end_date = $7, created_at = NOW()`,
-                [date, notes || null, note_type, note_type === 'Absence' ? absentee : null, out_status, start_date, end_date || null]
+                 ON CONFLICT (note_type, absentee, out_start_date, out_end_date)
+                 DO UPDATE SET notes = $2, created_at = NOW()`,
+                [start_date, notes || null, note_type, absentee, true, start_date, end_date || start_date]
+            );
+        } else {
+            // General note: one row per note per day
+            await pool.query(
+                `INSERT INTO calendar_days (date, notes, note_type, created_at)
+                 VALUES ($1, $2, $3, NOW())
+                 ON CONFLICT (date, note_type)
+                 DO UPDATE SET notes = $2, created_at = NOW()`,
+                [start_date, notes || null, note_type]
             );
         }
         res.status(201).json({ message: 'Saved successfully' });
@@ -47,16 +52,16 @@ router.post('/save', async (req, res) => {
     }
 });
 
-// Delete a calendar entry by date (or id if you have one)
-router.delete('/:date', async (req, res) => {
-    const { date } = req.params;
-    if (!date) {
-        return res.status(400).json({ error: 'Date is required for deletion' });
+// Delete a calendar entry by id (recommended) or by date/start_date
+router.delete('/:id', async (req, res) => {
+    const { id } = req.params;
+    if (!id) {
+        return res.status(400).json({ error: 'ID is required for deletion' });
     }
     try {
-        const result = await pool.query('DELETE FROM calendar_days WHERE date = $1', [date]);
+        const result = await pool.query('DELETE FROM calendar_days WHERE id = $1', [id]);
         if (result.rowCount === 0) {
-            return res.status(404).json({ error: 'No entry found for that date' });
+            return res.status(404).json({ error: 'No entry found for that id' });
         }
         res.json({ message: 'Deleted successfully' });
     } catch (err) {
@@ -64,17 +69,5 @@ router.delete('/:date', async (req, res) => {
         res.status(500).json({ error: 'Server error deleting data' });
     }
 });
-
-// Helper function for date ranges
-function getDateRange(startDate, endDate) {
-    const dates = [];
-    let currentDate = new Date(startDate);
-    const finalDate = new Date(endDate);
-    while (currentDate <= finalDate) {
-        dates.push(currentDate.toISOString().split('T')[0]);
-        currentDate.setDate(currentDate.getDate() + 1);
-    }
-    return dates;
-}
 
 module.exports = router;

@@ -2,6 +2,7 @@ document.addEventListener('DOMContentLoaded', () => {
     // Calendar state
     let calendarData = [];
     let pendingCalendarDate = null;
+    let pendingEntryId = null;
 
     // Elements
     const calendarGrid = document.getElementById('calendar-grid');
@@ -127,6 +128,8 @@ document.addEventListener('DOMContentLoaded', () => {
                     e.stopPropagation();
                     openDayModal(absence.date, absence);
                 };
+                // Store id for deletion/editing
+                bar.dataset.entryId = absence.id;
                 div.appendChild(bar);
             });
 
@@ -139,6 +142,8 @@ document.addEventListener('DOMContentLoaded', () => {
                     e.stopPropagation();
                     openDayModal(note.date, note);
                 };
+                // Store id for deletion/editing
+                preview.dataset.entryId = note.id;
                 div.appendChild(preview);
             });
 
@@ -147,6 +152,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 // Only open if not clicking a note/absence bar
                 if (e.target === div || e.target.classList.contains('font-bold')) {
                     pendingCalendarDate = dateStr;
+                    pendingEntryId = null;
                     typeModal.classList.remove('hidden');
                 }
             };
@@ -167,6 +173,7 @@ document.addEventListener('DOMContentLoaded', () => {
         fullNotes.innerHTML = entry && entry.notes
             ? `<div class="expanded">${entry.notes}</div>`
             : '';
+        pendingEntryId = entry && entry.id ? entry.id : null;
         // Show/hide fields based on note type
         if ((entry && entry.note_type === 'Absence') || noteTypeInput.value === 'Absence') {
             absenteeLabel.classList.remove('hidden');
@@ -203,8 +210,12 @@ document.addEventListener('DOMContentLoaded', () => {
         };
         // Delete handler
         deleteDayBtn.onclick = async () => {
+            if (!pendingEntryId) {
+                alert('No entry id found for deletion.');
+                return;
+            }
             if (confirm('Delete this calendar entry?')) {
-                const resp = await fetch(`/api/calendar/${dateStr}`, { method: 'DELETE' });
+                const resp = await fetch(`/api/calendar/${pendingEntryId}`, { method: 'DELETE' });
                 if (resp.ok) {
                     dayModal.classList.add('hidden');
                     await loadCalendar();
@@ -218,11 +229,13 @@ document.addEventListener('DOMContentLoaded', () => {
     // Add Note/Out button logic
     addDayNoteBtn.onclick = () => {
         pendingCalendarDate = formatDate(new Date());
+        pendingEntryId = null;
         typeModal.classList.remove('hidden');
     };
     typeModalClose.onclick = () => {
         typeModal.classList.add('hidden');
         pendingCalendarDate = null;
+        pendingEntryId = null;
     };
     typeGeneralBtn.onclick = () => {
         typeModal.classList.add('hidden');
@@ -233,6 +246,7 @@ document.addEventListener('DOMContentLoaded', () => {
         dayEndDate.classList.add('hidden');
         openDayModal(pendingCalendarDate || formatDate(new Date()), null);
         pendingCalendarDate = null;
+        pendingEntryId = null;
     };
     typeAbsenceBtn.onclick = () => {
         typeModal.classList.add('hidden');
@@ -243,6 +257,7 @@ document.addEventListener('DOMContentLoaded', () => {
         dayEndDate.classList.remove('hidden');
         openDayModal(pendingCalendarDate || formatDate(new Date()), null);
         pendingCalendarDate = null;
+        pendingEntryId = null;
     };
 
     // Month change
