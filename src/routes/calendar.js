@@ -1,12 +1,8 @@
 const express = require('express');
-const { Pool } = require('pg');
 const router = express.Router();
+const pool = require('../db'); // Use shared pool
 
-const pool = new Pool({
-    connectionString: process.env.DATABASE_URL,
-    ssl: { rejectUnauthorized: false }
-});
-
+// Get all calendar entries
 router.get('/', async (req, res) => {
     try {
         const result = await pool.query('SELECT * FROM calendar_days ORDER BY date');
@@ -17,6 +13,7 @@ router.get('/', async (req, res) => {
     }
 });
 
+// Save a calendar note or absence
 router.post('/save', async (req, res) => {
     const { note_type, notes, start_date, end_date, absentee } = req.body;
 
@@ -50,6 +47,7 @@ router.post('/save', async (req, res) => {
     }
 });
 
+// Helper function for date ranges
 function getDateRange(startDate, endDate) {
     const dates = [];
     let currentDate = new Date(startDate);

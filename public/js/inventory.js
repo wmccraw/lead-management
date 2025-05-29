@@ -1,43 +1,51 @@
-document.getElementById('add-inventory-btn').addEventListener('click', () => showInventoryModal());
+document.addEventListener('DOMContentLoaded', () => {
+    loadInventory();
+
+    document.getElementById('add-inventory-btn').onclick = () => showInventoryModal();
+    document.getElementById('close-inventory-modal-btn').onclick = () => {
+        document.getElementById('inventory-modal').classList.add('hidden');
+    };
+    document.getElementById('save-inventory-btn').onclick = saveInventory;
+});
 
 async function loadInventory() {
     try {
         const response = await fetch('/api/inventory');
         const items = await response.json();
-        const tbody = document.getElementById('inventory-body');
+        const tbody = document.getElementById('inventory-table');
         tbody.innerHTML = '';
         items.forEach(item => {
             const row = document.createElement('tr');
             row.innerHTML = `
-                <td class="py-3 px-6 border-b">${item.part_number}</td>
-                <td class="py-3 px-6 border-b">${item.serial_number}</td>
-                <td class="py-3 px-6 border-b">${item.part_name || ''}</td>
-                <td class="py-3 px-6 border-b">${item.description || ''}</td>
-                <td class="py-3 px-6 border-b">${item.category}</td>
-                <td class="py-3 px-6 border-b">${item.manufacturer || ''}</td>
-                <td class="py-3 px-6 border-b">${item.model_compatibility || ''}</td>
-                <td class="py-3 px-6 border-b">${item.quantity_in_stock}</td>
-                <td class="py-3 px-6 border-b">${item.location || ''}</td>
-                <td class="py-3 px-6 border-b">${item.stock_status || ''}</td>
-                <td class="py-3 px-6 border-b">${item.reorder_point || ''}</td>
-                <td class="py-3 px-6 border-b">${item.supplier_name}</td>
-                <td class="py-3 px-6 border-b">${item.supplier_part_number || ''}</td>
-                <td class="py-3 px-6 border-b">${item.supplier_contact || ''}</td>
-                <td class="py-3 px-6 border-b">${item.supplier_cost || ''}</td>
-                <td class="py-3 px-6 border-b">${item.latest_lead_time_received || ''}</td>
-                <td class="py-3 px-6 border-b">${item.retail_price || ''}</td>
-                <td class="py-3 px-6 border-b">${item.last_sold_date ? new Date(item.last_sold_date).toLocaleDateString() : ''}</td>
-                <td class="py-3 px-6 border-b">${item.sales_frequency || ''}</td>
-                <td class="py-3 px-6 border-b">${item.condition || ''}</td>
-                <td class="py-3 px-6 border-b">${item.image_url || ''}</td>
-                <td class="py-3 px-6 border-b">${item.attachment_files || ''}</td>
-                <td class="py-3 px-6 border-b">${new Date(item.date_added).toLocaleDateString()}</td>
-                <td class="py-3 px-6 border-b">${new Date(item.last_updated).toLocaleDateString()}</td>
-                <td class="py-3 px-6 border-b">${item.usage_rate || ''}</td>
-                <td class="py-3 px-6 border-b">${item.inventory_turnover || ''}</td>
-                <td class="py-3 px-6 border-b">
-                    <button onclick="editInventory(${item.id})" class="text-blue-500 hover:underline mr-2">Edit</button>
-                    <button onclick="deleteInventory(${item.id})" class="text-red-500 hover:underline">Delete</button>
+                <td class="border p-3">${item.part_number || ''}</td>
+                <td class="border p-3">${item.serial_number || ''}</td>
+                <td class="border p-3">${item.part_name || ''}</td>
+                <td class="border p-3">${item.description || ''}</td>
+                <td class="border p-3">${item.category || ''}</td>
+                <td class="border p-3">${item.manufacturer || ''}</td>
+                <td class="border p-3">${item.model_compatibility || ''}</td>
+                <td class="border p-3">${item.quantity_in_stock ?? ''}</td>
+                <td class="border p-3">${item.location || ''}</td>
+                <td class="border p-3">${item.stock_status || ''}</td>
+                <td class="border p-3">${item.reorder_point ?? ''}</td>
+                <td class="border p-3">${item.supplier_name || ''}</td>
+                <td class="border p-3">${item.supplier_part_number || ''}</td>
+                <td class="border p-3">${item.supplier_contact || ''}</td>
+                <td class="border p-3">${item.supplier_cost ?? ''}</td>
+                <td class="border p-3">${item.latest_lead_time_received ?? ''}</td>
+                <td class="border p-3">${item.retail_price ?? ''}</td>
+                <td class="border p-3">${item.last_sold_date ? new Date(item.last_sold_date).toLocaleDateString() : ''}</td>
+                <td class="border p-3">${item.sales_frequency ?? ''}</td>
+                <td class="border p-3">${item.condition || ''}</td>
+                <td class="border p-3">${item.image_url || ''}</td>
+                <td class="border p-3">${item.attachment_files || ''}</td>
+                <td class="border p-3">${item.date_added ? new Date(item.date_added).toLocaleDateString() : ''}</td>
+                <td class="border p-3">${item.last_updated ? new Date(item.last_updated).toLocaleDateString() : ''}</td>
+                <td class="border p-3">${item.usage_rate ?? ''}</td>
+                <td class="border p-3">${item.inventory_turnover ?? ''}</td>
+                <td class="border p-3">
+                    <button class="text-blue-500 hover:underline mr-2" onclick="editInventory(${item.id})">Edit</button>
+                    <button class="text-red-500 hover:underline" onclick="deleteInventory(${item.id})">Delete</button>
                 </td>
             `;
             tbody.appendChild(row);
@@ -50,47 +58,70 @@ async function loadInventory() {
 function showInventoryModal(id = null) {
     const modal = document.getElementById('inventory-modal');
     const title = document.getElementById('inventory-modal-title');
-    modal.dataset.id = id || '';
-
+    document.getElementById('inventory-id').value = id || '';
     if (id) {
-        title.textContent = 'Edit Item';
+        title.textContent = 'Edit Inventory Item';
         fetch(`/api/inventory/${id}`)
             .then(res => res.json())
             .then(item => {
-                document.getElementById('inventory-part-number').value = item.part_number;
-                document.getElementById('inventory-serial-number').value = item.serial_number;
+                document.getElementById('inventory-part-number').value = item.part_number || '';
+                document.getElementById('inventory-serial-number').value = item.serial_number || '';
                 document.getElementById('inventory-part-name').value = item.part_name || '';
                 document.getElementById('inventory-description').value = item.description || '';
-                document.getElementById('inventory-category').value = item.category;
+                document.getElementById('inventory-category').value = item.category || '';
                 document.getElementById('inventory-manufacturer').value = item.manufacturer || '';
                 document.getElementById('inventory-model-compatibility').value = item.model_compatibility || '';
-                document.getElementById('inventory-quantity-in-stock').value = item.quantity_in_stock;
+                document.getElementById('inventory-quantity-in-stock').value = item.quantity_in_stock ?? '';
                 document.getElementById('inventory-location').value = item.location || '';
                 document.getElementById('inventory-stock-status').value = item.stock_status || '';
-                document.getElementById('inventory-reorder-point').value = item.reorder_point || '';
-                document.getElementById('inventory-supplier-name').value = item.supplier_name;
+                document.getElementById('inventory-reorder-point').value = item.reorder_point ?? '';
+                document.getElementById('inventory-supplier-name').value = item.supplier_name || '';
                 document.getElementById('inventory-supplier-part-number').value = item.supplier_part_number || '';
                 document.getElementById('inventory-supplier-contact').value = item.supplier_contact || '';
-                document.getElementById('inventory-supplier-cost').value = item.supplier_cost || '';
-                document.getElementById('inventory-latest-lead-time').value = item.latest_lead_time_received || '';
-                document.getElementById('inventory-retail-price').value = item.retail_price || '';
+                document.getElementById('inventory-supplier-cost').value = item.supplier_cost ?? '';
+                document.getElementById('inventory-latest-lead-time').value = item.latest_lead_time_received ?? '';
+                document.getElementById('inventory-retail-price').value = item.retail_price ?? '';
                 document.getElementById('inventory-last-sold-date').value = item.last_sold_date ? new Date(item.last_sold_date).toISOString().split('T')[0] : '';
-                document.getElementById('inventory-sales-frequency').value = item.sales_frequency || '';
+                document.getElementById('inventory-sales-frequency').value = item.sales_frequency ?? '';
                 document.getElementById('inventory-condition').value = item.condition || '';
                 document.getElementById('inventory-image-url').value = item.image_url || '';
                 document.getElementById('inventory-attachment-files').value = item.attachment_files || '';
-                document.getElementById('inventory-usage-rate').value = item.usage_rate || '';
-                document.getElementById('inventory-inventory-turnover').value = item.inventory_turnover || '';
+                document.getElementById('inventory-usage-rate').value = item.usage_rate ?? '';
+                document.getElementById('inventory-inventory-turnover').value = item.inventory_turnover ?? '';
             });
     } else {
-        title.textContent = 'Add Item';
-        document.getElementById('inventory-form').reset();
+        title.textContent = 'Add Inventory Item';
+        document.getElementById('inventory-id').value = '';
+        document.getElementById('inventory-part-number').value = '';
+        document.getElementById('inventory-serial-number').value = '';
+        document.getElementById('inventory-part-name').value = '';
+        document.getElementById('inventory-description').value = '';
+        document.getElementById('inventory-category').value = '';
+        document.getElementById('inventory-manufacturer').value = '';
+        document.getElementById('inventory-model-compatibility').value = '';
+        document.getElementById('inventory-quantity-in-stock').value = '';
+        document.getElementById('inventory-location').value = '';
+        document.getElementById('inventory-stock-status').value = '';
+        document.getElementById('inventory-reorder-point').value = '';
+        document.getElementById('inventory-supplier-name').value = '';
+        document.getElementById('inventory-supplier-part-number').value = '';
+        document.getElementById('inventory-supplier-contact').value = '';
+        document.getElementById('inventory-supplier-cost').value = '';
+        document.getElementById('inventory-latest-lead-time').value = '';
+        document.getElementById('inventory-retail-price').value = '';
+        document.getElementById('inventory-last-sold-date').value = '';
+        document.getElementById('inventory-sales-frequency').value = '';
+        document.getElementById('inventory-condition').value = '';
+        document.getElementById('inventory-image-url').value = '';
+        document.getElementById('inventory-attachment-files').value = '';
+        document.getElementById('inventory-usage-rate').value = '';
+        document.getElementById('inventory-inventory-turnover').value = '';
     }
     modal.classList.remove('hidden');
 }
 
 async function saveInventory() {
-    const id = document.getElementById('inventory-modal').dataset.id;
+    const id = document.getElementById('inventory-id').value;
     const data = {
         part_number: document.getElementById('inventory-part-number').value,
         serial_number: document.getElementById('inventory-serial-number').value,
@@ -99,7 +130,7 @@ async function saveInventory() {
         category: document.getElementById('inventory-category').value,
         manufacturer: document.getElementById('inventory-manufacturer').value || null,
         model_compatibility: document.getElementById('inventory-model-compatibility').value || null,
-        quantity_in_stock: parseInt(document.getElementById('inventory-quantity-in-stock').value),
+        quantity_in_stock: parseInt(document.getElementById('inventory-quantity-in-stock').value) || 0,
         location: document.getElementById('inventory-location').value || null,
         stock_status: document.getElementById('inventory-stock-status').value || null,
         reorder_point: document.getElementById('inventory-reorder-point').value ? parseInt(document.getElementById('inventory-reorder-point').value) : null,
@@ -138,11 +169,11 @@ async function saveInventory() {
     }
 }
 
-async function editInventory(id) {
+window.editInventory = function(id) {
     showInventoryModal(id);
-}
+};
 
-async function deleteInventory(id) {
+window.deleteInventory = async function(id) {
     if (confirm('Are you sure you want to delete this item?')) {
         try {
             const response = await fetch(`/api/inventory/${id}`, { method: 'DELETE' });
@@ -156,6 +187,4 @@ async function deleteInventory(id) {
             alert('Error deleting item. Check console for details.');
         }
     }
-}
-
-document.addEventListener('DOMContentLoaded', loadInventory);
+};

@@ -20,16 +20,16 @@
         <!-- Tabs -->
         <div class="mb-6 border-b border-gray-200">
             <nav class="flex space-x-4">
-                <button onclick="showTab('leads')" class="tab-button px-4 py-2 text-sm font-medium text-white bg-gray-500 rounded-t-lg hover:bg-green-600 focus:outline-none focus:bg-green-600">Leads</button>
-                <button onclick="showTab('customers')" class="tab-button px-4 py-2 text-sm font-medium text-white bg-gray-500 rounded-t-lg hover:bg-green-600 focus:outline-none focus:bg-green-600">Customers</button>
-                <button onclick="showTab('calendar')" class="tab-button px-4 py-2 text-sm font-medium text-white bg-gray-500 rounded-t-lg hover:bg-green-600 focus:outline-none focus:bg-green-600">Calendar</button>
-                <button onclick="showTab('inventory')" class="tab-button px-4 py-2 text-sm font-medium text-white bg-gray-500 rounded-t-lg hover:bg-green-600 focus:outline-none focus:bg-green-600">Inventory</button>
+                <button data-tab="leads" class="tab-button px-4 py-2 text-sm font-medium text-white bg-gray-500 rounded-t-lg hover:bg-green-600 focus:outline-none focus:bg-green-600">Leads</button>
+                <button data-tab="customers" class="tab-button px-4 py-2 text-sm font-medium text-white bg-gray-500 rounded-t-lg hover:bg-green-600 focus:outline-none focus:bg-green-600">Customers</button>
+                <button data-tab="calendar" class="tab-button px-4 py-2 text-sm font-medium text-white bg-gray-500 rounded-t-lg hover:bg-green-600 focus:outline-none focus:bg-green-600">Calendar</button>
+                <button data-tab="inventory" class="tab-button px-4 py-2 text-sm font-medium text-white bg-gray-500 rounded-t-lg hover:bg-green-600 focus:outline-none focus:bg-green-600">Inventory</button>
             </nav>
         </div>
 
         <!-- Leads Section -->
         <div id="leads" class="tab-content">
-            <button onclick="document.getElementById('lead-modal').classList.remove('hidden')" class="bg-green-500 text-white px-4 py-2 rounded mb-4 hover:bg-green-600">Add Lead</button>
+            <button id="add-lead-btn" class="bg-green-500 text-white px-4 py-2 rounded mb-4 hover:bg-green-600">Add Lead</button>
             <div class="overflow-x-auto">
                 <table class="w-full border-collapse border border-gray-300">
                     <thead>
@@ -55,7 +55,7 @@
             <!-- Lead Modal -->
             <div id="lead-modal" class="fixed inset-0 bg-gray-600 bg-opacity-50 flex items-center justify-center hidden">
                 <div class="bg-white p-6 rounded-lg shadow-lg w-1/2">
-                    <h2 class="text-lg font-bold mb-4">Add/Edit Lead</h2>
+                    <h2 id="lead-modal-title" class="text-lg font-bold mb-4">Add/Edit Lead</h2>
                     <input type="hidden" id="lead-id">
                     <label class="block mb-2 font-medium">Name:</label>
                     <input type="text" id="lead-name" class="w-full p-2 border rounded mb-4">
@@ -85,8 +85,8 @@
                     <label class="block mb-2 font-medium">Quoted from Vendor?</label>
                     <input type="checkbox" id="lead-quoted-from-vendor" class="mb-4">
                     <div class="flex space-x-2">
-                        <button onclick="saveLead()" class="bg-green-500 text-white px-4 py-2 rounded hover:bg-green-600">Save</button>
-                        <button onclick="document.getElementById('lead-modal').classList.add('hidden')" class="bg-gray-500 text-white px-4 py-2 rounded hover:bg-gray-600">Close</button>
+                        <button id="save-lead-btn" class="bg-green-500 text-white px-4 py-2 rounded hover:bg-green-600">Save</button>
+                        <button id="close-lead-modal-btn" class="bg-gray-500 text-white px-4 py-2 rounded hover:bg-gray-600">Close</button>
                     </div>
                 </div>
             </div>
@@ -94,7 +94,7 @@
 
         <!-- Customers Section -->
         <div id="customers" class="tab-content hidden">
-            <button onclick="document.getElementById('customer-modal').classList.remove('hidden')" class="bg-green-500 text-white px-4 py-2 rounded mb-4 hover:bg-green-600">Add Customer</button>
+            <button id="add-customer-btn" class="bg-green-500 text-white px-4 py-2 rounded mb-4 hover:bg-green-600">Add Customer</button>
             <div class="overflow-x-auto">
                 <table class="w-full border-collapse border border-gray-300">
                     <thead>
@@ -113,7 +113,7 @@
             <!-- Customer Modal -->
             <div id="customer-modal" class="fixed inset-0 bg-gray-600 bg-opacity-50 flex items-center justify-center hidden">
                 <div class="bg-white p-6 rounded-lg shadow-lg w-96">
-                    <h2 class="text-lg font-bold mb-4">Add Customer</h2>
+                    <h2 id="customer-modal-title" class="text-lg font-bold mb-4">Add Customer</h2>
                     <label class="block mb-2 font-medium">Name:</label>
                     <input type="text" id="customer-name" class="w-full p-2 border rounded mb-4">
                     <label class="block mb-2 font-medium">Company:</label>
@@ -123,8 +123,8 @@
                     <label class="block mb-2 font-medium">Phone:</label>
                     <input type="text" id="customer-phone" class="w-full p-2 border rounded mb-4">
                     <div class="flex space-x-2">
-                        <button onclick="saveCustomer()" class="bg-green-500 text-white px-4 py-2 rounded hover:bg-green-600">Save</button>
-                        <button onclick="document.getElementById('customer-modal').classList.add('hidden')" class="bg-gray-500 text-white px-4 py-2 rounded hover:bg-gray-600">Close</button>
+                        <button id="save-customer-btn" class="bg-green-500 text-white px-4 py-2 rounded hover:bg-green-600">Save</button>
+                        <button id="close-customer-modal-btn" class="bg-gray-500 text-white px-4 py-2 rounded hover:bg-gray-600">Close</button>
                     </div>
                 </div>
             </div>
@@ -172,9 +172,9 @@
                     <textarea id="day-notes" class="w-full p-2 border rounded mb-4"></textarea>
                     <div id="full-notes" class="mb-4"></div>
                     <div class="flex space-x-2">
-                        <button onclick="saveDay()" class="bg-green-500 text-white px-4 py-2 rounded hover:bg-green-600">Save</button>
-                        <button id="delete-day-btn" onclick="deleteDay()" class="bg-red-500 text-white px-4 py-2 rounded hidden hover:bg-red-600">Delete</button>
-                        <button onclick="document.getElementById('day-modal').classList.add('hidden')" class="bg-gray-500 text-white px-4 py-2 rounded hover:bg-gray-600">Close</button>
+                        <button id="save-day-btn" class="bg-green-500 text-white px-4 py-2 rounded hover:bg-green-600">Save</button>
+                        <button id="delete-day-btn" class="bg-red-500 text-white px-4 py-2 rounded hidden hover:bg-red-600">Delete</button>
+                        <button id="close-day-modal-btn" class="bg-gray-500 text-white px-4 py-2 rounded hover:bg-gray-600">Close</button>
                     </div>
                 </div>
             </div>
@@ -192,7 +192,7 @@
 
         <!-- Inventory Section -->
         <div id="inventory" class="tab-content hidden">
-            <button onclick="document.getElementById('inventory-modal').classList.remove('hidden')" class="bg-green-500 text-white px-4 py-2 rounded mb-4 hover:bg-green-600">Add Inventory Item</button>
+            <button id="add-inventory-btn" class="bg-green-500 text-white px-4 py-2 rounded mb-4 hover:bg-green-600">Add Inventory Item</button>
             <div class="overflow-x-auto">
                 <table class="w-full border-collapse border border-gray-300">
                     <thead>
@@ -231,7 +231,7 @@
             <!-- Inventory Modal -->
             <div id="inventory-modal" class="fixed inset-0 bg-gray-600 bg-opacity-50 flex items-center justify-center hidden">
                 <div class="bg-white p-6 rounded-lg shadow-lg w-3/4 overflow-y-auto max-h-screen">
-                    <h2 class="text-lg font-bold mb-4">Add/Edit Inventory Item</h2>
+                    <h2 id="inventory-modal-title" class="text-lg font-bold mb-4">Add/Edit Inventory Item</h2>
                     <input type="hidden" id="inventory-id">
                     <label class="block mb-2 font-medium">Part Number:</label>
                     <input type="text" id="inventory-part-number" class="w-full p-2 border rounded mb-4">
@@ -290,8 +290,8 @@
                     <label class="block mb-2 font-medium">Inventory Turnover:</label>
                     <input type="number" step="0.01" id="inventory-inventory-turnover" class="w-full p-2 border rounded mb-4">
                     <div class="flex space-x-2">
-                        <button onclick="saveInventory()" class="bg-green-500 text-white px-4 py-2 rounded hover:bg-green-600">Save</button>
-                        <button onclick="document.getElementById('inventory-modal').classList.add('hidden')" class="bg-gray-500 text-white px-4 py-2 rounded hover:bg-gray-600">Close</button>
+                        <button id="save-inventory-btn" class="bg-green-500 text-white px-4 py-2 rounded hover:bg-green-600">Save</button>
+                        <button id="close-inventory-modal-btn" class="bg-gray-500 text-white px-4 py-2 rounded hover:bg-gray-600">Close</button>
                     </div>
                 </div>
             </div>
@@ -305,12 +305,52 @@
     <script src="js/inventory.js"></script>
     <script>
         document.addEventListener('DOMContentLoaded', () => {
+            // Tab switching logic
+            function showTab(tabId) {
+                document.querySelectorAll('.tab-content').forEach(tab => {
+                    tab.classList.toggle('active', tab.id === tabId);
+                });
+                document.querySelectorAll('.tab-button').forEach(btn => {
+                    btn.classList.toggle('active', btn.getAttribute('data-tab') === tabId);
+                });
+            }
+            window.showTab = showTab;
             showTab('leads');
+
+            // Modal open/close logic for leads
+            document.getElementById('add-lead-btn').onclick = () => {
+                document.getElementById('lead-modal').classList.remove('hidden');
+            };
+            document.getElementById('close-lead-modal-btn').onclick = () => {
+                document.getElementById('lead-modal').classList.add('hidden');
+            };
+
+            // Modal open/close logic for customers
+            document.getElementById('add-customer-btn').onclick = () => {
+                document.getElementById('customer-modal').classList.remove('hidden');
+            };
+            document.getElementById('close-customer-modal-btn').onclick = () => {
+                document.getElementById('customer-modal').classList.add('hidden');
+            };
+
+            // Modal open/close logic for inventory
+            document.getElementById('add-inventory-btn').onclick = () => {
+                document.getElementById('inventory-modal').classList.remove('hidden');
+            };
+            document.getElementById('close-inventory-modal-btn').onclick = () => {
+                document.getElementById('inventory-modal').classList.add('hidden');
+            };
+
+            // Modal open/close logic for calendar
+            document.getElementById('close-day-modal-btn').onclick = () => {
+                document.getElementById('day-modal').classList.add('hidden');
+            };
+
+            // Tab button logic
             const tabs = document.querySelectorAll('.tab-button');
             tabs.forEach(tab => {
                 tab.addEventListener('click', () => {
-                    tabs.forEach(t => t.classList.remove('active'));
-                    tab.classList.add('active');
+                    showTab(tab.getAttribute('data-tab'));
                 });
             });
         });

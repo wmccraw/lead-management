@@ -1,12 +1,8 @@
 const express = require('express');
-const { Pool } = require('pg');
 const router = express.Router();
+const pool = require('../db'); // Use shared pool
 
-const pool = new Pool({
-    connectionString: process.env.DATABASE_URL,
-    ssl: { rejectUnauthorized: false }
-});
-
+// Get all inventory items
 router.get('/', async (req, res) => {
     try {
         const result = await pool.query('SELECT * FROM inventory ORDER BY date_added DESC');
@@ -17,6 +13,7 @@ router.get('/', async (req, res) => {
     }
 });
 
+// Get a single inventory item by ID
 router.get('/:id', async (req, res) => {
     try {
         const result = await pool.query('SELECT * FROM inventory WHERE id = $1', [req.params.id]);
@@ -28,6 +25,7 @@ router.get('/:id', async (req, res) => {
     }
 });
 
+// Create a new inventory item
 router.post('/', async (req, res) => {
     const {
         part_number, serial_number, part_name, description, category, manufacturer, model_compatibility,
@@ -35,14 +33,18 @@ router.post('/', async (req, res) => {
         supplier_contact, supplier_cost, latest_lead_time_received, retail_price, last_sold_date,
         sales_frequency, condition, image_url, attachment_files, usage_rate, inventory_turnover
     } = req.body;
+    // Basic validation
+    if (!part_number || !part_name) {
+        return res.status(400).send('Part number and part name are required');
+    }
     try {
         const result = await pool.query(
             `INSERT INTO inventory (
                 part_number, serial_number, part_name, description, category, manufacturer, model_compatibility,
                 quantity_in_stock, location, stock_status, reorder_point, supplier_name, supplier_part_number,
                 supplier_contact, supplier_cost, latest_lead_time_received, retail_price, last_sold_date,
-                sales_frequency, condition, image_url, attachment_files, usage_rate, inventory_turnover, created_at
-            ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16, $17, $18, $19, $20, $21, $22, $23, $24, NOW())
+                sales_frequency, condition, image_url, attachment_files, usage_rate, inventory_turnover, date_added, last_updated
+            ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16, $17, $18, $19, $20, $21, $22, $23, $24, NOW(), NOW())
             RETURNING *`,
             [
                 part_number, serial_number, part_name, description, category, manufacturer, model_compatibility,
@@ -58,6 +60,7 @@ router.post('/', async (req, res) => {
     }
 });
 
+// Update an inventory item
 router.put('/:id', async (req, res) => {
     const {
         part_number, serial_number, part_name, description, category, manufacturer, model_compatibility,
@@ -65,6 +68,9 @@ router.put('/:id', async (req, res) => {
         supplier_contact, supplier_cost, latest_lead_time_received, retail_price, last_sold_date,
         sales_frequency, condition, image_url, attachment_files, usage_rate, inventory_turnover
     } = req.body;
+    if (!part_number || !part_name) {
+        return res.status(400).send('Part number and part name are required');
+    }
     try {
         await pool.query(
             `UPDATE inventory SET
@@ -90,6 +96,7 @@ router.put('/:id', async (req, res) => {
     }
 });
 
+// Delete an inventory item
 router.delete('/:id', async (req, res) => {
     try {
         await pool.query('DELETE FROM inventory WHERE id = $1', [req.params.id]);

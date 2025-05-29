@@ -1,4 +1,23 @@
+# Node dependencies
 node_modules/
+
+# Environment variables
 .env
+
+# Uploaded files
 uploads/
+
+# Ignore all images in public/images
 public/images/*
+
+# OS-specific files
+.DS_Store
+Thumbs.db
+
+# Log files
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+
+# Optional: VS Code settings
+.vscode/

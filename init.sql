@@ -1,49 +1,53 @@
+-- LEADS TABLE
 CREATE TABLE IF NOT EXISTS leads (
     id SERIAL PRIMARY KEY,
-    name VARCHAR(255),
+    name VARCHAR(255) NOT NULL,
     company VARCHAR(255),
-    email VARCHAR(255),
+    email VARCHAR(255) NOT NULL,
     phone VARCHAR(20),
     product_category VARCHAR(255),
     make VARCHAR(255),
     model VARCHAR(255),
     notes TEXT,
-    status VARCHAR(50),
+    status VARCHAR(50) DEFAULT 'New',
     quoted_from_vendor BOOLEAN DEFAULT FALSE,
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 );
 
+-- CUSTOMERS TABLE
 CREATE TABLE IF NOT EXISTS customers (
     id SERIAL PRIMARY KEY,
-    name VARCHAR(255),
+    name VARCHAR(255) NOT NULL,
     company VARCHAR(255),
-    email VARCHAR(255),
+    email VARCHAR(255) NOT NULL,
     phone VARCHAR(20),
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 );
 
+-- CALENDAR TABLE
 CREATE TABLE IF NOT EXISTS calendar (
     id SERIAL PRIMARY KEY,
-    date DATE,
-    name VARCHAR(255),
+    date DATE NOT NULL,
+    name VARCHAR(255) NOT NULL,
     time TEXT,
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 );
 
+-- INVENTORY TABLE
 CREATE TABLE IF NOT EXISTS inventory (
     id SERIAL PRIMARY KEY,
-    part_number VARCHAR(50),
+    part_number VARCHAR(50) NOT NULL,
     serial_number VARCHAR(50),
-    part_name VARCHAR(255),
+    part_name VARCHAR(255) NOT NULL,
     description TEXT,
     category VARCHAR(255),
     manufacturer VARCHAR(255),
     model_compatibility VARCHAR(255),
-    quantity_in_stock INTEGER,
+    quantity_in_stock INTEGER DEFAULT 0,
     location VARCHAR(255),
     stock_status VARCHAR(50),
-    reorder_point INTEGER,
+    reorder_point INTEGER DEFAULT 0,
     supplier_name VARCHAR(255),
     supplier_part_number VARCHAR(50),
     supplier_contact VARCHAR(255),
@@ -51,7 +55,7 @@ CREATE TABLE IF NOT EXISTS inventory (
     latest_lead_time INTEGER,
     retail_price DECIMAL(10, 2),
     last_sold_date DATE,
-    sales_frequency INTEGER,
+    sales_frequency INTEGER DEFAULT 0,
     condition VARCHAR(50),
     image_url VARCHAR(255),
     attachment_files TEXT,
@@ -60,3 +64,23 @@ CREATE TABLE IF NOT EXISTS inventory (
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 );
+
+-- Optional: Add indexes for faster lookups (uncomment if needed)
+-- CREATE INDEX idx_leads_email ON leads(email);
+-- CREATE INDEX idx_customers_email ON customers(email);
+-- CREATE INDEX idx_inventory_part_number ON inventory(part_number);
+
+-- Optional: Add triggers to auto-update updated_at on row changes (PostgreSQL example)
+-- CREATE OR REPLACE FUNCTION update_updated_at_column()
+-- RETURNS TRIGGER AS $$
+-- BEGIN
+--   NEW.updated_at = NOW();
+--   RETURN NEW;
+-- END;
+-- $$ language 'plpgsql';
+
+-- CREATE TRIGGER update_leads_updated_at BEFORE UPDATE ON leads
+-- FOR EACH ROW EXECUTE PROCEDURE update_updated_at_column();
+
+-- CREATE TRIGGER update_inventory_updated_at BEFORE UPDATE ON inventory
+-- FOR EACH ROW EXECUTE PROCEDURE update_updated_at_column();

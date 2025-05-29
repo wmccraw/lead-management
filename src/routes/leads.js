@@ -1,12 +1,8 @@
 const express = require('express');
-const { Pool } = require('pg');
 const router = express.Router();
+const pool = require('../db'); // Use shared pool
 
-const pool = new Pool({
-    connectionString: process.env.DATABASE_URL,
-    ssl: { rejectUnauthorized: false }
-});
-
+// Get all leads
 router.get('/', async (req, res) => {
     try {
         const result = await pool.query(`
@@ -22,6 +18,7 @@ router.get('/', async (req, res) => {
     }
 });
 
+// Get a single lead by ID
 router.get('/:id', async (req, res) => {
     try {
         const result = await pool.query(`
@@ -38,8 +35,12 @@ router.get('/:id', async (req, res) => {
     }
 });
 
+// Create a new lead
 router.post('/', async (req, res) => {
     const { name, company, email, phone, product_category, make, model, notes, status } = req.body;
+    if (!name || !email) {
+        return res.status(400).send('Name and email are required');
+    }
     try {
         const customerResult = await pool.query(
             'INSERT INTO customers (name, company, email, phone) VALUES ($1, $2, $3, $4) ON CONFLICT (email) DO UPDATE SET name = $1, company = $2, phone = $4 RETURNING id',
@@ -58,8 +59,12 @@ router.post('/', async (req, res) => {
     }
 });
 
+// Update a lead
 router.put('/:id', async (req, res) => {
     const { name, company, email, phone, product_category, make, model, notes, status } = req.body;
+    if (!name || !email) {
+        return res.status(400).send('Name and email are required');
+    }
     try {
         const leadResult = await pool.query('SELECT customer_id FROM leads WHERE id = $1', [req.params.id]);
         if (leadResult.rows.length === 0) return res.status(404).send('Lead not found');
@@ -81,6 +86,7 @@ router.put('/:id', async (req, res) => {
     }
 });
 
+// Delete a lead (and customer if no other leads)
 router.delete('/:id', async (req, res) => {
     try {
         const leadResult = await pool.query('SELECT customer_id FROM leads WHERE id = $1', [req.params.id]);
@@ -88,7 +94,13 @@ router.delete('/:id', async (req, res) => {
         const customerId = leadResult.rows[0].customer_id;
 
         await pool.query('DELETE FROM leads WHERE id = $1', [req.params.id]);
-        await pool.query('DELETE FROM customers WHERE id = $1', [customerId]);
+
+        // Only delete customer if they have no other leads
+        const otherLeads = await pool.query('SELECT id FROM leads WHERE customer_id = $1', [customerId]);
+        if (otherLeads.rows.length === 0) {
+            await pool.query('DELETE FROM customers WHERE id = $1', [customerId]);
+        }
+
         res.sendStatus(200);
     } catch (err) {
         console.error(err);
