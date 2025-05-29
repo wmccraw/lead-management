@@ -1,249 +1,154 @@
 document.addEventListener('DOMContentLoaded', () => {
-    loadCalendar();
-
-    document.getElementById('add-day-note-btn').onclick = () => {
-        document.getElementById('type-modal').classList.remove('hidden');
-    };
-
-    document.getElementById('type-general-btn')?.addEventListener('click', () => openMainModal('General'));
-    document.getElementById('type-absence-btn')?.addEventListener('click', () => openMainModal('Absence'));
-    document.getElementById('type-modal-close')?.addEventListener('click', () => {
-        document.getElementById('type-modal').classList.add('hidden');
-    });
-
-    function openMainModal(type) {
-        document.getElementById('type-modal').classList.add('hidden');
-        const modal = document.getElementById('day-modal');
-        modal.classList.remove('hidden');
-        document.getElementById('day-id').value = '';
-        document.getElementById('day-notes').value = '';
-        document.getElementById('day-start-date').value = '';
-        document.getElementById('day-end-date').value = '';
-        document.getElementById('delete-day-btn').style.display = 'none';
-        document.getElementById('day-modal-title').textContent = `Add ${type}`;
-        document.getElementById('note-type').value = type;
-        toggleNoteType();
-    }
-
-    document.getElementById('note-type')?.addEventListener('change', toggleNoteType);
-
-    function toggleNoteType() {
-        const noteType = document.getElementById('note-type')?.value || 'General';
-        const isAbsence = noteType === 'Absence';
-        document.getElementById('absentee-label').style.display = isAbsence ? 'block' : 'none';
-        document.getElementById('absentee').style.display = isAbsence ? 'block' : 'none';
-        document.getElementById('day-notes').style.display = isAbsence ? 'none' : 'block';
-        document.getElementById('day-end-date').style.display = isAbsence ? 'block' : 'none';
-        document.getElementById('day-end-date-label').style.display = isAbsence ? 'block' : 'none';
-    }
-});
-
-async function loadCalendar() {
-    const month = document.getElementById('calendar-month')?.value || `${new Date().getFullYear()}-${String(new Date().getMonth() + 1).padStart(2, '0')}`;
-    const [year, monthNum] = month.split('-');
-    const firstDay = new Date(year, monthNum - 1, 1);
-    const lastDay = new Date(year, monthNum, 0);
-    const calendarGrid = document.getElementById('calendar-grid');
-    if (calendarGrid) calendarGrid.innerHTML = '';
-
-    const daysInMonth = lastDay.getDate();
-    const startDay = firstDay.getDay();
-
-    for (let i = 0; i < startDay; i++) {
-        const day = document.createElement('div');
-        day.className = 'calendar-day opacity-50';
-        calendarGrid.appendChild(day);
-    }
-
+    // Calendar state
     let calendarData = [];
-    try {
-        const response = await fetch('/api/calendar');
-        if (!response.ok) throw new Error(`HTTP error! status: ${response.status}`);
-        calendarData = await response.json();
-    } catch (err) {
-        console.error('Failed to load calendar data:', err);
-        alert('Failed to load calendar data. Please try again.');
-        return;
+
+    // Elements
+    const calendarGrid = document.getElementById('calendar-grid');
+    const calendarMonth = document.getElementById('calendar-month');
+    const addDayNoteBtn = document.getElementById('add-day-note-btn');
+    const dayModal = document.getElementById('day-modal');
+    const dayModalTitle = document.getElementById('day-modal-title');
+    const dayStartDate = document.getElementById('day-start-date');
+    const dayEndDate = document.getElementById('day-end-date');
+    const dayEndDateLabel = document.getElementById('day-end-date-label');
+    const absenteeLabel = document.getElementById('absentee-label');
+    const absenteeSelect = document.getElementById('absentee');
+    const notesLabel = document.getElementById('notes-label');
+    const dayNotes = document.getElementById('day-notes');
+    const saveDayBtn = document.getElementById('save-day-btn');
+    const deleteDayBtn = document.getElementById('delete-day-btn');
+    const closeDayModalBtn = document.getElementById('close-day-modal-btn');
+    const typeModal = document.getElementById('type-modal');
+    const typeGeneralBtn = document.getElementById('type-general-btn');
+    const typeAbsenceBtn = document.getElementById('type-absence-btn');
+    const typeModalClose = document.getElementById('type-modal-close');
+    const noteTypeInput = document.getElementById('note-type');
+    const fullNotes = document.getElementById('full-notes');
+
+    // Helper to get days in month
+    function getDaysInMonth(year, month) {
+        return new Date(year, month + 1, 0).getDate();
     }
 
-    for (let day = 1; day <= daysInMonth; day++) {
-        const formattedDay = `${year}-${monthNum.padStart(2, '0')}-${String(day).padStart(2, '0')}`;
-        const dayDiv = document.createElement('div');
-        dayDiv.className = 'calendar-day relative';
-        dayDiv.textContent = day;
-        dayDiv.dataset.date = formattedDay;
+    // Helper to format date as YYYY-MM-DD
+    function formatDate(date) {
+        return date.toISOString().split('T')[0];
+    }
 
-        const dayEntries = calendarData.filter(d => {
-            const entryDate = new Date(d.date).toISOString().split('T')[0];
-            return entryDate === formattedDay;
-        });
+    // Load calendar data from API
+    async function loadCalendar() {
+        const [year, month] = calendarMonth.value.split('-');
+        const daysInMonth = getDaysInMonth(Number(year), Number(month) - 1);
+        calendarGrid.innerHTML = '';
 
-        dayEntries.forEach(dayData => {
-            if (dayData.name !== 'Default') {
-                const marker = document.createElement('div');
-                marker.className = 'text-xs mt-1';
-                const colors = {
-                    'Wilson': 'bg-blue-500',
-                    'Carter': 'bg-red-500',
-                    'William': 'bg-green-500',
-                    'Julia': 'bg-purple-500'
-                };
-                const color = colors[dayData.name] || 'bg-gray-500';
-                marker.className += ` ${color} text-white px-1 rounded cursor-pointer`;
-                marker.textContent = `${dayData.name} Out`;
-                dayDiv.appendChild(marker);
+        // Fetch calendar data
+        const res = await fetch('/api/calendar');
+        calendarData = await res.json();
 
-                marker.addEventListener('click', () => {
-                    const modal = document.getElementById('day-modal');
-                    modal.classList.remove('hidden');
-                    document.getElementById('day-id').value = dayData.id;
-                    document.getElementById('day-notes').value = '';
-                    document.getElementById('absentee-label').style.display = 'block';
-                    document.getElementById('absentee').style.display = 'block';
-                    document.getElementById('absentee').value = dayData.name;
-                    document.getElementById('day-start-date').value = dayData.date || '';
-                    document.getElementById('day-end-date').value = '';
-                    document.getElementById('delete-day-btn').style.display = 'block';
-                    document.getElementById('day-modal-title').textContent = 'Edit Absence';
-                    document.getElementById('note-type').value = 'Absence';
-                    toggleNoteType();
-                    document.getElementById('full-notes').innerHTML = '';
-                    document.getElementById('full-notes').classList.remove('expanded');
-                });
-            } else {
-                const preview = document.createElement('div');
-                preview.className = 'text-xs mt-1 bg-yellow-500 text-white px-1 rounded cursor-pointer';
-                preview.textContent = dayData.time ? dayData.time.substring(0, 10) + (dayData.time.length > 10 ? '...' : '') : 'Note';
-                dayDiv.appendChild(preview);
+        // Build calendar grid
+        for (let day = 1; day <= daysInMonth; day++) {
+            const dateStr = `${year}-${month.padStart(2, '0')}-${String(day).padStart(2, '0')}`;
+            const entry = calendarData.find(e => e.date === dateStr);
 
-                preview.addEventListener('click', () => {
-                    const modal = document.getElementById('day-modal');
-                    modal.classList.remove('hidden');
-                    document.getElementById('day-id').value = dayData.id;
-                    document.getElementById('day-notes').value = dayData.time || '';
-                    document.getElementById('absentee-label').style.display = 'none';
-                    document.getElementById('absentee').style.display = 'none';
-                    document.getElementById('day-start-date').value = dayData.date || '';
-                    document.getElementById('day-end-date').value = '';
-                    document.getElementById('delete-day-btn').style.display = 'block';
-                    document.getElementById('day-modal-title').textContent = 'Edit Note';
-                    document.getElementById('note-type').value = 'General';
-                    toggleNoteType();
-                    document.getElementById('full-notes').innerHTML = `<p>${dayData.time || ''}</p>`;
-                    document.getElementById('full-notes').classList.add('expanded');
-                });
+            const div = document.createElement('div');
+            div.className = 'calendar-day bg-white rounded shadow cursor-pointer relative';
+            div.innerHTML = `<div class="font-bold">${day}</div>`;
+            if (entry) {
+                div.innerHTML += `<div class="text-xs mt-1">${entry.note_type === 'Absence' ? `<span class="text-red-500 font-semibold">Out: ${entry.absentee}</span>` : entry.notes || ''}</div>`;
+                div.classList.add('border-green-500');
             }
-        });
-
-        if (dayEntries.length === 0) {
-            dayDiv.addEventListener('click', () => {
-                document.getElementById('type-modal').classList.remove('hidden');
-            });
+            div.onclick = () => openDayModal(dateStr, entry);
+            calendarGrid.appendChild(div);
         }
-        calendarGrid.appendChild(dayDiv);
     }
 
-    const totalCells = startDay + daysInMonth;
-    for (let i = totalCells; i < 42; i++) {
-        const day = document.createElement('div');
-        day.className = 'calendar-day opacity-50';
-        calendarGrid.appendChild(day);
-    }
-}
-
-async function saveDay() {
-    const startDate = document.getElementById('day-start-date')?.value;
-    const endDate = document.getElementById('day-end-date')?.value;
-    const noteType = document.getElementById('note-type')?.value || 'General';
-    const name = noteType === 'Absence' ? document.getElementById('absentee')?.value : 'Default';
-    const notes = noteType === 'General' ? document.getElementById('day-notes')?.value : '';
-
-    if (!startDate) {
-        alert('Please select a start date.');
-        return;
-    }
-    if (noteType === 'Absence' && !endDate) {
-        alert('Please select an end date for absences.');
-        return;
-    }
-
-    try {
-        if (noteType === 'Absence' && endDate) {
-            const start = new Date(startDate);
-            const end = new Date(endDate);
-            for (let d = new Date(start); d <= end; d.setDate(d.getDate() + 1)) {
-                const dateStr = d.toISOString().split('T')[0];
-                const response = await fetch('/api/calendar/save', {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({
-                        date: dateStr,
-                        name,
-                        time: new Date().toLocaleTimeString('en-US', { hour12: false })
-                    })
-                });
-                const result = await response.json();
-                if (result.error) {
-                    alert(`Save error for ${dateStr}: ${result.error}`);
-                    return;
-                }
-            }
+    // Open modal for adding/editing a day
+    function openDayModal(dateStr, entry) {
+        dayModal.classList.remove('hidden');
+        dayModalTitle.textContent = entry ? 'Edit Note' : 'Add Note';
+        dayStartDate.value = dateStr;
+        dayEndDate.value = entry && entry.out_end_date ? entry.out_end_date : '';
+        dayNotes.value = entry ? (entry.notes || '') : '';
+        absenteeSelect.value = entry && entry.absentee ? entry.absentee : '';
+        noteTypeInput.value = entry ? entry.note_type : '';
+        fullNotes.innerHTML = entry && entry.notes ? `<div class="expanded">${entry.notes}</div>` : '';
+        // Show/hide fields based on note type
+        if (entry && entry.note_type === 'Absence') {
+            absenteeLabel.classList.remove('hidden');
+            absenteeSelect.classList.remove('hidden');
+            dayEndDateLabel.classList.remove('hidden');
+            dayEndDate.classList.remove('hidden');
         } else {
-            const response = await fetch('/api/calendar/save', {
+            absenteeLabel.classList.add('hidden');
+            absenteeSelect.classList.add('hidden');
+            dayEndDateLabel.classList.add('hidden');
+            dayEndDate.classList.add('hidden');
+        }
+        // Show delete button if entry exists
+        deleteDayBtn.classList.toggle('hidden', !entry);
+        // Save handler
+        saveDayBtn.onclick = async () => {
+            const note_type = noteTypeInput.value || 'General';
+            const notes = dayNotes.value;
+            const start_date = dayStartDate.value;
+            const end_date = dayEndDate.value || null;
+            const absentee = absenteeSelect.value || null;
+            const payload = { note_type, notes, start_date, end_date, absentee };
+            const resp = await fetch('/api/calendar/save', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({
-                    date: startDate,
-                    name,
-                    time: '00:00:00'
-                })
+                body: JSON.stringify(payload)
             });
-            const result = await response.json();
-            if (result.error) {
-                alert(`Save error: ${result.error}`);
-                return;
-            }
-        }
-        document.getElementById('day-modal').classList.add('hidden');
-        loadCalendar();
-    } catch (err) {
-        console.error('Failed to save calendar entry:', err);
-        alert('Failed to save calendar entry. Please try again.');
-    }
-}
-
-async function deleteDay() {
-    const dayId = document.getElementById('day-id')?.value;
-    if (dayId && confirm('Are you sure you want to delete this entry?')) {
-        try {
-            const response = await fetch(`/api/calendar/delete/${dayId}`, {
-                method: 'DELETE'
-            });
-            const result = await response.json();
-            if (result.error) {
-                alert(`Delete error: ${result.error}`);
+            if (resp.ok) {
+                dayModal.classList.add('hidden');
+                await loadCalendar();
             } else {
-                document.getElementById('day-modal').classList.add('hidden');
-                loadCalendar();
+                alert('Error saving note');
             }
-        } catch (err) {
-            console.error('Failed to delete calendar entry:', err);
-            alert('Failed to delete calendar entry. Please try again.');
-        }
+        };
+        // Delete handler
+        deleteDayBtn.onclick = async () => {
+            if (confirm('Delete this calendar entry?')) {
+                const resp = await fetch(`/api/calendar/${dateStr}`, { method: 'DELETE' });
+                if (resp.ok) {
+                    dayModal.classList.add('hidden');
+                    await loadCalendar();
+                } else {
+                    alert('Error deleting entry');
+                }
+            }
+        };
     }
-}
 
-// Expose for HTML button usage
-window.saveDay = saveDay;
-window.deleteDay = deleteDay;
+    // Add Note/Out button logic
+    addDayNoteBtn.onclick = () => {
+        typeModal.classList.remove('hidden');
+    };
+    typeModalClose.onclick = () => {
+        typeModal.classList.add('hidden');
+    };
+    typeGeneralBtn.onclick = () => {
+        typeModal.classList.add('hidden');
+        noteTypeInput.value = 'General';
+        absenteeLabel.classList.add('hidden');
+        absenteeSelect.classList.add('hidden');
+        dayEndDateLabel.classList.add('hidden');
+        dayEndDate.classList.add('hidden');
+        openDayModal(formatDate(new Date()), null);
+    };
+    typeAbsenceBtn.onclick = () => {
+        typeModal.classList.add('hidden');
+        noteTypeInput.value = 'Absence';
+        absenteeLabel.classList.remove('hidden');
+        absenteeSelect.classList.remove('hidden');
+        dayEndDateLabel.classList.remove('hidden');
+        dayEndDate.classList.remove('hidden');
+        openDayModal(formatDate(new Date()), null);
+    };
 
-// Helper for toggling note type in modals
-function toggleNoteType() {
-    const noteType = document.getElementById('note-type')?.value || 'General';
-    const isAbsence = noteType === 'Absence';
-    document.getElementById('absentee-label').style.display = isAbsence ? 'block' : 'none';
-    document.getElementById('absentee').style.display = isAbsence ? 'block' : 'none';
-    document.getElementById('day-notes').style.display = isAbsence ? 'none' : 'block';
-    document.getElementById('day-end-date').style.display = isAbsence ? 'block' : 'none';
-    document.getElementById('day-end-date-label').style.display = isAbsence ? 'block' : 'none';
-}
+    // Month change
+    calendarMonth.onchange = loadCalendar;
+
+    // Initial load
+    loadCalendar();
+});

@@ -47,6 +47,24 @@ router.post('/save', async (req, res) => {
     }
 });
 
+// Delete a calendar entry by date (or id if you have one)
+router.delete('/:date', async (req, res) => {
+    const { date } = req.params;
+    if (!date) {
+        return res.status(400).json({ error: 'Date is required for deletion' });
+    }
+    try {
+        const result = await pool.query('DELETE FROM calendar_days WHERE date = $1', [date]);
+        if (result.rowCount === 0) {
+            return res.status(404).json({ error: 'No entry found for that date' });
+        }
+        res.json({ message: 'Deleted successfully' });
+    } catch (err) {
+        console.error('Error deleting calendar entry:', err);
+        res.status(500).json({ error: 'Server error deleting data' });
+    }
+});
+
 // Helper function for date ranges
 function getDateRange(startDate, endDate) {
     const dates = [];
