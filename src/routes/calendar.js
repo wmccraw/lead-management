@@ -27,7 +27,6 @@ router.post('/save', async (req, res) => {
 
     try {
         if (note_type === 'Absence') {
-            // Only save one row for the absence (start_date to end_date)
             await pool.query(
                 `INSERT INTO calendar_days (date, notes, note_type, absentee, out_status, out_start_date, out_end_date, created_at)
                  VALUES ($1, $2, $3, $4, $5, $6, $7, NOW())
@@ -36,7 +35,6 @@ router.post('/save', async (req, res) => {
                 [start_date, notes || null, note_type, absentee, true, start_date, end_date || start_date]
             );
         } else {
-            // General note: one row per note per day
             await pool.query(
                 `INSERT INTO calendar_days (date, notes, note_type, created_at)
                  VALUES ($1, $2, $3, NOW())
