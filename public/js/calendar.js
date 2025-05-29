@@ -1,6 +1,7 @@
 document.addEventListener('DOMContentLoaded', () => {
     // Calendar state
     let calendarData = [];
+    let pendingCalendarDate = null;
 
     // Elements
     const calendarGrid = document.getElementById('calendar-grid');
@@ -41,9 +42,28 @@ document.addEventListener('DOMContentLoaded', () => {
         const daysInMonth = getDaysInMonth(Number(year), Number(month) - 1);
         calendarGrid.innerHTML = '';
 
+        // Add weekday headers
+        const weekdays = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'];
+        weekdays.forEach(day => {
+            const header = document.createElement('div');
+            header.textContent = day;
+            header.className = 'font-semibold text-center bg-gray-200 rounded';
+            calendarGrid.appendChild(header);
+        });
+
         // Fetch calendar data
         const res = await fetch('/api/calendar');
         calendarData = await res.json();
+
+        // Find the weekday of the 1st of the month (0=Sunday)
+        const firstDay = new Date(Number(year), Number(month) - 1, 1).getDay();
+
+        // Add empty cells for days before the 1st
+        for (let i = 0; i < firstDay; i++) {
+            const empty = document.createElement('div');
+            empty.className = 'calendar-day bg-transparent cursor-default';
+            calendarGrid.appendChild(empty);
+        }
 
         // Build calendar grid
         for (let day = 1; day <= daysInMonth; day++) {
@@ -57,7 +77,15 @@ document.addEventListener('DOMContentLoaded', () => {
                 div.innerHTML += `<div class="text-xs mt-1">${entry.note_type === 'Absence' ? `<span class="text-red-500 font-semibold">Out: ${entry.absentee}</span>` : entry.notes || ''}</div>`;
                 div.classList.add('border-green-500');
             }
-            div.onclick = () => openDayModal(dateStr, entry);
+            // If entry exists, open modal directly; if not, prompt for type
+            div.onclick = () => {
+                if (entry) {
+                    openDayModal(dateStr, entry);
+                } else {
+                    pendingCalendarDate = dateStr;
+                    typeModal.classList.remove('hidden');
+                }
+            };
             calendarGrid.appendChild(div);
         }
     }
@@ -70,10 +98,10 @@ document.addEventListener('DOMContentLoaded', () => {
         dayEndDate.value = entry && entry.out_end_date ? entry.out_end_date : '';
         dayNotes.value = entry ? (entry.notes || '') : '';
         absenteeSelect.value = entry && entry.absentee ? entry.absentee : '';
-        noteTypeInput.value = entry ? entry.note_type : '';
+        noteTypeInput.value = entry ? entry.note_type : noteTypeInput.value || 'General';
         fullNotes.innerHTML = entry && entry.notes ? `<div class="expanded">${entry.notes}</div>` : '';
         // Show/hide fields based on note type
-        if (entry && entry.note_type === 'Absence') {
+        if ((entry && entry.note_type === 'Absence') || noteTypeInput.value === 'Absence') {
             absenteeLabel.classList.remove('hidden');
             absenteeSelect.classList.remove('hidden');
             dayEndDateLabel.classList.remove('hidden');
@@ -122,10 +150,12 @@ document.addEventListener('DOMContentLoaded', () => {
 
     // Add Note/Out button logic
     addDayNoteBtn.onclick = () => {
+        pendingCalendarDate = formatDate(new Date());
         typeModal.classList.remove('hidden');
     };
     typeModalClose.onclick = () => {
         typeModal.classList.add('hidden');
+        pendingCalendarDate = null;
     };
     typeGeneralBtn.onclick = () => {
         typeModal.classList.add('hidden');
@@ -134,7 +164,8 @@ document.addEventListener('DOMContentLoaded', () => {
         absenteeSelect.classList.add('hidden');
         dayEndDateLabel.classList.add('hidden');
         dayEndDate.classList.add('hidden');
-        openDayModal(formatDate(new Date()), null);
+        openDayModal(pendingCalendarDate || formatDate(new Date()), null);
+        pendingCalendarDate = null;
     };
     typeAbsenceBtn.onclick = () => {
         typeModal.classList.add('hidden');
@@ -143,7 +174,8 @@ document.addEventListener('DOMContentLoaded', () => {
         absenteeSelect.classList.remove('hidden');
         dayEndDateLabel.classList.remove('hidden');
         dayEndDate.classList.remove('hidden');
-        openDayModal(formatDate(new Date()), null);
+        openDayModal(pendingCalendarDate || formatDate(new Date()), null);
+        pendingCalendarDate = null;
     };
 
     // Month change
