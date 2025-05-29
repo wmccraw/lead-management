@@ -25,7 +25,7 @@ CREATE TABLE IF NOT EXISTS customers (
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 );
 
--- CALENDAR TABLE
+-- CALENDAR TABLE (legacy, safe to keep if used elsewhere)
 CREATE TABLE IF NOT EXISTS calendar (
     id SERIAL PRIMARY KEY,
     date DATE NOT NULL,
@@ -64,6 +64,29 @@ CREATE TABLE IF NOT EXISTS inventory (
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 );
+
+-- CALENDAR_DAYS TABLE (for new calendar system)
+DROP TABLE IF EXISTS calendar_days;
+CREATE TABLE calendar_days (
+    id SERIAL PRIMARY KEY,
+    date DATE NOT NULL,
+    notes TEXT,
+    note_type TEXT NOT NULL,
+    absentee TEXT,
+    out_status BOOLEAN,
+    out_start_date DATE,
+    out_end_date DATE,
+    created_at TIMESTAMP DEFAULT NOW()
+);
+
+-- Unique index for absences: only one row per person per absence range
+CREATE UNIQUE INDEX IF NOT EXISTS uniq_absence
+ON calendar_days (note_type, absentee, out_start_date, out_end_date);
+
+-- Unique index for notes: only one note per day per type (not Absence)
+CREATE UNIQUE INDEX IF NOT EXISTS uniq_note
+ON calendar_days (date, note_type)
+WHERE note_type != 'Absence';
 
 -- Optional: Add indexes for faster lookups (uncomment if needed)
 -- CREATE INDEX idx_leads_email ON leads(email);
