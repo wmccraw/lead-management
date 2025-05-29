@@ -1,6 +1,6 @@
 const express = require('express');
 const router = express.Router();
-const pool = require('../db'); // Use shared pool
+const pool = require('../db');
 
 // Get all calendar entries
 router.get('/', async (req, res) => {
@@ -9,7 +9,7 @@ router.get('/', async (req, res) => {
         res.json(result.rows);
     } catch (err) {
         console.error('Error fetching calendar data:', err);
-        res.status(500).json({ error: 'Server error fetching calendar data' });
+        res.status(500).json({ error: err.message || 'Server error fetching calendar data' });
     }
 });
 
@@ -48,11 +48,11 @@ router.post('/save', async (req, res) => {
         res.status(201).json({ message: 'Saved successfully' });
     } catch (err) {
         console.error('Error saving to calendar:', err);
-        res.status(500).json({ error: 'Server error saving data' });
+        res.status(500).json({ error: err.message || 'Server error saving data' });
     }
 });
 
-// Delete a calendar entry by id (recommended) or by date/start_date
+// Delete a calendar entry by id
 router.delete('/:id', async (req, res) => {
     const { id } = req.params;
     if (!id) {
@@ -66,7 +66,7 @@ router.delete('/:id', async (req, res) => {
         res.json({ message: 'Deleted successfully' });
     } catch (err) {
         console.error('Error deleting calendar entry:', err);
-        res.status(500).json({ error: 'Server error deleting data' });
+        res.status(500).json({ error: err.message || 'Server error deleting data' });
     }
 });
 

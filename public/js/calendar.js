@@ -51,18 +51,6 @@ document.addEventListener('DOMContentLoaded', () => {
         return date.toISOString().split('T')[0];
     }
 
-    // Helper to get all dates between two dates (inclusive)
-    function getDateRange(start, end) {
-        const dates = [];
-        let current = new Date(start);
-        const last = new Date(end);
-        while (current <= last) {
-            dates.push(formatDate(current));
-            current.setDate(current.getDate() + 1);
-        }
-        return dates;
-    }
-
     // Load calendar data from API
     async function loadCalendar() {
         const [year, month] = calendarMonth.value.split('-');
@@ -205,7 +193,13 @@ document.addEventListener('DOMContentLoaded', () => {
                 dayModal.classList.add('hidden');
                 await loadCalendar();
             } else {
-                alert('Error saving note');
+                // Show backend error message if available
+                let msg = 'Error saving note';
+                try {
+                    const data = await resp.json();
+                    if (data && data.error) msg += ': ' + data.error;
+                } catch {}
+                alert(msg);
             }
         };
         // Delete handler
