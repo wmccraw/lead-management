@@ -12,7 +12,8 @@ CREATE TABLE IF NOT EXISTS leads (
     status VARCHAR(50) DEFAULT 'New',
     quoted_from_vendor BOOLEAN DEFAULT FALSE,
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    customer_id INTEGER -- Added for backend compatibility
 );
 
 -- CUSTOMERS TABLE
@@ -22,7 +23,8 @@ CREATE TABLE IF NOT EXISTS customers (
     company VARCHAR(255),
     email VARCHAR(255) NOT NULL,
     phone VARCHAR(20),
-    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    date_added TIMESTAMP DEFAULT CURRENT_TIMESTAMP -- Added for backend compatibility
 );
 
 -- CALENDAR TABLE (legacy, safe to keep if used elsewhere)
@@ -62,7 +64,8 @@ CREATE TABLE IF NOT EXISTS inventory (
     usage_rate DECIMAL(10, 2),
     inventory_turnover DECIMAL(10, 2),
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    date_added TIMESTAMP DEFAULT CURRENT_TIMESTAMP -- Added for backend compatibility
 );
 
 -- CALENDAR_DAYS TABLE (for new calendar system)
