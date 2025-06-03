@@ -2,6 +2,7 @@ document.addEventListener('DOMContentLoaded', () => {
     let calendarData = [];
     let pendingCalendarDate = null;
     let pendingEntryId = null;
+    let userSelectedMonth = false; // Track if user has picked a month
 
     const calendarGrid = document.getElementById('calendar-grid');
     const calendarMonth = document.getElementById('calendar-month');
@@ -262,11 +263,18 @@ document.addEventListener('DOMContentLoaded', () => {
 
     // Ensure the calendarMonth select has a value before loading
     ensureCalendarMonthValue();
-    calendarMonth.onchange = loadCalendar;
+
+    // Track user interaction with the month selector
+    calendarMonth.onchange = () => {
+        userSelectedMonth = true;
+        loadCalendar();
+    };
+
     loadCalendar();
 
-    // Auto-update month selector every hour
+    // Auto-update month selector every hour, but only if user hasn't picked a month
     setInterval(() => {
+        if (userSelectedMonth) return;
         const today = new Date();
         const currentValue = `${today.getFullYear()}-${String(today.getMonth() + 1).padStart(2, '0')}`;
         if (calendarMonth.value !== currentValue) {
