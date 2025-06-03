@@ -47,11 +47,17 @@ document.addEventListener('DOMContentLoaded', () => {
         return date.toISOString().split('T')[0];
     }
 
-    // Ensure the calendarMonth select has a value on load
+    // Ensure the calendarMonth select has a value on load and defaults to current month
     function ensureCalendarMonthValue() {
-        if (!calendarMonth.value) {
-            const today = new Date();
-            calendarMonth.value = `${today.getFullYear()}-${String(today.getMonth() + 1).padStart(2, '0')}`;
+        const today = new Date();
+        const currentValue = `${today.getFullYear()}-${String(today.getMonth() + 1).padStart(2, '0')}`;
+        // If the current month exists in the select, set it as selected
+        const option = Array.from(calendarMonth.options).find(opt => opt.value === currentValue);
+        if (option) {
+            calendarMonth.value = currentValue;
+        } else if (!calendarMonth.value) {
+            // fallback: select the first option if current month is not present
+            calendarMonth.selectedIndex = 0;
         }
     }
 
@@ -90,6 +96,7 @@ document.addEventListener('DOMContentLoaded', () => {
         }
 
         // Render days
+        const today = new Date();
         for (let day = 1; day <= daysInMonth; day++) {
             const dateStr = `${year}-${month.padStart(2, '0')}-${String(day).padStart(2, '0')}`;
             const absences = calendarData.filter(e =>
@@ -103,8 +110,17 @@ document.addEventListener('DOMContentLoaded', () => {
                 e.date === dateStr && e.note_type !== 'Absence'
             );
 
+            // Highlight today
+            const isToday =
+                Number(year) === today.getFullYear() &&
+                Number(month) === today.getMonth() + 1 &&
+                day === today.getDate();
+
             const div = document.createElement('div');
             div.className = 'calendar-day bg-white rounded shadow relative flex flex-col justify-between';
+            if (isToday) {
+                div.classList.add('bg-green-200', 'ring-2', 'ring-green-400', 'ring-opacity-50');
+            }
             div.style.position = 'relative';
             div.innerHTML = `<div class="font-bold">${day}</div>`;
 
@@ -248,4 +264,17 @@ document.addEventListener('DOMContentLoaded', () => {
     ensureCalendarMonthValue();
     calendarMonth.onchange = loadCalendar;
     loadCalendar();
+
+    // Auto-update month selector every hour
+    setInterval(() => {
+        const today = new Date();
+        const currentValue = `${today.getFullYear()}-${String(today.getMonth() + 1).padStart(2, '0')}`;
+        if (calendarMonth.value !== currentValue) {
+            const option = Array.from(calendarMonth.options).find(opt => opt.value === currentValue);
+            if (option) {
+                calendarMonth.value = currentValue;
+                loadCalendar();
+            }
+        }
+    }, 60 * 60 * 1000); // Check every hour
 });
