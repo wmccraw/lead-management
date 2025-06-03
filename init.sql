@@ -16,6 +16,9 @@ CREATE TABLE IF NOT EXISTS leads (
     customer_id INTEGER -- Added for backend compatibility
 );
 
+-- Ensure leads has customer_id column
+ALTER TABLE leads ADD COLUMN IF NOT EXISTS customer_id INTEGER;
+
 -- CUSTOMERS TABLE
 CREATE TABLE IF NOT EXISTS customers (
     id SERIAL PRIMARY KEY,
@@ -26,6 +29,9 @@ CREATE TABLE IF NOT EXISTS customers (
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     date_added TIMESTAMP DEFAULT CURRENT_TIMESTAMP -- Added for backend compatibility
 );
+
+-- Ensure customers has date_added column
+ALTER TABLE customers ADD COLUMN IF NOT EXISTS date_added TIMESTAMP DEFAULT CURRENT_TIMESTAMP;
 
 -- CALENDAR TABLE (legacy, safe to keep if used elsewhere)
 CREATE TABLE IF NOT EXISTS calendar (
@@ -67,6 +73,9 @@ CREATE TABLE IF NOT EXISTS inventory (
     updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     date_added TIMESTAMP DEFAULT CURRENT_TIMESTAMP -- Added for backend compatibility
 );
+
+-- Ensure inventory has date_added column
+ALTER TABLE inventory ADD COLUMN IF NOT EXISTS date_added TIMESTAMP DEFAULT CURRENT_TIMESTAMP;
 
 -- CALENDAR_DAYS TABLE (for new calendar system)
 DROP TABLE IF EXISTS calendar_days;
