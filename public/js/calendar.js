@@ -1,10 +1,8 @@
 document.addEventListener('DOMContentLoaded', () => {
-    // Calendar state
     let calendarData = [];
     let pendingCalendarDate = null;
     let pendingEntryId = null;
 
-    // Elements
     const calendarGrid = document.getElementById('calendar-grid');
     const calendarMonth = document.getElementById('calendar-month');
     const addDayNoteBtn = document.getElementById('add-day-note-btn');
@@ -27,7 +25,6 @@ document.addEventListener('DOMContentLoaded', () => {
     const noteTypeInput = document.getElementById('note-type');
     const fullNotes = document.getElementById('full-notes');
 
-    // Absentee color map
     const absenteeColors = {
         Wilson: 'bg-blue-400',
         Carter: 'bg-green-400',
@@ -41,24 +38,30 @@ document.addEventListener('DOMContentLoaded', () => {
         Julia: 'text-pink-900'
     };
 
-    // Helper to get days in month
+    const weekdays = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'];
+
     function getDaysInMonth(year, month) {
         return new Date(year, month + 1, 0).getDate();
     }
-
-    // Helper to format date as YYYY-MM-DD
     function formatDate(date) {
         return date.toISOString().split('T')[0];
     }
 
-    // Load calendar data from API
+    // Ensure the calendarMonth select has a value on load
+    function ensureCalendarMonthValue() {
+        if (!calendarMonth.value) {
+            const today = new Date();
+            calendarMonth.value = `${today.getFullYear()}-${String(today.getMonth() + 1).padStart(2, '0')}`;
+        }
+    }
+
     async function loadCalendar() {
+        ensureCalendarMonthValue();
         const [year, month] = calendarMonth.value.split('-');
         const daysInMonth = getDaysInMonth(Number(year), Number(month) - 1);
         calendarGrid.innerHTML = '';
 
-        // Add weekday headers
-        const weekdays = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'];
+        // Weekday headers
         weekdays.forEach(day => {
             const header = document.createElement('div');
             header.textContent = day;
@@ -67,24 +70,28 @@ document.addEventListener('DOMContentLoaded', () => {
         });
 
         // Fetch calendar data
-        const res = await fetch('/api/calendar');
-        calendarData = await res.json();
+        let res, data;
+        try {
+            res = await fetch('/api/calendar');
+            data = await res.json();
+            if (!Array.isArray(data)) throw new Error('Calendar data is not an array');
+            calendarData = data;
+        } catch (err) {
+            alert('Failed to load calendar data: ' + (err.message || 'Unknown error'));
+            return;
+        }
 
-        // Find the weekday of the 1st of the month (0=Sunday)
+        // Offset for first day
         const firstDay = new Date(Number(year), Number(month) - 1, 1).getDay();
-
-        // Add empty cells for days before the 1st
         for (let i = 0; i < firstDay; i++) {
             const empty = document.createElement('div');
             empty.className = 'calendar-day bg-transparent cursor-default';
             calendarGrid.appendChild(empty);
         }
 
-        // Build calendar grid
+        // Render days
         for (let day = 1; day <= daysInMonth; day++) {
             const dateStr = `${year}-${month.padStart(2, '0')}-${String(day).padStart(2, '0')}`;
-
-            // All absences covering this day
             const absences = calendarData.filter(e =>
                 e.note_type === 'Absence' &&
                 e.out_start_date &&
@@ -92,8 +99,6 @@ document.addEventListener('DOMContentLoaded', () => {
                 new Date(e.out_start_date) <= new Date(dateStr) &&
                 new Date(e.out_end_date) >= new Date(dateStr)
             );
-
-            // All notes for this day (not absences)
             const notes = calendarData.filter(e =>
                 e.date === dateStr && e.note_type !== 'Absence'
             );
@@ -101,11 +106,8 @@ document.addEventListener('DOMContentLoaded', () => {
             const div = document.createElement('div');
             div.className = 'calendar-day bg-white rounded shadow relative flex flex-col justify-between';
             div.style.position = 'relative';
-
-            // Day number
             div.innerHTML = `<div class="font-bold">${day}</div>`;
 
-            // Absence bars (one per absentee covering this day)
             absences.forEach(absence => {
                 const color = absenteeColors[absence.absentee] || 'bg-gray-400';
                 const textColor = absenteeTextColors[absence.absentee] || 'text-gray-900';
@@ -116,12 +118,10 @@ document.addEventListener('DOMContentLoaded', () => {
                     e.stopPropagation();
                     openDayModal(absence.date, absence);
                 };
-                // Store id for deletion/editing
                 bar.dataset.entryId = absence.id;
                 div.appendChild(bar);
             });
 
-            // General note previews (all notes for this day)
             notes.forEach(note => {
                 const preview = document.createElement('div');
                 preview.className = 'mt-1 text-xs bg-gray-100 rounded px-1 py-0.5 cursor-pointer truncate';
@@ -130,14 +130,11 @@ document.addEventListener('DOMContentLoaded', () => {
                     e.stopPropagation();
                     openDayModal(note.date, note);
                 };
-                // Store id for deletion/editing
                 preview.dataset.entryId = note.id;
                 div.appendChild(preview);
             });
 
-            // Click on blank part opens type selector
             div.onclick = (e) => {
-                // Only open if not clicking a note/absence bar
                 if (e.target === div || e.target.classList.contains('font-bold')) {
                     pendingCalendarDate = dateStr;
                     pendingEntryId = null;
@@ -149,7 +146,6 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     }
 
-    // Open modal for adding/editing a day
     function openDayModal(dateStr, entry) {
         dayModal.classList.remove('hidden');
         dayModalTitle.textContent = entry ? 'Edit Note' : 'Add Note';
@@ -162,7 +158,6 @@ document.addEventListener('DOMContentLoaded', () => {
             ? `<div class="expanded">${entry.notes}</div>`
             : '';
         pendingEntryId = entry && entry.id ? entry.id : null;
-        // Show/hide fields based on note type
         if ((entry && entry.note_type === 'Absence') || noteTypeInput.value === 'Absence') {
             absenteeLabel.classList.remove('hidden');
             absenteeSelect.classList.remove('hidden');
@@ -174,9 +169,7 @@ document.addEventListener('DOMContentLoaded', () => {
             dayEndDateLabel.classList.add('hidden');
             dayEndDate.classList.add('hidden');
         }
-        // Show delete button if entry exists
         deleteDayBtn.classList.toggle('hidden', !entry);
-        // Save handler
         saveDayBtn.onclick = async () => {
             const note_type = noteTypeInput.value || 'General';
             const notes = dayNotes.value;
@@ -193,7 +186,6 @@ document.addEventListener('DOMContentLoaded', () => {
                 dayModal.classList.add('hidden');
                 await loadCalendar();
             } else {
-                // Show backend error message if available
                 let msg = 'Error saving note';
                 try {
                     const data = await resp.json();
@@ -202,7 +194,6 @@ document.addEventListener('DOMContentLoaded', () => {
                 alert(msg);
             }
         };
-        // Delete handler
         deleteDayBtn.onclick = async () => {
             if (!pendingEntryId) {
                 alert('No entry id found for deletion.');
@@ -220,7 +211,6 @@ document.addEventListener('DOMContentLoaded', () => {
         };
     }
 
-    // Add Note/Out button logic
     addDayNoteBtn.onclick = () => {
         pendingCalendarDate = formatDate(new Date());
         pendingEntryId = null;
@@ -254,9 +244,8 @@ document.addEventListener('DOMContentLoaded', () => {
         pendingEntryId = null;
     };
 
-    // Month change
+    // Ensure the calendarMonth select has a value before loading
+    ensureCalendarMonthValue();
     calendarMonth.onchange = loadCalendar;
-
-    // Initial load
     loadCalendar();
 });
