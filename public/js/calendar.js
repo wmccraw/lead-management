@@ -139,16 +139,25 @@ document.addEventListener('DOMContentLoaded', () => {
                 div.appendChild(bar);
             });
 
+            // Render general notes as a line
             notes.forEach(note => {
-                const preview = document.createElement('div');
-                preview.className = 'mt-1 text-xs bg-gray-100 rounded px-1 py-0.5 cursor-pointer truncate';
-                preview.textContent = note.notes && note.notes.length > 40 ? note.notes.slice(0, 40) + '...' : note.notes;
-                preview.onclick = (e) => {
+                // Show "Note" or first 5 words as preview
+                let previewText = "Note";
+                if (note.notes && note.notes.trim().length > 0) {
+                    const words = note.notes.trim().split(/\s+/);
+                    previewText = words.slice(0, 5).join(' ');
+                    if (words.length > 5) previewText += '...';
+                }
+                const noteBar = document.createElement('div');
+                noteBar.className = 'mt-1 mb-1 rounded text-xs px-1 py-0.5 bg-gray-300 text-gray-800 font-semibold whitespace-nowrap overflow-hidden cursor-pointer';
+                noteBar.textContent = previewText;
+                noteBar.title = note.notes || 'Note';
+                noteBar.onclick = (e) => {
                     e.stopPropagation();
                     openDayModal(note.date, note);
                 };
-                preview.dataset.entryId = note.id;
-                div.appendChild(preview);
+                noteBar.dataset.entryId = note.id;
+                div.appendChild(noteBar);
             });
 
             div.onclick = (e) => {
