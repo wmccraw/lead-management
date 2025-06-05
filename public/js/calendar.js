@@ -63,7 +63,7 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     async function loadCalendar() {
-        ensureCalendarMonthValue();
+        // DO NOT call ensureCalendarMonthValue() here!
         const [year, month] = calendarMonth.value.split('-');
         const daysInMonth = getDaysInMonth(Number(year), Number(month) - 1);
         calendarGrid.innerHTML = '';
@@ -261,7 +261,7 @@ document.addEventListener('DOMContentLoaded', () => {
         pendingEntryId = null;
     };
 
-    // Ensure the calendarMonth select has a value before loading
+    // Only call this ONCE, not inside loadCalendar!
     ensureCalendarMonthValue();
 
     // Track user interaction with the month selector
