@@ -181,7 +181,7 @@ document.addEventListener('DOMContentLoaded', () => {
         dayEndDate.value = entry && entry.out_end_date ? entry.out_end_date : '';
         dayNotes.value = entry ? (entry.notes || '') : '';
         absenteeSelect.value = entry && entry.absentee ? entry.absentee : '';
-        noteTypeInput.value = entry ? entry.note_type : noteTypeInput.value || 'General';
+        noteTypeInput.value = entry ? entry.note_type : (noteTypeInput.value || 'General');
         fullNotes.innerHTML = entry && entry.notes
             ? `<div class="expanded">${entry.notes}</div>`
             : '';
@@ -204,96 +204,17 @@ document.addEventListener('DOMContentLoaded', () => {
             const start_date = dayStartDate.value;
             const end_date = dayEndDate.value || null;
             const absentee = absenteeSelect.value || null;
+
+            // Validation: ensure required fields
+            if (!note_type || !start_date) {
+                alert('Note type and start date are required.');
+                return;
+            }
+
             const payload = { note_type, notes, start_date, end_date, absentee };
             const resp = await fetch('/api/calendar/save', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify(payload)
             });
-            if (resp.ok) {
-                dayModal.classList.add('hidden');
-                await loadCalendar();
-            } else {
-                let msg = 'Error saving note';
-                try {
-                    const data = await resp.json();
-                    if (data && data.error) msg += ': ' + data.error;
-                } catch {}
-                alert(msg);
-            }
-        };
-        deleteDayBtn.onclick = async () => {
-            if (!pendingEntryId) {
-                alert('No entry id found for deletion.');
-                return;
-            }
-            if (confirm('Delete this calendar entry?')) {
-                const resp = await fetch(`/api/calendar/${pendingEntryId}`, { method: 'DELETE' });
-                if (resp.ok) {
-                    dayModal.classList.add('hidden');
-                    await loadCalendar();
-                } else {
-                    alert('Error deleting entry');
-                }
-            }
-        };
-    }
-
-    addDayNoteBtn.onclick = () => {
-        pendingCalendarDate = formatDate(new Date());
-        pendingEntryId = null;
-        typeModal.classList.remove('hidden');
-    };
-    typeModalClose.onclick = () => {
-        typeModal.classList.add('hidden');
-        pendingCalendarDate = null;
-        pendingEntryId = null;
-    };
-    typeGeneralBtn.onclick = () => {
-        typeModal.classList.add('hidden');
-        noteTypeInput.value = 'General';
-        absenteeLabel.classList.add('hidden');
-        absenteeSelect.classList.add('hidden');
-        dayEndDateLabel.classList.add('hidden');
-        dayEndDate.classList.add('hidden');
-        openDayModal(pendingCalendarDate || formatDate(new Date()), null);
-        pendingCalendarDate = null;
-        pendingEntryId = null;
-    };
-    typeAbsenceBtn.onclick = () => {
-        typeModal.classList.add('hidden');
-        noteTypeInput.value = 'Absence';
-        absenteeLabel.classList.remove('hidden');
-        absenteeSelect.classList.remove('hidden');
-        dayEndDateLabel.classList.remove('hidden');
-        dayEndDate.classList.remove('hidden');
-        openDayModal(pendingCalendarDate || formatDate(new Date()), null);
-        pendingCalendarDate = null;
-        pendingEntryId = null;
-    };
-
-    // Only call this ONCE, not inside loadCalendar!
-    ensureCalendarMonthValue();
-
-    // Track user interaction with the month selector
-    calendarMonth.onchange = () => {
-        userSelectedMonth = true;
-        loadCalendar();
-    };
-
-    loadCalendar();
-
-    // Auto-update month selector every hour, but only if user hasn't picked a month
-    setInterval(() => {
-        if (userSelectedMonth) return;
-        const today = new Date();
-        const currentValue = `${today.getFullYear()}-${String(today.getMonth() + 1).padStart(2, '0')}`;
-        if (calendarMonth.value !== currentValue) {
-            const option = Array.from(calendarMonth.options).find(opt => opt.value === currentValue);
-            if (option) {
-                calendarMonth.value = currentValue;
-                loadCalendar();
-            }
-        }
-    }, 60 * 60 * 1000); // Check every hour
-});
+            if
