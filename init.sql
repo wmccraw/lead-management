@@ -95,10 +95,17 @@ CREATE TABLE calendar_days (
 CREATE UNIQUE INDEX IF NOT EXISTS uniq_absence
 ON calendar_days (note_type, absentee, out_start_date, out_end_date);
 
+-- Drop old partial index if it exists (important for upgrades)
+DROP INDEX IF EXISTS uniq_note;
+
 -- Unique index for notes: only one note per day per type (not Absence)
-CREATE UNIQUE INDEX IF NOT EXISTS uniq_note
+CREATE UNIQUE INDEX IF NOT EXISTS uniq_note_partial
 ON calendar_days (date, note_type)
 WHERE note_type != 'Absence';
+
+-- Add a full unique constraint for ON CONFLICT support
+ALTER TABLE calendar_days
+ADD CONSTRAINT IF NOT EXISTS uniq_note UNIQUE (date, note_type);
 
 -- Optional: Add indexes for faster lookups (uncomment if needed)
 -- CREATE INDEX idx_leads_email ON leads(email);
