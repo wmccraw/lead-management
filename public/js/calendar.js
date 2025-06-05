@@ -100,6 +100,8 @@ document.addEventListener('DOMContentLoaded', () => {
         const today = new Date();
         for (let day = 1; day <= daysInMonth; day++) {
             const dateStr = `${year}-${month.padStart(2, '0')}-${String(day).padStart(2, '0')}`;
+
+            // Use .slice(0, 10) to normalize date string for comparison
             const absences = calendarData.filter(e =>
                 e.note_type === 'Absence' &&
                 e.out_start_date &&
@@ -108,7 +110,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 new Date(e.out_end_date) >= new Date(dateStr)
             );
             const notes = calendarData.filter(e =>
-                e.date === dateStr && e.note_type !== 'Absence'
+                e.date && e.date.slice(0, 10) === dateStr && e.note_type !== 'Absence'
             );
 
             // Highlight today
